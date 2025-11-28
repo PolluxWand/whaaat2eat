@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>选了么 - 今天吃什么</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & Babel -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Screenshot Tool -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <style>
+        /* System Font Stack for China Speed Optimization */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background-color: #000;
+            color: #fff;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Sticker Style for Cat Head */
+        .sticker-effect {
+            filter: 
+                drop-shadow(0px -2px 0px white) 
+                drop-shadow(2px 0px 0px white) 
+                drop-shadow(0px 2px 0px white) 
+                drop-shadow(-2px 0px 0px white)
+                drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            transition: transform 0.3s ease;
+        }
+        .sticker-effect:active { transform: scale(0.95); }
+
+        /* Loading Spinner */
+        .loader {
+            border: 3px solid #333;
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #loading-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; justify-content: center; align-items: center; transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen"><div class="loader"></div></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- 0. PREAMBLE & ICONS ---
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+        
+        // Hide loader
+        setTimeout(() => {
+            const el = document.getElementById('loading-screen');
+            if(el) { el.style.opacity = '0'; setTimeout(()=>el.remove(), 500); }
+        }, 500);
+
+        // INLINED ICONS (SVG) - No network dependency
+        const Icons = {
+            Plus: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            BookOpen: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+            Settings: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+            Edit: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+            Shuffle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l14.2-12.7c.7-1 1.9-1.6 3.1-1.6"/><path d="M2 6h1.4c1.3 0 2.5.6 3.3 1.7l14.2 12.7c.7 1 1.9 1.6 3.1 1.6"/><path d="M19 13.5L24 18l-5 4.5"/><path d="M19 2L24 6.5l-5 4.5"/></svg>,
+            History: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>,
+            X: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Layers: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>,
+            Utensils: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>,
+            IceCream: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 11 4.08 10.35a1 1 0 0 0 1.84 0L17 11"/><path d="M17 7A5 5 0 0 0 7 7"/><path d="M17 7a2 2 0 0 1 0 4H7a2 2 0 0 1 0-4"/></svg>,
+            Coffee: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg>,
+            Moon: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>,
+            Beer: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.57-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>,
+            Flame: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.9-2 2-2h.5Z"/></svg>,
+            Check: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>,
+            ArrowUp: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>,
+            ArrowDown: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>,
+            Trash2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            Star: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+            Search: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            Edit2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
+            Share2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>,
+            Download: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
+            RefreshCw: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>,
+            Loader2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
+            SlidersHorizontal: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>,
+            LayoutGrid: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>,
+            ToggleRight: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="12" x="2" y="6" rx="6" ry="6"/><circle cx="16" cy="12" r="2"/></svg>,
+            ToggleLeft: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="12" x="2" y="6" rx="6" ry="6"/><circle cx="8" cy="12" r="2"/></svg>,
+            UtensilsCrossed: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/></svg>,
+            MapPin: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+            Tag: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l5 5a2 2 0 0 0 2.828 0l7.172-7.172a2 2 0 0 0 0-2.828l-5-5z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>,
+            Save: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+            Upload: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>,
+            Maximize2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+        };
+
+        // --- 1. CONFIG & DATA ---
+        const USER_CAT_IMAGE_SRC = './cat.png';
+        const DEFAULT_CAT_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KICA8cGF0aCBkPSJNNDAsNzAgUTIwLDIwIDcwLDQwIFExMDAsMjAgMTMwLDQwIFExODAsMjAgMTYwLDcwIFExODAsMTAwIDE2MCwxNTAgUTEwMCwxODAgNDAsMTUwIFEyMCwxMDAgNDAsNzAgWiBNNjAsODAgQTUsNSAwIDAgMSA3MCw4MCBBNSw1IDAgMCAxIDYwLDgwIE0xMzAsODAgQTUsNSAwIDAgMSAxNDAsODAgQTUsNSAwIDAgMSAxMzAsODAgTTEwMCwxMTAgUTkwLDEyMCAxMTAsMTIwIiBmaWxsPSIjZmZmIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iNSIvPgo8L3N2Zz4=";
+
+        const ICON_MAP = {
+            'Layers': <Icons.Layers className="w-3.5 h-3.5" />,
+            'Utensils': <Icons.Utensils className="w-3.5 h-3.5" />,
+            'IceCream': <Icons.IceCream className="w-3.5 h-3.5" />,
+            'Coffee': <Icons.Coffee className="w-3.5 h-3.5" />,
+            'Moon': <Icons.Moon className="w-3.5 h-3.5" />,
+            'Beer': <Icons.Beer className="w-3.5 h-3.5" />,
+            'Flame': <Icons.Flame className="w-3.5 h-3.5" />,
+        };
+
+        const GEO_OPTIONS = ['川湘', '粤闽', '江浙', '北方', '日韩', '欧美', '东南亚', '通用'];
+        const FLAVOR_OPTIONS = ['辣', '清淡', '甜', '酸', '咸香', '油炸', '生冷', '重口'];
+        const CATEGORY_LABELS = {
+            fast_food: '快餐简餐', chinese: '中式正餐', japanese: '日式料理', korean: '韩式料理',
+            western: '西式正餐', healthy: '轻食沙拉', dessert: '甜点饮品', noodle: '面食粉类', hotpot: '火锅冒菜'
+        };
+
+        const DEFAULT_NAV_TABS = [
+            { id: 'all', label: '全部', iconName: 'Layers', filterTags: [] },
+            { id: 'meal', label: '正餐', iconName: 'Utensils', filterTags: ['正餐', '快餐', '面食', '火锅菜'] },
+            { id: 'dessert', label: '甜品', iconName: 'IceCream', filterTags: ['甜品', '蛋糕', '冰淇淋'] },
+            { id: 'drink', label: '饮料', iconName: 'Coffee', filterTags: ['饮品', '奶茶', '咖啡', '果茶'] },
+            { id: 'night', label: '宵夜', iconName: 'Moon', filterTags: ['宵夜', '烧烤', '冷串', '卤味'] },
+        ];
+
+        // EXPANDED FOOD DATABASE (100+ Items, Real Brands)
+        const FOOD_DATABASE = [
+            // --- 快餐/简餐 ---
+            { id: '1', name: '麦当劳', icon: '🍟', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '汉堡'], description: '金拱门，双层吉士汉堡与薯条的经典搭配。' },
+            { id: '2', name: '肯德基', icon: '🍗', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '鸡肉'], description: '疯狂星期四，吮指原味鸡，经典不衰。' },
+            { id: '20', name: '汉堡王', icon: '🍔', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '牛肉'], description: '火烤牛肉皇堡，肉香四溢，分量十足。' },
+            { id: '33', name: '塔斯汀', icon: '🥯', category: 'fast_food', tags: ['快餐', '通用', '咸香', '中式汉堡'], description: '现烤面皮，口感筋道，国潮汉堡新选择。' },
+            { id: '34', name: '德克士', icon: '🍗', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '脆皮鸡'], description: '手枪腿外酥里嫩，一口爆汁。' },
+            { id: '16', name: '赛百味', icon: '🥪', category: 'healthy', tags: ['快餐', '欧美', '生冷', '三明治'], description: '新鲜蔬菜，低脂肉类，健康轻食好选择。' },
+            { id: '4', name: '沙县小吃', icon: '🥟', category: 'chinese', tags: ['快餐', '粤闽', '清淡', '扁肉'], description: '拌面扁肉情侣套餐，经济实惠国民快餐。' },
+            { id: '13', name: '黄焖鸡米饭', icon: '🍛', category: 'chinese', tags: ['正餐', '北方', '咸香', '米饭'], description: '汤汁浓郁，鸡肉滑嫩，超级下饭。' },
+            { id: '36', name: '隆江猪脚饭', icon: '🍱', category: 'chinese', tags: ['正餐', '粤闽', '咸香', '米饭'], description: '肥而不腻，入口即化，打工人的能量碗。' },
+            { id: '40', name: '木桶饭', icon: '🪵', category: 'chinese', tags: ['快餐', '川湘', '辣', '米饭'], description: '现炒现做，镬气十足，选择多样。' },
+            { id: '41', name: '盖浇饭', icon: '🍛', category: 'chinese', tags: ['快餐', '通用', '咸香', '米饭'], description: '青椒肉丝，番茄炒蛋，简单快捷。' },
+            { id: '80', name: '兰州牛肉面', icon: '🍜', category: 'noodle', tags: ['快餐', '北方', '咸香', '清真'], description: '一清二白三红四绿，面条劲道汤鲜美。' },
+            { id: '81', name: '真功夫', icon: '🍲', category: 'fast_food', tags: ['快餐', '粤闽', '清淡', '蒸菜'], description: '营养蒸菜，保留食材原味，健康不油腻。' },
+            { id: '82', name: '吉野家', icon: '🍚', category: 'fast_food', tags: ['快餐', '日韩', '咸香', '牛肉饭'], description: '招牌牛肉饭，肥牛片薄入味，洋葱甘甜。' },
+            { id: '83', name: '老乡鸡', icon: '🐔', category: 'chinese', tags: ['快餐', '江浙', '咸香', '鸡汤'], description: '肥西老母鸡汤，鲜美滋补，中式快餐领跑者。' },
+
+            // --- 正餐 (中式/西式/日韩) ---
+            { id: '3', name: '必胜客', icon: '🍕', category: 'western', tags: ['正餐', '欧美', '咸香', '披萨'], description: '铁盘披萨，芝士拉丝，聚餐好去处。' },
+            { id: '6', name: '重庆火锅', icon: '🔥', category: 'hotpot', tags: ['正餐', '川湘', '辣', '聚餐'], description: '毛肚鸭肠黄喉，红油翻滚，无辣不欢。' },
+            { id: '47', name: '海底捞', icon: '🥘', category: 'hotpot', tags: ['正餐', '川湘', '咸香', '服务'], description: '服务至上，番茄汤底一绝，还有免费美甲。' },
+            { id: '48', name: '呷哺呷哺', icon: '🍲', category: 'hotpot', tags: ['正餐', '北方', '咸香', '一人食'], description: '吧台小火锅，麻酱调料独具特色。' },
+            { id: '43', name: '潮汕牛肉火锅', icon: '🐂', category: 'hotpot', tags: ['正餐', '粤闽', '清淡', '牛肉'], description: '鲜切吊龙，手打牛丸，追求食材本味。' },
+            { id: '22', name: '酸菜鱼', icon: '🐟', category: 'chinese', tags: ['正餐', '川湘', '辣', '酸', '鱼'], description: '酸辣开胃，鱼片滑嫩，汤底都能喝上几碗。' },
+            { id: '24', name: '太二酸菜鱼', icon: '🐟', category: 'chinese', tags: ['正餐', '川湘', '辣', '酸'], description: '酸菜比鱼好吃，米饭也是一绝。' },
+            { id: '71', name: '小龙虾', icon: '🦞', category: 'chinese', tags: ['正餐', '川湘', '辣', '宵夜'], description: '麻辣蒜蓉十三香，剥虾是社交也是享受。' },
+            { id: '301', name: '红烧肉', icon: '🥩', category: 'chinese', tags: ['正餐', '川湘', '咸香', '肉食'], description: '色泽红亮，肥而不腻，经典下饭菜。' },
+            { id: '302', name: '水饺', icon: '🥟', category: 'chinese', tags: ['正餐', '北方', '咸香', '面食'], description: '皮薄馅大，汁水丰富，中华传统美食。' },
+            { id: '305', name: '烤鸭', icon: '🦆', category: 'chinese', tags: ['正餐', '北方', '咸香', '聚餐'], description: '皮酥肉嫩，面饼卷葱丝面酱，口感丰富。' },
+            { id: '17', name: '日式拉面', icon: '🍥', category: 'japanese', tags: ['正餐', '日韩', '咸香', '汤面'], description: '豚骨汤底浓郁醇厚，叉烧肥美。' },
+            { id: '9', name: '寿司', icon: '🍣', category: 'japanese', tags: ['正餐', '日韩', '生冷', '海鲜'], description: '三文鱼甜虾，精致美味，食材新鲜。' },
+            { id: '18', name: '石锅拌饭', icon: '🍳', category: 'korean', tags: ['正餐', '日韩', '辣', '米饭'], description: '锅底焦香锅巴，拌上韩式辣酱，暖心暖胃。' },
+            { id: '10', name: '韩式炸鸡', icon: '🍗', category: 'korean', tags: ['快餐', '日韩', '甜', '辣', '油炸'], description: '外酥里嫩，裹满甜辣酱，快乐加倍。' },
+            { id: '49', name: '牛排', icon: '🥩', category: 'western', tags: ['正餐', '欧美', '咸香', '肉食'], description: '黑胡椒汁淋在铁板上，滋滋作响。' },
+            { id: '84', name: '西贝莜面村', icon: '🍜', category: 'chinese', tags: ['正餐', '北方', '咸香', '面食'], description: '西北风味，莜面鱼鱼，羊肉串，闭着眼睛点。' },
+            { id: '85', name: '外婆家', icon: '👵', category: 'chinese', tags: ['正餐', '江浙', '咸香', '杭帮菜'], description: '麻婆豆腐3元，茶香鸡软嫩，性价比极高。' },
+            { id: '86', name: '绿茶餐厅', icon: '🍵', category: 'chinese', tags: ['正餐', '江浙', '咸香', '杭帮菜'], description: '面包诱惑，绿茶烤肉，环境清幽。' },
+
+            // --- 宵夜/小吃 ---
+            { id: '12', name: '烧烤/烤串', icon: '🍢', category: 'chinese', tags: ['小吃', '北方', '咸香', '宵夜'], description: '羊肉串、板筋、心管，炭火烟熏味。' },
+            { id: '67', name: '绝味鸭脖', icon: '🦆', category: 'chinese', tags: ['小吃', '川湘', '辣', '宵夜', '卤味'], description: '鲜香麻辣，越啃越有味。' },
+            { id: '68', name: '周黑鸭', icon: '🦆', category: 'chinese', tags: ['小吃', '川湘', '甜', '辣', '宵夜', '卤味'], description: '入口微甜，而后辣味上头，锁骨绝绝子。' },
+            { id: '201', name: '关东煮', icon: '🍢', category: 'chinese', tags: ['小吃', '日韩', '清淡', '宵夜'], description: '便利店深夜的温暖，萝卜魔芋丝福袋。' },
+            { id: '202', name: '正新鸡排', icon: '🍗', category: 'fast_food', tags: ['小吃', '通用', '油炸', '宵夜'], description: '酥脆大鸡排，送酸梅汤，逛街必备。' },
+            { id: '203', name: '铁板鱿鱼', icon: '🦑', category: 'chinese', tags: ['小吃', '通用', '辣', '宵夜'], description: '洋葱孜然爆炒，街头霸主。' },
+            { id: '205', name: '臭豆腐', icon: '⬛', category: 'chinese', tags: ['小吃', '川湘', '辣', '臭', '宵夜'], description: '闻着臭吃着香，外酥里嫩爆汁。' },
+            { id: '206', name: '烤生蚝', icon: '🦪', category: 'chinese', tags: ['小吃', '粤闽', '咸香', '海鲜', '宵夜'], description: '蒜蓉粉丝是绝配，鲜嫩多汁。' },
+            { id: '207', name: '钵钵鸡', icon: '🍢', category: 'chinese', tags: ['小吃', '川湘', '辣', '冷串'], description: '红油芝麻浸泡，荤素搭配，拿起来就吃。' },
+            { id: '208', name: '泡面', icon: '🍜', category: 'fast_food', tags: ['快餐', '通用', '咸香', '宵夜'], description: '深夜灵魂伴侣，加根肠加个蛋。' },
+            { id: '42', name: '煎饼果子', icon: '🌯', category: 'chinese', tags: ['小吃', '北方', '咸香', '早餐'], description: '双蛋双肠，薄脆要多，热乎乎一套。' },
+            { id: '39', name: '凉皮', icon: '🥢', category: 'chinese', tags: ['小吃', '北方', '辣', '酸'], description: '红油面筋黄瓜丝，酸辣爽口。' },
+            { id: '87', name: '煌上煌', icon: '🦆', category: 'chinese', tags: ['小吃', '江浙', '咸香', '卤味'], description: '酱鸭风味独特，咸甜适中。' },
+            { id: '88', name: '夸父炸串', icon: '🍢', category: 'chinese', tags: ['小吃', '川湘', '辣', '油炸', '宵夜'], description: '乐山油炸串串，撒上辣椒面，香脆过瘾。' },
+            { id: '89', name: '喜姐炸串', icon: '🍢', category: 'chinese', tags: ['小吃', '通用', '油炸', '宵夜'], description: '品类丰富，掌中宝五花肉，解馋神器。' },
+
+            // --- 饮品 (具体品牌) ---
+            { id: '26', name: '瑞幸咖啡', icon: '🦌', category: 'dessert', tags: ['饮品', '通用', '苦', '咖啡'], description: '生椰拿铁，9.9元的快乐，打工人续命水。' },
+            { id: '15', name: '星巴克', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡'], description: '馥郁拿铁，星冰乐，办公休闲好去处。' },
+            { id: '25', name: '喜茶', icon: '🥤', category: 'dessert', tags: ['饮品', '粤闽', '甜', '奶茶'], description: '多肉葡萄，酷黑莓桑，真果真茶。' },
+            { id: '28', name: '奈雪的茶', icon: '🍵', category: 'dessert', tags: ['饮品', '粤闽', '甜', '果茶'], description: '霸气鲜果茶，搭配软欧包，精致下午茶。' },
+            { id: '31', name: '霸王茶姬', icon: '👘', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶'], description: '伯牙绝弦，清爽不腻，原叶鲜奶茶。' },
+            { id: '54', name: '茶百道', icon: '🐼', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶'], description: '杨枝甘露，豆乳玉麒麟，口味独特。' },
+            { id: '53', name: '古茗', icon: '🍶', category: 'dessert', tags: ['饮品', '江浙', '甜', '果茶'], description: '超A芝士葡萄，水果新鲜，性价比高。' },
+            { id: '27', name: '蜜雪冰城', icon: '⛄', category: 'dessert', tags: ['饮品', '通用', '甜', '冰淇淋'], description: '柠檬水，冰淇淋，甜蜜蜜，便宜大碗。' },
+            { id: '30', name: 'CoCo都可', icon: '🧋', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '奶茶三兄弟，百香果双响炮，经典回忆。' },
+            { id: '52', name: '1点点', icon: '🟢', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '四季春珍波椰，免费加料，隐藏菜单多。' },
+            { id: '55', name: '沪上阿姨', icon: '👩', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '血糯米奶茶，现煮五谷，健康好喝。' },
+            { id: '56', name: '书亦烧仙草', icon: '🥣', category: 'dessert', tags: ['饮品', '川湘', '甜', '加料'], description: '半杯都是料，喝完一杯就饱了。' },
+            { id: '57', name: '益禾堂', icon: '🥛', category: 'dessert', tags: ['饮品', '粤闽', '甜', '便宜'], description: '益禾烤奶，焦香浓郁，学生党最爱。' },
+            { id: '63', name: '茶颜悦色', icon: '🎏', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶'], description: '幽兰拿铁，声声乌龙，奶油顶加碧根果。' },
+            { id: '90', name: 'Manner', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡'], description: '自带杯减5元，精品小馆，咖啡醇香。' },
+            { id: '91', name: 'Tims', icon: '🍁', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡'], description: '贝果配咖啡，加拿大国民品牌。' },
+            { id: '92', name: '贡茶', icon: '🍵', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '奶盖茶鼻祖，咸香奶盖配乌龙。' },
+            { id: '93', name: '林里', icon: '🍋', category: 'dessert', tags: ['饮品', '粤闽', '酸', '果茶'], description: '手打柠檬茶，送小黄鸭，清爽解腻。' },
+            { id: '94', name: 'KOI', icon: '🧋', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '黄金珍奶，珍珠Q弹金黄，口感极佳。' },
+            { id: '95', name: '鹿角巷', icon: '🦌', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '黑糖鹿丸鲜奶，挂壁纹路好看又好喝。' },
+
+            // --- 甜品 ---
+            { id: '29', name: 'DQ冰淇淋', icon: '🍦', category: 'dessert', tags: ['甜品', '欧美', '甜', '冰淇淋'], description: '倒杯不洒，暴风雪系列，浓郁绵密。' },
+            { id: '60', name: '鲜芋仙', icon: '🍧', category: 'dessert', tags: ['甜品', '通用', '甜', '台式'], description: '芋圆仙草冰，软糯Q弹，份量超大。' },
+            { id: '32', name: '满记甜品', icon: '🍮', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式'], description: '芒果班戟，双皮奶，精致港式甜品。' },
+            { id: '96', name: '哈根达斯', icon: '🍨', category: 'dessert', tags: ['甜品', '欧美', '甜', '冰淇淋'], description: '爱她就请她吃，口味纯正，口感细腻。' },
+            { id: '97', name: '好利来', icon: '🍰', category: 'dessert', tags: ['甜品', '北方', '甜', '烘焙'], description: '半熟芝士，口感轻盈，入口即化。' },
+            { id: '98', name: '许留山', icon: '🥭', category: 'dessert', tags: ['甜品', '粤闽', '甜', '芒果'], description: '芒果西米捞，多芒小丸子，芒果控必吃。' },
+            { id: '99', name: '鲍师傅', icon: '🥯', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙'], description: '肉松小贝，海苔酥脆，沙拉酱超多。' },
+            { id: '100', name: '爸爸糖', icon: '🍞', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙'], description: '手工吐司，奶香浓郁，一片就很满足。' },
+            { id: '101', name: '西树泡芙', icon: '🥯', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙'], description: '现烤泡芙，外皮酥脆，内馅爆浆。' },
+            { id: '102', name: 'Lady M', icon: '🍰', category: 'dessert', tags: ['甜品', '欧美', '甜', '蛋糕'], description: '千层蛋糕，层层分明，细腻优雅。' },
+        ];
+
+        // --- 2. UTILS ---
+        const getRandomBatch = (count, preferences, currentTab, sourceData) => {
+            let filteredPool = sourceData.filter(item => {
+                if (!currentTab.filterTags || currentTab.filterTags.length === 0) return true;
+                return currentTab.filterTags.some(tag => item.tags.includes(tag));
+            });
+
+            let pool = filteredPool.filter((item) => {
+                if (preferences.excludedCategories.includes(item.category)) return false;
+                if (item.tags.some(tag => preferences.excludedTags.includes(tag))) return false;
+                return true;
+            });
+
+            if (pool.length === 0 && filteredPool.length > 0) pool = filteredPool;
+
+            const weightedPool = [...pool];
+            const favoriteIds = preferences.favoriteItemIds || [];
+            const ignoredFavoriteIds = preferences.ignoredFavoriteIds || [];
+            const shouldPrioritizeFavorites = preferences.prioritizeFavorites !== false;
+
+            pool.forEach(item => {
+                if (shouldPrioritizeFavorites && favoriteIds.includes(item.id) && !ignoredFavoriteIds.includes(item.id)) {
+                    for (let i = 0; i < 5; i++) weightedPool.push(item);
+                }
+            });
+
+            const shuffled = weightedPool.sort(() => 0.5 - Math.random());
+            const selected = [];
+            const selectedIds = new Set();
+            for (const item of shuffled) {
+                if (!selectedIds.has(item.id)) {
+                    selected.push(item);
+                    selectedIds.add(item.id);
+                }
+                if (selected.length >= count) break;
+            }
+            if (selected.length < count && pool.length > 0) {
+                while (selected.length < count) {
+                    selected.push(pool[Math.floor(Math.random() * pool.length)]);
+                }
+            }
+            return selected.sort(() => 0.5 - Math.random());
+        };
+
+        // --- 3. COMPONENTS ---
+
+        // 3.1 Wheel
+        const Wheel = ({ items, isSpinning, onSpinComplete, winner }) => {
+            const [currentRotation, setCurrentRotation] = useState(0);
+            const [hoveredItem, setHoveredItem] = useState(null);
+            
+            const SIZE = 400; const CENTER = SIZE / 2; const RADIUS = SIZE / 2 - 10;
+            const safeItems = items.length > 0 ? items : [{ id: 'empty', name: 'Loading', icon: '...', category: 'fast_food', tags: [] }];
+            const itemCount = safeItems.length;
+            const SLICE_ANGLE = 360 / itemCount;
+
+            useEffect(() => {
+                if (isSpinning && winner) {
+                    setHoveredItem(null);
+                    
+                    const winnerIndex = safeItems.findIndex(i => i.id === winner.id);
+                    const targetIndex = winnerIndex >= 0 ? winnerIndex : 0;
+
+                    const extraSpins = 360 * 5;
+                    const anglePerSlice = 360 / itemCount;
+                    
+                    // Logic to center the slice:
+                    // Start Drawing is at -90deg (Top).
+                    // Center of index 0 is at -90 + Slice/2.
+                    // To align index 0 center to top (-90), we rotate by -(Slice/2).
+                    // Center of index i is at -90 + i*Slice + Slice/2.
+                    // Rotation needed = -(i*Slice + Slice/2).
+                    // Add random offset within +/- 40% of slice width to look natural
+                    const randomOffset = (Math.random() - 0.5) * (anglePerSlice * 0.8);
+                    
+                    // We want visual angle to reach this absolute rotation.
+                    // But we want to spin *forward*.
+                    const baseTargetRotation = 360 - (targetIndex * anglePerSlice) - (anglePerSlice / 2) + randomOffset;
+                    
+                    setCurrentRotation(prev => {
+                        const currentMod = prev % 360;
+                        let delta = baseTargetRotation - currentMod;
+                        // Ensure positive delta for forward spin
+                        if (delta < 0) delta += 360;
+                        // Add extra spins
+                        return prev + delta + extraSpins;
+                    });
+
+                    const timeout = setTimeout(() => {
+                        onSpinComplete();
+                    }, 4000); 
+                    return () => clearTimeout(timeout);
+                }
+            }, [isSpinning, winner, safeItems]); 
+
+            const getCoordinatesForPercent = (percent) => [Math.cos(2 * Math.PI * percent), Math.sin(2 * Math.PI * percent)];
+
+            return (
+                <div className="relative flex flex-col items-center justify-center">
+                    <div className="relative w-[90vw] h-[90vw] max-w-[500px] max-h-[500px] flex items-center justify-center">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 transform -translate-y-3 filter drop-shadow-md pointer-events-none">
+                           <svg width="40" height="50" viewBox="0 0 34 42" fill="none"><path d="M17 40L3 14L5 4H29L31 14L17 40Z" fill="#E4E4E7" stroke="#52525b" strokeWidth="1"/></svg>
+                        </div>
+                        <div className="w-full h-full" style={{ transform: `rotate(${currentRotation}deg)`, transition: isSpinning ? 'transform 4s cubic-bezier(0.2, 0, 0.1, 1)' : 'none' }}>
+                            <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full drop-shadow-2xl">
+                                <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="#18181b" />
+                                {safeItems.map((item, index) => {
+                                    const startPercent = (index / itemCount) - 0.25;
+                                    const endPercent = ((index + 1) / itemCount) - 0.25;
+                                    const [startX, startY] = getCoordinatesForPercent(startPercent);
+                                    const [endX, endY] = getCoordinatesForPercent(endPercent);
+                                    const pathData = [`M ${CENTER} ${CENTER}`, `L ${CENTER + RADIUS * startX} ${CENTER + RADIUS * startY}`, `A ${RADIUS} ${RADIUS} 0 ${1/itemCount > 0.5?1:0} 1 ${CENTER + RADIUS * endX} ${CENTER + RADIUS * endY}`, `Z`].join(' ');
+                                    const isBlack = index % 2 === 1;
+                                    const angle = (index * SLICE_ANGLE) + (SLICE_ANGLE / 2) - 90;
+                                    return (
+                                        <g key={index} onMouseEnter={() => !isSpinning && setHoveredItem(item)} onMouseLeave={() => !isSpinning && setHoveredItem(null)} onTouchStart={() => !isSpinning && setHoveredItem(item)}>
+                                            <path d={pathData} fill={isBlack ? '#27272a' : '#f4f4f5'} stroke={isBlack?'#3f3f46':'#d4d4d8'} strokeWidth="1"/>
+                                            <g transform={`translate(${CENTER + RADIUS * 0.65 * Math.cos(angle * Math.PI / 180)}, ${CENTER + RADIUS * 0.65 * Math.sin(angle * Math.PI / 180)}) rotate(${angle + 90})`}>
+                                                <text textAnchor="middle" fontSize="40" dy="2">{item.icon}</text>
+                                                <text textAnchor="middle" fill={isBlack ? '#e4e4e7' : '#000'} fontSize="12" fontWeight="900" dy="24">{item.name.substring(0,4)}</text>
+                                            </g>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[12%] h-[12%] z-20 flex items-center justify-center pointer-events-none">
+                            {USER_CAT_IMAGE_SRC ? (
+                                <img src={USER_CAT_IMAGE_SRC} className="w-full h-full object-contain sticker-effect" alt="Cat" />
+                            ) : (
+                                <img src={DEFAULT_CAT_IMAGE} className="w-full h-full object-contain sticker-effect" alt="Cat" />
+                            )}
+                        </div>
+                    </div>
+                     {/* HUD - Moved UP closer to wheel */}
+                     <div className="absolute bottom-[20px] left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-all duration-300 w-full flex justify-center">
+                        <div className={`bg-black/80 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl shadow-lg w-auto max-w-[240px] text-center transition-opacity duration-300 ${hoveredItem ? 'opacity-100' : 'opacity-0'}`}>
+                            <div className="text-[12px] text-zinc-200 font-medium leading-tight">{hoveredItem?.description || '...'}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3.2 Result Card (Poster Share)
+        const ResultCard = ({ winner, onClose, onRetry, isFavorite, onToggleFavorite }) => {
+            const [isGenerating, setIsGenerating] = useState(false);
+            if (!winner) return null;
+
+            const handleShare = async () => {
+                if (isGenerating) return;
+                setIsGenerating(true);
+                const poster = document.createElement('div');
+                poster.style.cssText = "position:fixed;top:0;left:0;width:375px;height:auto;min-height:600px;background:white;color:black;padding:40px 20px;text-align:center;z-index:-1;font-family:sans-serif;display:block;";
+                poster.innerHTML = `
+                    <div style="font-size:12px;color:#999;letter-spacing:2px;margin-bottom:30px;text-align:center;">今天吃什么 · 决定了</div>
+                    <div style="font-size:120px;margin:20px auto;text-align:center;display:block;">${winner.icon}</div>
+                    <h1 style="font-size:36px;font-weight:900;margin:10px 0;color:black;text-align:center;">${winner.name}</h1>
+                    <p style="font-size:15px;color:#666;margin:10px auto 40px auto;max-width:80%;line-height:1.6;text-align:center;">${winner.description}</p>
+                    <div style="border-top:1px solid #eee;padding-top:20px;font-size:10px;color:#ccc;text-align:center;">EAT. RANDOM CHOICE</div>
+                `;
+                document.body.appendChild(poster);
+                try {
+                    const canvas = await html2canvas(poster, { scale: 2, backgroundColor: '#ffffff' });
+                    document.body.removeChild(poster);
+                    const blob = await new Promise(r => canvas.toBlob(r));
+                    const file = new File([blob], "share.png", { type: "image/png" });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file] });
+                    } else {
+                        const a = document.createElement('a'); a.href = canvas.toDataURL(); a.download = 'eat.png'; a.click();
+                    }
+                } catch (e) { console.error(e); if(document.body.contains(poster)) document.body.removeChild(poster); }
+                setIsGenerating(false);
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={(e) => {e.stopPropagation(); onClose();}}>
+                    <div className="bg-white text-black w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl relative" onClick={e=>e.stopPropagation()}>
+                        <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full"><Icons.X className="w-5 h-5"/></button>
+                        <div className="text-xs font-bold text-gray-400 tracking-widest mb-6">决定了！就是它！</div>
+                        <div className="relative inline-block">
+                             {isFavorite && <div className="absolute -top-2 -right-2 bg-yellow-100 p-1.5 rounded-full"><Icons.Star className="w-4 h-4 text-yellow-500 fill-yellow-500"/></div>}
+                             <div className="text-8xl mb-4 drop-shadow-lg">{winner.icon}</div>
+                        </div>
+                        <h2 className="text-3xl font-black mb-2">{winner.name}</h2>
+                        <p className="text-sm text-gray-500 mb-8 px-4 leading-relaxed">{winner.description}</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button onClick={handleShare} disabled={isGenerating} className="py-3 bg-black text-white rounded-xl font-bold flex items-center justify-center gap-2"><Icons.Share2 className="w-4 h-4"/> 分享</button>
+                            <button onClick={onRetry} className="py-3 bg-gray-100 text-black rounded-xl font-bold flex items-center justify-center gap-2"><Icons.RefreshCw className="w-4 h-4"/> 重选</button>
+                        </div>
+                        <div className="mt-4 flex justify-center">
+                            <button onClick={onToggleFavorite} className={`text-xs font-bold flex items-center gap-1 ${isFavorite?'text-yellow-600':'text-gray-400'}`}><Icons.Star className="w-3 h-3"/> {isFavorite?'已收藏':'收藏'}</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3.3 Add Food Modal
+        const AddFoodModal = ({ isOpen, onClose, onAdd, initialItem, navTabs }) => {
+            const [name, setName] = useState('');
+            const [icon, setIcon] = useState('😋');
+            const [category, setCategory] = useState('chinese');
+            const [tags, setTags] = useState('');
+            const [description, setDescription] = useState('');
+
+            useEffect(() => {
+                if (isOpen && initialItem) {
+                    setName(initialItem.name); setIcon(initialItem.icon); setCategory(initialItem.category); setTags(initialItem.tags.join(', ')); setDescription(initialItem.description || '');
+                } else if (isOpen) {
+                    setName(''); setIcon('😋'); setCategory('chinese'); setTags(''); setDescription('');
+                }
+            }, [isOpen, initialItem]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const newItem = {
+                    id: initialItem ? initialItem.id : `custom_${Date.now()}`,
+                    name: name.trim(), icon: icon.trim() || '🥘', category,
+                    tags: tags.split(/[,，\s]+/).filter(t => t.trim()),
+                    description: description.trim()
+                };
+                onAdd(newItem); onClose();
+            };
+
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                    <div className="bg-zinc-900 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-6 border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                        <div className="flex justify-between mb-4"><h2 className="text-lg font-bold">{initialItem?'编辑':'添加'}美食</h2><button onClick={onClose}><Icons.X className="text-zinc-400"/></button></div>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <input value={name} onChange={e=>setName(e.target.value)} placeholder="名称" className="w-full bg-zinc-800 p-3 rounded-xl" required/>
+                            <div className="flex gap-2">
+                                <input value={icon} onChange={e=>setIcon(e.target.value)} className="w-16 bg-zinc-800 p-3 rounded-xl text-center" />
+                                <select value={category} onChange={e=>setCategory(e.target.value)} className="flex-1 bg-zinc-800 p-3 rounded-xl">
+                                    {Object.entries(CATEGORY_LABELS).map(([k,v])=><option key={k} value={k}>{v}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-[10px] text-zinc-500 mb-1 block">推荐标签顺序: 类型, 地域, 口味</label>
+                                <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="标签 (逗号分隔)" className="w-full bg-zinc-800 p-3 rounded-xl mb-2"/>
+                                <div className="flex flex-wrap gap-1">{navTabs.map(t=>t.filterTags.map(tag=><button type="button" key={tag} onClick={()=>setTags(prev=>prev?prev+', '+tag:tag)} className="text-[10px] bg-zinc-800 px-2 py-1 rounded border border-zinc-700">{tag}</button>))}</div>
+                                <div className="mt-2 text-[10px] text-zinc-600">
+                                    预览: {tags.split(/[,，\s]+/).filter(t=>t).map((t,i)=><span key={i} className={`mr-1 px-1 rounded ${i===0?'bg-zinc-700':i===1?'bg-zinc-800':'bg-zinc-900'}`}>{t}</span>)}
+                                </div>
+                            </div>
+                            <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="简介" className="w-full bg-zinc-800 p-3 rounded-xl" rows={2}/>
+                            <button type="submit" className="w-full py-3 bg-white text-black font-bold rounded-xl">保存</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3.4 Category Manager
+        const CategoryManager = ({ isOpen, onClose, tabs, onUpdateTabs }) => {
+            const [editingTab, setEditingTab] = useState(null);
+            if (!isOpen) return null;
+            
+            const handleSave = () => {
+                if(!editingTab.label) return;
+                const newTabs = editingTab.isNew ? [...tabs, {...editingTab, id: `tab_${Date.now()}`, isNew:undefined}] : tabs.map(t=>t.id===editingTab.id?editingTab:t);
+                onUpdateTabs(newTabs); setEditingTab(null);
+            };
+
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                    <div className="bg-zinc-900 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl p-6 border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                        <div className="flex justify-between mb-4"><h2 className="text-lg font-bold">分类管理</h2><button onClick={onClose}><Icons.X className="text-zinc-400"/></button></div>
+                        {editingTab ? (
+                            <div className="space-y-3">
+                                <input value={editingTab.label} onChange={e=>setEditingTab({...editingTab, label:e.target.value})} placeholder="分类名称" className="w-full bg-zinc-800 p-3 rounded-xl"/>
+                                <input value={editingTab.filterTags?.join(', ')} onChange={e=>setEditingTab({...editingTab, filterTags:e.target.value.split(/[,，\s]+/).filter(t=>t)})} placeholder="筛选标签 (逗号分隔)" className="w-full bg-zinc-800 p-3 rounded-xl"/>
+                                <div className="flex gap-2"><button onClick={handleSave} className="flex-1 bg-white text-black py-2 rounded-lg font-bold">保存</button><button onClick={()=>setEditingTab(null)} className="flex-1 bg-zinc-800 py-2 rounded-lg">取消</button></div>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {tabs.map(t=>(
+                                    <div key={t.id} className="flex justify-between bg-zinc-800 p-3 rounded-xl items-center">
+                                        <span>{t.label}</span>
+                                        <div className="flex gap-2">
+                                            <button onClick={()=>setEditingTab({...t})}><Icons.Edit className="w-4 h-4 text-zinc-400"/></button>
+                                            <button onClick={()=>onUpdateTabs(tabs.filter(x=>x.id!==t.id))}><Icons.Trash2 className="w-4 h-4 text-red-400"/></button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button onClick={()=>setEditingTab({label:'', filterTags:[], iconName:'Layers', isNew:true})} className="w-full py-3 border border-dashed border-zinc-700 text-zinc-500 rounded-xl font-bold flex justify-center items-center gap-2"><Icons.Plus className="w-4 h-4"/> 添加分类</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // 3.5 Settings
+        const Settings = ({ isOpen, onClose, prefs, updatePrefs, allFoodItems }) => {
+            const fileInputRef = useRef(null);
+            if (!isOpen) return null;
+            
+            const toggle = (arr, val) => arr.includes(val) ? arr.filter(x=>x!==val) : [...arr, val];
+            const handleExport = () => {
+                const data = JSON.stringify({prefs, date: new Date().toISOString()});
+                const blob = new Blob([data], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'eat_backup.json'; a.click();
+            };
+            const handleImport = (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => { try { const p = JSON.parse(ev.target.result); if(p.prefs) updatePrefs(p.prefs); alert('恢复成功'); window.location.reload(); } catch(err){alert('文件错误');} };
+                    reader.readAsText(file);
+                }
+            };
+
+            const toggleFavoriteActive = (id) => {
+                const ignored = prefs.ignoredFavoriteIds || [];
+                const newIgnored = ignored.includes(id) ? ignored.filter(i => i !== id) : [...ignored, id];
+                updatePrefs({...prefs, ignoredFavoriteIds: newIgnored});
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                    <div className="bg-zinc-900 w-full max-w-md h-[85vh] rounded-2xl p-6 border border-zinc-800 flex flex-col shadow-2xl" onClick={e=>e.stopPropagation()}>
+                        <div className="flex justify-between mb-4"><h2 className="text-lg font-bold">偏好设置</h2><button onClick={onClose}><Icons.X className="text-zinc-400"/></button></div>
+                        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+                             <section>
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-xs font-bold text-zinc-500 uppercase">优先推荐收藏</h3>
+                                    <button onClick={() => updatePrefs({...prefs, prioritizeFavorites: !prefs.prioritizeFavorites})} className={`flex items-center gap-2 ${prefs.prioritizeFavorites ? "text-yellow-400" : "text-zinc-500"}`}>
+                                        {prefs.prioritizeFavorites ? <Icons.ToggleRight className="w-8 h-8"/> : <Icons.ToggleLeft className="w-8 h-8"/>}
+                                    </button>
+                                </div>
+                                {prefs.prioritizeFavorites && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {(prefs.favoriteItemIds||[]).map(id => {
+                                            const item = allFoodItems.find(i=>i.id===id);
+                                            if(!item) return null;
+                                            const isActive = !(prefs.ignoredFavoriteIds||[]).includes(id);
+                                            return (
+                                                <button key={id} onClick={() => toggleFavoriteActive(id)} className={`px-2 py-1 rounded-lg text-xs border ${isActive ? 'bg-yellow-900/30 border-yellow-700 text-yellow-200' : 'bg-zinc-800 border-zinc-700 text-zinc-500 line-through'}`}>
+                                                    {item.name}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </section>
+                            <section>
+                                <h3 className="text-xs font-bold text-zinc-500 mb-2 uppercase">口味屏蔽</h3>
+                                <div className="grid grid-cols-4 gap-2">{FLAVOR_OPTIONS.map(f=><button key={f} onClick={()=>updatePrefs({...prefs, excludedTags:toggle(prefs.excludedTags,f)})} className={`py-2 rounded text-xs border ${prefs.excludedTags.includes(f)?'bg-red-900/30 border-red-800 text-red-400 line-through':'bg-zinc-800 border-zinc-700'}`}>{f}</button>)}</div>
+                            </section>
+                            <section>
+                                <h3 className="text-xs font-bold text-zinc-500 mb-2 uppercase">菜系屏蔽</h3>
+                                <div className="grid grid-cols-4 gap-2">{GEO_OPTIONS.map(g=><button key={g} onClick={()=>updatePrefs({...prefs, excludedTags:toggle(prefs.excludedTags,g)})} className={`py-2 rounded text-xs border ${prefs.excludedTags.includes(g)?'bg-red-900/30 border-red-800 text-red-400 line-through':'bg-zinc-800 border-zinc-700'}`}>{g}</button>)}</div>
+                            </section>
+                            <section className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                                <h3 className="text-xs font-bold text-zinc-500 mb-2 uppercase">数据备份</h3>
+                                <div className="flex gap-2">
+                                    <button onClick={handleExport} className="flex-1 bg-zinc-800 py-2 rounded text-xs"><Icons.Download className="w-3 h-3 inline mr-1"/> 导出</button>
+                                    <button onClick={()=>fileInputRef.current.click()} className="flex-1 bg-zinc-800 py-2 rounded text-xs"><Icons.Upload className="w-3 h-3 inline mr-1"/> 导入</button>
+                                    <input type="file" ref={fileInputRef} hidden onChange={handleImport} accept=".json"/>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3.6 Food Details Modal
+        const FoodDetailModal = ({ isOpen, onClose, item, onEdit, isFav, onToggleFav }) => {
+            if(!isOpen || !item) return null;
+            return (
+                <div className="fixed inset-0 z-[55] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={onClose}>
+                    <div className="bg-zinc-900 w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl relative border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                        <button onClick={onEdit} className="absolute top-4 right-4 p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white"><Icons.Edit2 className="w-5 h-5"/></button>
+                        <div className="text-8xl mb-6">{item.icon}</div>
+                        <h2 className="text-3xl font-black mb-2">{item.name}</h2>
+                        <div className="flex flex-wrap gap-2 justify-center mb-6">
+                            {item.tags.map(t=>(
+                                <span key={t} className="px-2 py-1 bg-zinc-800 rounded-md text-xs text-zinc-400">{t}</span>
+                            ))}
+                        </div>
+                        <p className="text-sm text-zinc-500 mb-8 leading-relaxed">{item.description}</p>
+                        <button onClick={onToggleFav} className={`w-full py-3 rounded-xl font-bold border flex items-center justify-center gap-2 ${isFav?'bg-yellow-900/20 border-yellow-700 text-yellow-500':'bg-zinc-950 border-zinc-800 text-zinc-400'}`}>
+                            <Icons.Star className={`w-4 h-4 ${isFav?'fill-yellow-500':''}`}/> {isFav?'已收藏':'加入收藏'}
+                        </button>
+                    </div>
+                </div>
+            )
+        }
+
+        // 3.7 Food Library
+        const FoodLibrary = ({ isOpen, onClose, items, onEdit, favs, onToggleFav, navTabs }) => {
+            const [search, setSearch] = useState('');
+            const [activeTabId, setActiveTabId] = useState('all');
+            const [showFavsOnly, setShowFavsOnly] = useState(false);
+            const [viewingItem, setViewingItem] = useState(null);
+
+            if(!isOpen) return null;
+            
+            const filtered = items.filter(item => {
+                if (showFavsOnly && !favs.includes(item.id)) return false;
+                if (search && !item.name.includes(search) && !item.tags.some(t=>t.includes(search))) return false;
+                if (activeTabId !== 'all') {
+                    const tab = navTabs.find(t=>t.id===activeTabId);
+                    if (tab && tab.filterTags.length > 0 && !tab.filterTags.some(tag=>item.tags.includes(tag))) return false;
+                }
+                return true;
+            });
+
+            return (
+                <>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                    <div className="bg-zinc-950 w-full max-w-2xl h-[85vh] rounded-2xl flex flex-col border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                        <div className="p-4 border-b border-zinc-800 flex justify-between"><h2 className="font-bold">美食图鉴</h2><button onClick={onClose}><Icons.X/></button></div>
+                        <div className="p-4 space-y-3 border-b border-zinc-800">
+                             <div className="flex gap-2">
+                                <div className="relative flex-1"><Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜索..." className="w-full bg-zinc-900 pl-9 p-2 rounded-xl border border-zinc-800"/></div>
+                                <button onClick={()=>setShowFavsOnly(!showFavsOnly)} className={`p-2 rounded-xl border ${showFavsOnly?'bg-yellow-900/30 border-yellow-700 text-yellow-500':'bg-zinc-900 border-zinc-800 text-zinc-400'}`}><Icons.Star className={`w-5 h-5 ${showFavsOnly?'fill-yellow-500':''}`}/></button>
+                             </div>
+                             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                                {navTabs.map(t=>(<button key={t.id} onClick={()=>setActiveTabId(t.id)} className={`px-3 py-1 rounded-full text-xs border ${activeTabId===t.id?'bg-white text-black border-white':'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>{t.label}</button>))}
+                             </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-3 content-start">
+                            {filtered.map(item=>(
+                                <div key={item.id} className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 text-center relative group aspect-square flex flex-col items-center justify-center" onClick={()=>setViewingItem(item)}>
+                                    <div className="absolute top-1 right-1"><Icons.Star className={`w-3 h-3 ${favs.includes(item.id)?'fill-yellow-500 text-yellow-500':'text-zinc-800'}`}/></div>
+                                    <div className="text-3xl mb-1">{item.icon}</div>
+                                    <div className="text-xs font-bold truncate w-full px-1">{item.name}</div>
+                                    <div className="text-[10px] text-zinc-600 mt-1">{CATEGORY_LABELS[item.category]}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <FoodDetailModal 
+                    isOpen={!!viewingItem} 
+                    item={viewingItem} 
+                    onClose={()=>setViewingItem(null)} 
+                    onEdit={()=>{setViewingItem(null); onEdit(viewingItem)}}
+                    isFav={viewingItem && favs.includes(viewingItem.id)}
+                    onToggleFav={()=>onToggleFav(viewingItem.id)}
+                />
+                </>
+            );
+        };
+
+        // 3.8 History
+        const History = ({ isOpen, onClose, history, onClear }) => {
+            if(!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                    <div className="bg-zinc-900 w-full max-w-sm h-[70vh] rounded-2xl p-6 flex flex-col border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                        <div className="flex justify-between mb-4"><h2 className="font-bold">历史记录</h2><button onClick={onClose}><Icons.X/></button></div>
+                        <div className="flex-1 overflow-y-auto space-y-2">
+                            {history.slice().reverse().map((h,i)=>(
+                                <div key={i} className="flex items-center gap-3 p-2 bg-zinc-800/50 rounded-lg">
+                                    <span className="text-xl">{h.food.icon}</span>
+                                    <div><div className="text-sm font-bold">{h.food.name}</div><div className="text-[10px] text-zinc-500">{new Date(h.timestamp).toLocaleTimeString()}</div></div>
+                                </div>
+                            ))}
+                        </div>
+                        {history.length>0 && <button onClick={onClear} className="mt-2 text-xs text-red-500">清空历史</button>}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 4. MAIN APP ---
+        const App = () => {
+            const [items, setItems] = useState([]);
+            const [isSpinning, setIsSpinning] = useState(false);
+            const [winner, setWinner] = useState(null);
+            const [navTabs, setNavTabs] = useState(DEFAULT_NAV_TABS);
+            const [activeTabId, setActiveTabId] = useState('all');
+            const [prefs, setPrefs] = useState({ excludedCategories: [], excludedTags: [], favoriteItemIds: [], prioritizeFavorites: true, ignoredFavoriteIds: [] });
+            const [history, setHistory] = useState([]);
+            const [customItems, setCustomItems] = useState([]);
+            const [foodOverrides, setFoodOverrides] = useState({});
+            
+            // Modals
+            const [modals, setModals] = useState({ settings: false, history: false, add: false, library: false, catManager: false });
+            const [editingItem, setEditingItem] = useState(null);
+
+            // Init
+            useEffect(() => {
+                const lp = localStorage.getItem('eat_prefs'); if(lp) setPrefs(JSON.parse(lp));
+                const lh = localStorage.getItem('eat_history'); if(lh) setHistory(JSON.parse(lh));
+                const lc = localStorage.getItem('eat_custom'); if(lc) setCustomItems(JSON.parse(lc));
+                const lo = localStorage.getItem('eat_overrides'); if(lo) setFoodOverrides(JSON.parse(lo));
+                const lt = localStorage.getItem('eat_tabs'); if(lt) setNavTabs(JSON.parse(lt));
+            }, []);
+
+            // Save
+            useEffect(() => localStorage.setItem('eat_prefs', JSON.stringify(prefs)), [prefs]);
+            useEffect(() => localStorage.setItem('eat_history', JSON.stringify(history)), [history]);
+            useEffect(() => localStorage.setItem('eat_custom', JSON.stringify(customItems)), [customItems]);
+            useEffect(() => localStorage.setItem('eat_overrides', JSON.stringify(foodOverrides)), [foodOverrides]);
+            useEffect(() => localStorage.setItem('eat_tabs', JSON.stringify(navTabs)), [navTabs]);
+
+            // Compute Data
+            const allItems = useMemo(() => {
+                const builtins = FOOD_DATABASE.map(i => foodOverrides[i.id] ? {...i, ...foodOverrides[i.id]} : i);
+                return [...builtins, ...customItems];
+            }, [customItems, foodOverrides]);
+
+            // Filter items based on current tab and prefs
+            // WE DO NOT SET ITEMS HERE. We only use this to calculate pool for manual refresh.
+            // Items for Wheel are locked when spinning starts.
+            
+            const generatePool = useCallback(() => {
+                const tab = navTabs.find(t=>t.id===activeTabId) || navTabs[0];
+                return getRandomBatch(8, prefs, tab, allItems);
+            }, [activeTabId, prefs, allItems, navTabs]);
+
+            // Initial load or tab change (only if not spinning)
+            useEffect(() => {
+                if(!isSpinning) {
+                    setItems(generatePool());
+                }
+            }, [activeTabId, prefs, allItems, navTabs]); // isSpinning excluded to prevent updates during spin
+
+            const handleSpin = () => { 
+                if(!isSpinning && items.length > 0) { 
+                    // 1. Lock state
+                    setIsSpinning(true); 
+                    // 2. Pick winner from CURRENT wheel items (Logic Fix)
+                    const winnerIndex = Math.floor(Math.random() * items.length);
+                    const selectedWinner = items[winnerIndex];
+                    setWinner(selectedWinner); 
+                } 
+            };
+
+            const handleSpinComplete = () => {
+                setIsSpinning(false); 
+                // Only now we add history
+                if(winner) setHistory(h=>[...h,{food:winner, timestamp:Date.now()}]);
+            };
+
+            const handleSaveItem = (item) => {
+                if(item.id.startsWith('custom_')) {
+                    setCustomItems(prev => { const idx=prev.findIndex(i=>i.id===item.id); if(idx>=0){const n=[...prev];n[idx]=item;return n;} return [...prev,item]; });
+                } else {
+                    setFoodOverrides(prev=>({...prev, [item.id]: item}));
+                }
+            };
+
+            return (
+                <div className="max-w-[450px] mx-auto min-h-screen bg-black text-white relative flex flex-col shadow-2xl overflow-hidden selection:bg-white selection:text-black">
+                     <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[80%] bg-gradient-to-b from-zinc-800/20 to-transparent blur-3xl pointer-events-none rounded-full opacity-50"></div>
+                     
+                     {/* Header */}
+                     <header className="px-6 pt-6 flex justify-between items-start z-10">
+                        <div><h1 className="text-3xl font-black tracking-tighter">选了么</h1><p className="text-[10px] text-zinc-500 font-bold tracking-[0.3em] mt-1">今天吃什么</p></div>
+                        <div className="flex gap-2">
+                            <button onClick={()=>{setEditingItem(null); setModals({...modals, add:true})}} className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center border border-white/5"><Icons.Plus className="w-4 h-4 text-zinc-400"/></button>
+                            <button onClick={()=>setModals({...modals, library:true})} className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center border border-white/5"><Icons.BookOpen className="w-4 h-4 text-zinc-400"/></button>
+                            <button onClick={()=>setModals({...modals, settings:true})} className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center border border-white/5"><Icons.Settings className="w-4 h-4 text-zinc-400"/></button>
+                        </div>
+                     </header>
+
+                     {/* Nav */}
+                     <div className="z-10 px-4 mt-4 w-full">
+                        <div className="flex items-center bg-white/5 backdrop-blur-xl border border-white/5 rounded-xl p-1">
+                            <div className="flex-1 overflow-x-auto scrollbar-hide flex gap-1">
+                                {navTabs.map(t => (
+                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border ${activeTabId===t.id ? 'bg-white text-black border-white' : 'text-zinc-500 border-transparent'}`}>
+                                        {ICON_MAP[t.iconName] || <Icons.Layers className="w-3 h-3 inline mr-1"/>} {t.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="w-px h-4 bg-white/10 mx-1"></div>
+                            <button onClick={()=>setModals({...modals, catManager:true})} className="p-1.5 text-zinc-500"><Icons.Edit className="w-3.5 h-3.5"/></button>
+                        </div>
+                     </div>
+
+                     {/* Main Wheel */}
+                     <main className="flex-1 flex flex-col items-center justify-center py-2 relative z-0">
+                        <div className="transition-transform duration-700">
+                             <Wheel items={items} isSpinning={isSpinning} onSpinComplete={handleSpinComplete} winner={winner} />
+                        </div>
+                     </main>
+
+                     {/* Footer Controls */}
+                     <div className="w-full px-6 pb-8 z-20 flex flex-col items-center gap-6 mt-16">
+                        <button onClick={handleSpin} disabled={isSpinning||items.length===0} className={`text-4xl font-black tracking-[0.2em] italic transition-all duration-300 ${isSpinning?'text-zinc-600':'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] hover:drop-shadow-[0_0_25px_rgba(255,255,255,0.8)]'}`}>开始旋转</button>
+                        <div className="flex items-center gap-10">
+                            <button onClick={()=>setItems(generatePool())} disabled={isSpinning} className="p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white transition-colors"><Icons.Shuffle className="w-4 h-4"/></button>
+                            <button onClick={()=>setModals({...modals, history:true})} className="p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white transition-colors"><Icons.History className="w-4 h-4"/></button>
+                        </div>
+                     </div>
+
+                     {/* Modals */}
+                     {!isSpinning && winner && <ResultCard winner={winner} onClose={()=>setWinner(null)} onRetry={()=>{setWinner(null); handleSpin();}} isFavorite={(prefs.favoriteItemIds||[]).includes(winner?.id)} onToggleFavorite={()=>setPrefs(p=>({...p, favoriteItemIds: p.favoriteItemIds.includes(winner.id)?p.favoriteItemIds.filter(x=>x!==winner.id):[...p.favoriteItemIds,winner.id]}))} />}
+                     
+                     <Settings isOpen={modals.settings} onClose={()=>setModals({...modals, settings:false})} prefs={prefs} updatePrefs={setPrefs} allFoodItems={allItems} />
+                     <History isOpen={modals.history} onClose={()=>setModals({...modals, history:false})} history={history} onClear={()=>setHistory([])} />
+                     <FoodLibrary isOpen={modals.library} onClose={()=>setModals({...modals, library:false})} items={allItems} onEdit={i=>{setEditingItem(i); setModals({...modals, add:true})}} favs={prefs.favoriteItemIds} onToggleFav={id=>setPrefs(p=>({...p, favoriteItemIds:p.favoriteItemIds.includes(id)?p.favoriteItemIds.filter(x=>x!==id):[...p.favoriteItemIds,id]}))} navTabs={navTabs}/>
+                     <CategoryManager isOpen={modals.catManager} onClose={()=>setModals({...modals, catManager:false})} tabs={navTabs} onUpdateTabs={setNavTabs} />
+                     <AddFoodModal isOpen={modals.add} onClose={()=>setModals({...modals, add:false})} onAdd={handleSaveItem} initialItem={editingItem} navTabs={navTabs} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
