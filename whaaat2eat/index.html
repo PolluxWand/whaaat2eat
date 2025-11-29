@@ -10,11 +10,11 @@
     <meta http-equiv="Expires" content="0" />
     <title>选了么 - 今天吃什么</title>
     
-    <!-- Tailwind CSS with Dark Mode Config -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'selector', // Enable manual dark mode toggling
+            darkMode: 'selector', 
             theme: {
                 extend: {
                     fontFamily: {
@@ -34,23 +34,25 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <style>
+        /* Base Styles */
         body {
-            background-color: #f4f4f5; /* Light mode bg */
-            color: #18181b; /* Light mode text */
+            background-color: #f5f5f5; /* Light Mode BG */
+            color: #000000;
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior: none;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        /* Dark mode overrides applied via Tailwind class 'dark' on html */
+        
+        /* Dark Mode Overrides */
         .dark body {
-            background-color: #000000;
+            background-color: #000000; /* Dark Mode BG */
             color: #ffffff;
         }
 
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Sticker Style for Cat Head */
+        /* Sticker Effect */
         .sticker-effect {
             filter: 
                 drop-shadow(0px -2px 0px white) 
@@ -60,23 +62,12 @@
                 drop-shadow(0 4px 8px rgba(0,0,0,0.5));
             transition: transform 0.3s ease;
         }
-        
-        /* In light mode, make the white outline visible against white bg by adding a subtle dark glow */
-        html:not(.dark) .sticker-effect {
-             filter: 
-                drop-shadow(0px -2px 0px white) 
-                drop-shadow(2px 0px 0px white) 
-                drop-shadow(0px 2px 0px white) 
-                drop-shadow(-2px 0px 0px white)
-                drop-shadow(0 2px 6px rgba(0,0,0,0.2));
-        }
-
         .sticker-effect:active { transform: scale(0.95); }
 
-        /* Loading Spinner */
+        /* Loader */
         .loader {
-            border: 3px solid #e4e4e7;
-            border-top: 3px solid #18181b;
+            border: 3px solid #e5e5e5;
+            border-top: 3px solid #000;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -317,7 +308,7 @@
 
         // --- 3. COMPONENTS ---
 
-        // 3.1 Wheel
+        // 3.1 Wheel (High Contrast B&W)
         const Wheel = ({ items, isSpinning, onSpinComplete, winner, theme }) => {
             const [currentRotation, setCurrentRotation] = useState(0);
             const [hoveredItem, setHoveredItem] = useState(null);
@@ -327,27 +318,15 @@
             const itemCount = safeItems.length;
             const SLICE_ANGLE = 360 / itemCount;
 
-            // Colors based on theme (passed as prop)
-            // Dark Mode: Dark=#27272a, Light=#f4f4f5
-            // Light Mode: Dark=#52525b (Zinc-600), Light=#ffffff
             const isDark = theme === 'dark';
-            const colSliceDark = isDark ? '#27272a' : '#52525b';
-            const colSliceLight = isDark ? '#f4f4f5' : '#ffffff';
-            const colTextDark = isDark ? '#e4e4e7' : '#ffffff'; // Text on dark slice
-            const colTextLight = isDark ? '#000000' : '#18181b'; // Text on light slice
-            const colStrokeDark = isDark ? '#3f3f46' : '#71717a';
-            const colStrokeLight = isDark ? '#d4d4d8' : '#e4e4e7';
 
             useEffect(() => {
                 if (isSpinning && winner) {
                     setHoveredItem(null);
-                    
                     const winnerIndex = safeItems.findIndex(i => i.id === winner.id);
                     const targetIndex = winnerIndex >= 0 ? winnerIndex : 0;
-
                     const extraSpins = 360 * 5;
                     const anglePerSlice = 360 / itemCount;
-                    
                     const randomOffset = (Math.random() - 0.5) * (anglePerSlice * 0.8);
                     const baseTargetRotation = 360 - (targetIndex * anglePerSlice) - (anglePerSlice / 2) + randomOffset;
                     
@@ -358,9 +337,7 @@
                         return prev + delta + extraSpins;
                     });
 
-                    const timeout = setTimeout(() => {
-                        onSpinComplete();
-                    }, 4000); 
+                    const timeout = setTimeout(() => { onSpinComplete(); }, 4000); 
                     return () => clearTimeout(timeout);
                 }
             }, [isSpinning, winner, safeItems]); 
@@ -370,12 +347,15 @@
             return (
                 <div className="relative flex flex-col items-center justify-center">
                     <div className="relative w-[90vw] h-[90vw] max-w-[500px] max-h-[500px] flex items-center justify-center">
+                        {/* Pointer */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 transform -translate-y-3 filter drop-shadow-md pointer-events-none">
-                           <svg width="40" height="50" viewBox="0 0 34 42" fill="none"><path d="M17 40L3 14L5 4H29L31 14L17 40Z" fill={isDark?"#E4E4E7":"#27272A"} stroke={isDark?"#52525b":"#18181B"} strokeWidth="1"/></svg>
+                           <svg width="40" height="50" viewBox="0 0 34 42" fill="none"><path d="M17 40L3 14L5 4H29L31 14L17 40Z" fill={isDark?"#E4E4E7":"#18181B"} stroke={isDark?"#52525b":"#000000"} strokeWidth="1"/></svg>
                         </div>
+                        
+                        {/* Wheel SVG */}
                         <div className="w-full h-full" style={{ transform: `rotate(${currentRotation}deg)`, transition: isSpinning ? 'transform 4s cubic-bezier(0.2, 0, 0.1, 1)' : 'none' }}>
-                            <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full drop-shadow-2xl">
-                                <circle cx={CENTER} cy={CENTER} r={RADIUS} fill={isDark?"#18181b":"#d4d4d8"} />
+                            <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className={`w-full h-full ${isDark ? 'drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]' : 'drop-shadow-2xl'}`}>
+                                <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="#000000" />
                                 {safeItems.map((item, index) => {
                                     const startPercent = (index / itemCount) - 0.25;
                                     const endPercent = ((index + 1) / itemCount) - 0.25;
@@ -385,18 +365,24 @@
                                     const isBlackSlice = index % 2 === 1;
                                     const angle = (index * SLICE_ANGLE) + (SLICE_ANGLE / 2) - 90;
                                     
+                                    // High Contrast B&W Logic: Always Black/White
+                                    const sliceColor = isBlackSlice ? '#18181B' : '#FFFFFF';
+                                    const textColor = isBlackSlice ? '#FFFFFF' : '#000000';
+                                    const strokeColor = isBlackSlice ? '#333333' : '#E5E5E5';
+
                                     return (
                                         <g key={index} onMouseEnter={() => !isSpinning && setHoveredItem(item)} onMouseLeave={() => !isSpinning && setHoveredItem(null)} onTouchStart={() => !isSpinning && setHoveredItem(item)}>
-                                            <path d={pathData} fill={isBlackSlice ? colSliceDark : colSliceLight} stroke={isBlackSlice?colStrokeDark:colStrokeLight} strokeWidth="1"/>
+                                            <path d={pathData} fill={sliceColor} stroke={strokeColor} strokeWidth="1"/>
                                             <g transform={`translate(${CENTER + RADIUS * 0.65 * Math.cos(angle * Math.PI / 180)}, ${CENTER + RADIUS * 0.65 * Math.sin(angle * Math.PI / 180)}) rotate(${angle + 90})`}>
                                                 <text textAnchor="middle" fontSize="40" dy="2">{item.icon}</text>
-                                                <text textAnchor="middle" fill={isBlackSlice ? colTextDark : colTextLight} fontSize="12" fontWeight="900" dy="24">{item.name.substring(0,4)}</text>
+                                                <text textAnchor="middle" fill={textColor} fontSize="12" fontWeight="900" dy="24">{item.name.substring(0,4)}</text>
                                             </g>
                                         </g>
                                     );
                                 })}
                             </svg>
                         </div>
+                        {/* Center Cat */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[12%] h-[12%] z-20 flex items-center justify-center pointer-events-none">
                             {USER_CAT_IMAGE_SRC ? (
                                 <img src={USER_CAT_IMAGE_SRC} className="w-full h-full object-contain sticker-effect" alt="Cat" />
@@ -406,7 +392,7 @@
                         </div>
                     </div>
                      <div className="absolute bottom-[20px] left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-all duration-300 w-full flex justify-center">
-                        <div className={`backdrop-blur-md border px-4 py-2 rounded-xl shadow-lg w-auto max-w-[240px] text-center transition-opacity duration-300 ${hoveredItem ? 'opacity-100' : 'opacity-0'} ${isDark ? 'bg-black/80 border-white/10 text-zinc-200' : 'bg-white/80 border-black/10 text-zinc-800'}`}>
+                        <div className={`backdrop-blur-md border px-4 py-2 rounded-xl shadow-lg w-auto max-w-[240px] text-center transition-opacity duration-300 ${hoveredItem ? 'opacity-100' : 'opacity-0'} ${isDark ? 'bg-black/80 border-white/10 text-zinc-200' : 'bg-white/80 border-black/10 text-zinc-900'}`}>
                             <div className="text-[12px] font-medium leading-tight">{hoveredItem?.description || '...'}</div>
                         </div>
                     </div>
@@ -414,7 +400,7 @@
             );
         };
 
-        // 3.2 Result Card (Poster Share)
+        // 3.2 Result Card
         const ResultCard = ({ winner, onClose, onRetry, isFavorite, onToggleFavorite, theme }) => {
             const [isGenerating, setIsGenerating] = useState(false);
             if (!winner) return null;
