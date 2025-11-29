@@ -1,19 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>选了么 - 今天吃什么</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS with Dark Mode Config -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'selector', // Enable manual dark mode toggling
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"', '"Noto Color Emoji"'],
+                    }
+                }
+            }
+        }
+    </script>
     
-    <!-- React & Babel (使用最稳定的 UMD 版本) -->
+    <!-- React & Babel -->
     <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
@@ -22,14 +34,19 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <style>
-        /* 1. 移除 Google Fonts，改用系统字体栈，国内秒开 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-            background-color: #000;
-            color: #fff;
+            background-color: #f4f4f5; /* Light mode bg */
+            color: #18181b; /* Light mode text */
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior: none;
+            transition: background-color 0.3s, color 0.3s;
         }
+        /* Dark mode overrides applied via Tailwind class 'dark' on html */
+        .dark body {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -43,22 +60,39 @@
                 drop-shadow(0 4px 8px rgba(0,0,0,0.5));
             transition: transform 0.3s ease;
         }
+        
+        /* In light mode, make the white outline visible against white bg by adding a subtle dark glow */
+        html:not(.dark) .sticker-effect {
+             filter: 
+                drop-shadow(0px -2px 0px white) 
+                drop-shadow(2px 0px 0px white) 
+                drop-shadow(0px 2px 0px white) 
+                drop-shadow(-2px 0px 0px white)
+                drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+        }
+
         .sticker-effect:active { transform: scale(0.95); }
 
         /* Loading Spinner */
         .loader {
-            border: 3px solid #333;
-            border-top: 3px solid #fff;
+            border: 3px solid #e4e4e7;
+            border-top: 3px solid #18181b;
             border-radius: 50%;
             width: 30px;
             height: 30px;
             animation: spin 1s linear infinite;
         }
+        .dark .loader {
+            border: 3px solid #333;
+            border-top: 3px solid #fff;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         #loading-screen {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
+            position: fixed; inset: 0; background: #fff; z-index: 9999;
             display: flex; justify-content: center; align-items: center; transition: opacity 0.5s;
         }
+        .dark #loading-screen { background: #000; }
     </style>
 </head>
 <body>
@@ -75,7 +109,7 @@
             if(el) { el.style.opacity = '0'; setTimeout(()=>el.remove(), 500); }
         }, 500);
 
-        // INLINED ICONS (SVG) - 解决图标不显示的问题
+        // INLINED ICONS (SVG)
         const Icons = {
             Plus: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
             BookOpen: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
@@ -111,11 +145,12 @@
             Tag: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l5 5a2 2 0 0 0 2.828 0l7.172-7.172a2 2 0 0 0 0-2.828l-5-5z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>,
             Save: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
             Upload: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>,
-            Maximize2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+            Maximize2: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>,
+            Sun: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>,
         };
 
         // --- 1. CONFIG & DATA ---
-        // 2. 这里已修改为您要求的本地图片路径，请确保 cat.png 在同一目录下
+        // 2. 这里已修改为您要求的本地图片路径
         const USER_CAT_IMAGE_SRC = './cat.png';
         const DEFAULT_CAT_IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KICA8cGF0aCBkPSJNNDAsNzAgUTIwLDIwIDcwLDQwIFExMDAsMjAgMTMwLDQwIFExODAsMjAgMTYwLDcwIFExODAsMTAwIDE2MCwxNTAgUTEwMCwxODAgNDAsMTUwIFEyMCwxMDAgNDAsNzAgWiBNNjAsODAgQTUsNSAwIDAgMSA3MCw4MCBBNSw1IDAgMCAxIDYwLDgwIE0xMzAsODAgQTUsNSAwIDAgMSAxNDAsODAgQTUsNSAwIDAgMSAxMzAsODAgTTEwMCwxMTAgUTkwLDEyMCAxMTAsMTIwIiBmaWxsPSIjZmZmIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iNSIvPgo8L3N2Zz4=";
 
@@ -283,7 +318,7 @@
         // --- 3. COMPONENTS ---
 
         // 3.1 Wheel
-        const Wheel = ({ items, isSpinning, onSpinComplete, winner }) => {
+        const Wheel = ({ items, isSpinning, onSpinComplete, winner, theme }) => {
             const [currentRotation, setCurrentRotation] = useState(0);
             const [hoveredItem, setHoveredItem] = useState(null);
             
@@ -291,6 +326,17 @@
             const safeItems = items.length > 0 ? items : [{ id: 'empty', name: 'Loading', icon: '...', category: 'fast_food', tags: [] }];
             const itemCount = safeItems.length;
             const SLICE_ANGLE = 360 / itemCount;
+
+            // Colors based on theme (passed as prop)
+            // Dark Mode: Dark=#27272a, Light=#f4f4f5
+            // Light Mode: Dark=#52525b (Zinc-600), Light=#ffffff
+            const isDark = theme === 'dark';
+            const colSliceDark = isDark ? '#27272a' : '#52525b';
+            const colSliceLight = isDark ? '#f4f4f5' : '#ffffff';
+            const colTextDark = isDark ? '#e4e4e7' : '#ffffff'; // Text on dark slice
+            const colTextLight = isDark ? '#000000' : '#18181b'; // Text on light slice
+            const colStrokeDark = isDark ? '#3f3f46' : '#71717a';
+            const colStrokeLight = isDark ? '#d4d4d8' : '#e4e4e7';
 
             useEffect(() => {
                 if (isSpinning && winner) {
@@ -325,32 +371,32 @@
                 <div className="relative flex flex-col items-center justify-center">
                     <div className="relative w-[90vw] h-[90vw] max-w-[500px] max-h-[500px] flex items-center justify-center">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 transform -translate-y-3 filter drop-shadow-md pointer-events-none">
-                           <svg width="40" height="50" viewBox="0 0 34 42" fill="none"><path d="M17 40L3 14L5 4H29L31 14L17 40Z" fill="#E4E4E7" stroke="#52525b" strokeWidth="1"/></svg>
+                           <svg width="40" height="50" viewBox="0 0 34 42" fill="none"><path d="M17 40L3 14L5 4H29L31 14L17 40Z" fill={isDark?"#E4E4E7":"#27272A"} stroke={isDark?"#52525b":"#18181B"} strokeWidth="1"/></svg>
                         </div>
                         <div className="w-full h-full" style={{ transform: `rotate(${currentRotation}deg)`, transition: isSpinning ? 'transform 4s cubic-bezier(0.2, 0, 0.1, 1)' : 'none' }}>
                             <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full drop-shadow-2xl">
-                                <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="#18181b" />
+                                <circle cx={CENTER} cy={CENTER} r={RADIUS} fill={isDark?"#18181b":"#d4d4d8"} />
                                 {safeItems.map((item, index) => {
                                     const startPercent = (index / itemCount) - 0.25;
                                     const endPercent = ((index + 1) / itemCount) - 0.25;
                                     const [startX, startY] = getCoordinatesForPercent(startPercent);
                                     const [endX, endY] = getCoordinatesForPercent(endPercent);
                                     const pathData = [`M ${CENTER} ${CENTER}`, `L ${CENTER + RADIUS * startX} ${CENTER + RADIUS * startY}`, `A ${RADIUS} ${RADIUS} 0 ${1/itemCount > 0.5?1:0} 1 ${CENTER + RADIUS * endX} ${CENTER + RADIUS * endY}`, `Z`].join(' ');
-                                    const isBlack = index % 2 === 1;
+                                    const isBlackSlice = index % 2 === 1;
                                     const angle = (index * SLICE_ANGLE) + (SLICE_ANGLE / 2) - 90;
+                                    
                                     return (
                                         <g key={index} onMouseEnter={() => !isSpinning && setHoveredItem(item)} onMouseLeave={() => !isSpinning && setHoveredItem(null)} onTouchStart={() => !isSpinning && setHoveredItem(item)}>
-                                            <path d={pathData} fill={isBlack ? '#27272a' : '#f4f4f5'} stroke={isBlack?'#3f3f46':'#d4d4d8'} strokeWidth="1"/>
+                                            <path d={pathData} fill={isBlackSlice ? colSliceDark : colSliceLight} stroke={isBlackSlice?colStrokeDark:colStrokeLight} strokeWidth="1"/>
                                             <g transform={`translate(${CENTER + RADIUS * 0.65 * Math.cos(angle * Math.PI / 180)}, ${CENTER + RADIUS * 0.65 * Math.sin(angle * Math.PI / 180)}) rotate(${angle + 90})`}>
                                                 <text textAnchor="middle" fontSize="40" dy="2">{item.icon}</text>
-                                                <text textAnchor="middle" fill={isBlack ? '#e4e4e7' : '#000'} fontSize="12" fontWeight="900" dy="24">{item.name.substring(0,4)}</text>
+                                                <text textAnchor="middle" fill={isBlackSlice ? colTextDark : colTextLight} fontSize="12" fontWeight="900" dy="24">{item.name.substring(0,4)}</text>
                                             </g>
                                         </g>
                                     );
                                 })}
                             </svg>
                         </div>
-                        {/* 3. 猫猫头尺寸修改 */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[12%] h-[12%] z-20 flex items-center justify-center pointer-events-none">
                             {USER_CAT_IMAGE_SRC ? (
                                 <img src={USER_CAT_IMAGE_SRC} className="w-full h-full object-contain sticker-effect" alt="Cat" />
@@ -360,8 +406,8 @@
                         </div>
                     </div>
                      <div className="absolute bottom-[20px] left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-all duration-300 w-full flex justify-center">
-                        <div className={`bg-black/80 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl shadow-lg w-auto max-w-[240px] text-center transition-opacity duration-300 ${hoveredItem ? 'opacity-100' : 'opacity-0'}`}>
-                            <div className="text-[12px] text-zinc-200 font-medium leading-tight">{hoveredItem?.description || '...'}</div>
+                        <div className={`backdrop-blur-md border px-4 py-2 rounded-xl shadow-lg w-auto max-w-[240px] text-center transition-opacity duration-300 ${hoveredItem ? 'opacity-100' : 'opacity-0'} ${isDark ? 'bg-black/80 border-white/10 text-zinc-200' : 'bg-white/80 border-black/10 text-zinc-800'}`}>
+                            <div className="text-[12px] font-medium leading-tight">{hoveredItem?.description || '...'}</div>
                         </div>
                     </div>
                 </div>
@@ -369,7 +415,7 @@
         };
 
         // 3.2 Result Card (Poster Share)
-        const ResultCard = ({ winner, onClose, onRetry, isFavorite, onToggleFavorite }) => {
+        const ResultCard = ({ winner, onClose, onRetry, isFavorite, onToggleFavorite, theme }) => {
             const [isGenerating, setIsGenerating] = useState(false);
             if (!winner) return null;
 
@@ -402,18 +448,18 @@
 
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={(e) => {e.stopPropagation(); onClose();}}>
-                    <div className="bg-white text-black w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl relative" onClick={e=>e.stopPropagation()}>
-                        <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full"><Icons.X className="w-5 h-5"/></button>
+                    <div className="bg-white dark:bg-zinc-900 text-black dark:text-white w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl relative transition-colors duration-300" onClick={e=>e.stopPropagation()}>
+                        <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-zinc-800 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-700"><Icons.X className="w-5 h-5"/></button>
                         <div className="text-xs font-bold text-gray-400 tracking-widest mb-6">决定了！就是它！</div>
                         <div className="relative inline-block">
                              {isFavorite && <div className="absolute -top-2 -right-2 bg-yellow-100 p-1.5 rounded-full"><Icons.Star className="w-4 h-4 text-yellow-500 fill-yellow-500"/></div>}
                              <div className="text-8xl mb-4 drop-shadow-lg">{winner.icon}</div>
                         </div>
                         <h2 className="text-3xl font-black mb-2">{winner.name}</h2>
-                        <p className="text-sm text-gray-500 mb-8 px-4 leading-relaxed">{winner.description}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 px-4 leading-relaxed">{winner.description}</p>
                         <div className="grid grid-cols-2 gap-3">
-                            <button onClick={handleShare} disabled={isGenerating} className="py-3 bg-black text-white rounded-xl font-bold flex items-center justify-center gap-2"><Icons.Share2 className="w-4 h-4"/> 分享</button>
-                            <button onClick={onRetry} className="py-3 bg-gray-100 text-black rounded-xl font-bold flex items-center justify-center gap-2"><Icons.RefreshCw className="w-4 h-4"/> 重选</button>
+                            <button onClick={handleShare} disabled={isGenerating} className="py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"><Icons.Share2 className="w-4 h-4"/> 分享</button>
+                            <button onClick={onRetry} className="py-3 bg-gray-100 dark:bg-zinc-800 text-black dark:text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"><Icons.RefreshCw className="w-4 h-4"/> 重选</button>
                         </div>
                         <div className="mt-4 flex justify-center">
                             <button onClick={onToggleFavorite} className={`text-xs font-bold flex items-center gap-1 ${isFavorite?'text-yellow-600':'text-gray-400'}`}><Icons.Star className="w-3 h-3"/> {isFavorite?'已收藏':'收藏'}</button>
@@ -453,26 +499,26 @@
             if (!isOpen) return null;
             return (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-                    <div className="bg-zinc-900 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-6 border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white transition-colors duration-300" onClick={e=>e.stopPropagation()}>
                         <div className="flex justify-between mb-4"><h2 className="text-lg font-bold">{initialItem?'编辑':'添加'}美食</h2><button onClick={onClose}><Icons.X className="text-zinc-400"/></button></div>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <input value={name} onChange={e=>setName(e.target.value)} placeholder="名称" className="w-full bg-zinc-800 p-3 rounded-xl" required/>
+                            <input value={name} onChange={e=>setName(e.target.value)} placeholder="名称" className="w-full bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-zinc-500" required/>
                             <div className="flex gap-2">
-                                <input value={icon} onChange={e=>setIcon(e.target.value)} className="w-16 bg-zinc-800 p-3 rounded-xl text-center" />
-                                <select value={category} onChange={e=>setCategory(e.target.value)} className="flex-1 bg-zinc-800 p-3 rounded-xl">
+                                <input value={icon} onChange={e=>setIcon(e.target.value)} className="w-16 bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl text-center border-none outline-none focus:ring-2 focus:ring-zinc-500" />
+                                <select value={category} onChange={e=>setCategory(e.target.value)} className="flex-1 bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-zinc-500">
                                     {Object.entries(CATEGORY_LABELS).map(([k,v])=><option key={k} value={k}>{v}</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label className="text-[10px] text-zinc-500 mb-1 block">推荐标签顺序: 类型, 地域, 口味</label>
-                                <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="标签 (逗号分隔)" className="w-full bg-zinc-800 p-3 rounded-xl mb-2"/>
-                                <div className="flex flex-wrap gap-1">{navTabs.map(t=>t.filterTags.map(tag=><button type="button" key={tag} onClick={()=>setTags(prev=>prev?prev+', '+tag:tag)} className="text-[10px] bg-zinc-800 px-2 py-1 rounded border border-zinc-700">{tag}</button>))}</div>
-                                <div className="mt-2 text-[10px] text-zinc-600">
-                                    预览: {tags.split(/[,，\s]+/).filter(t=>t).map((t,i)=><span key={i} className={`mr-1 px-1 rounded ${i===0?'bg-zinc-700':i===1?'bg-zinc-800':'bg-zinc-900'}`}>{t}</span>)}
+                                <input value={tags} onChange={e=>setTags(e.target.value)} placeholder="标签 (逗号分隔)" className="w-full bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl mb-2 border-none outline-none focus:ring-2 focus:ring-zinc-500"/>
+                                <div className="flex flex-wrap gap-1">{navTabs.map(t=>t.filterTags.map(tag=><button type="button" key={tag} onClick={()=>setTags(prev=>prev?prev+', '+tag:tag)} className="text-[10px] bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded border border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700">{tag}</button>))}</div>
+                                <div className="mt-2 text-[10px] text-zinc-600 dark:text-zinc-400">
+                                    预览: {tags.split(/[,，\s]+/).filter(t=>t).map((t,i)=><span key={i} className={`mr-1 px-1 rounded ${i===0?'bg-zinc-200 dark:bg-zinc-700':i===1?'bg-zinc-100 dark:bg-zinc-800':'bg-gray-50 dark:bg-zinc-900'}`}>{t}</span>)}
                                 </div>
                             </div>
-                            <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="简介" className="w-full bg-zinc-800 p-3 rounded-xl" rows={2}/>
-                            <button type="submit" className="w-full py-3 bg-white text-black font-bold rounded-xl">保存</button>
+                            <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="简介" className="w-full bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-zinc-500" rows={2}/>
+                            <button type="submit" className="w-full py-3 bg-black dark:bg-white text-white dark:text-black font-bold rounded-xl">保存</button>
                         </form>
                     </div>
                 </div>
@@ -492,18 +538,18 @@
 
             return (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-                    <div className="bg-zinc-900 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl p-6 border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white transition-colors duration-300" onClick={e=>e.stopPropagation()}>
                         <div className="flex justify-between mb-4"><h2 className="text-lg font-bold">分类管理</h2><button onClick={onClose}><Icons.X className="text-zinc-400"/></button></div>
                         {editingTab ? (
                             <div className="space-y-3">
-                                <input value={editingTab.label} onChange={e=>setEditingTab({...editingTab, label:e.target.value})} placeholder="分类名称" className="w-full bg-zinc-800 p-3 rounded-xl"/>
-                                <input value={editingTab.filterTags?.join(', ')} onChange={e=>setEditingTab({...editingTab, filterTags:e.target.value.split(/[,，\s]+/).filter(t=>t)})} placeholder="筛选标签 (逗号分隔)" className="w-full bg-zinc-800 p-3 rounded-xl"/>
-                                <div className="flex gap-2"><button onClick={handleSave} className="flex-1 bg-white text-black py-2 rounded-lg font-bold">保存</button><button onClick={()=>setEditingTab(null)} className="flex-1 bg-zinc-800 py-2 rounded-lg">取消</button></div>
+                                <input value={editingTab.label} onChange={e=>setEditingTab({...editingTab, label:e.target.value})} placeholder="分类名称" className="w-full bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl"/>
+                                <input value={editingTab.filterTags?.join(', ')} onChange={e=>setEditingTab({...editingTab, filterTags:e.target.value.split(/[,，\s]+/).filter(t=>t)})} placeholder="筛选标签 (逗号分隔)" className="w-full bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl"/>
+                                <div className="flex gap-2"><button onClick={handleSave} className="flex-1 bg-black dark:bg-white text-white dark:text-black py-2 rounded-lg font-bold">保存</button><button onClick={()=>setEditingTab(null)} className="flex-1 bg-gray-100 dark:bg-zinc-800 py-2 rounded-lg">取消</button></div>
                             </div>
                         ) : (
                             <div className="space-y-2">
                                 {tabs.map(t=>(
-                                    <div key={t.id} className="flex justify-between bg-zinc-800 p-3 rounded-xl items-center">
+                                    <div key={t.id} className="flex justify-between bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl items-center border border-gray-100 dark:border-zinc-700">
                                         <span>{t.label}</span>
                                         <div className="flex gap-2">
                                             <button onClick={()=>setEditingTab({...t})}><Icons.Edit className="w-4 h-4 text-zinc-400"/></button>
@@ -511,7 +557,7 @@
                                         </div>
                                     </div>
                                 ))}
-                                <button onClick={()=>setEditingTab({label:'', filterTags:[], iconName:'Layers', isNew:true})} className="w-full py-3 border border-dashed border-zinc-700 text-zinc-500 rounded-xl font-bold flex justify-center items-center gap-2"><Icons.Plus className="w-4 h-4"/> 添加分类</button>
+                                <button onClick={()=>setEditingTab({label:'', filterTags:[], iconName:'Layers', isNew:true})} className="w-full py-3 border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-gray-50 dark:hover:bg-zinc-800"><Icons.Plus className="w-4 h-4"/> 添加分类</button>
                             </div>
                         )}
                     </div>
@@ -520,7 +566,7 @@
         };
 
         // 3.5 Settings
-        const Settings = ({ isOpen, onClose, prefs, updatePrefs, allFoodItems }) => {
+        const Settings = ({ isOpen, onClose, prefs, updatePrefs, allFoodItems, theme, toggleTheme }) => {
             const fileInputRef = useRef(null);
             if (!isOpen) return null;
             
@@ -548,13 +594,27 @@
 
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-                    <div className="bg-zinc-900 w-full max-w-md h-[85vh] rounded-2xl p-6 border border-zinc-800 flex flex-col shadow-2xl" onClick={e=>e.stopPropagation()}>
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-md h-[85vh] rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 flex flex-col shadow-2xl text-zinc-900 dark:text-white transition-colors duration-300" onClick={e=>e.stopPropagation()}>
                         <div className="flex justify-between mb-4"><h2 className="text-lg font-bold">偏好设置</h2><button onClick={onClose}><Icons.X className="text-zinc-400"/></button></div>
                         <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+                             
+                             {/* Theme Toggle */}
+                             <section>
+                                <div className="flex items-center justify-between mb-3 bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl border border-gray-100 dark:border-zinc-700">
+                                    <div className="flex items-center gap-2 text-sm font-bold">
+                                        {theme === 'dark' ? <Icons.Moon className="w-4 h-4"/> : <Icons.Sun className="w-4 h-4"/>}
+                                        <span>外观模式: {theme === 'dark' ? '暗色' : '亮色'}</span>
+                                    </div>
+                                    <button onClick={toggleTheme} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition-all ${theme==='dark' ? 'bg-zinc-900 border-zinc-700 text-white' : 'bg-white border-zinc-200 text-black'}`}>
+                                        切换
+                                    </button>
+                                </div>
+                             </section>
+
                              <section>
                                 <div className="flex items-center justify-between mb-3">
                                     <h3 className="text-xs font-bold text-zinc-500 uppercase">优先推荐收藏</h3>
-                                    <button onClick={() => updatePrefs({...prefs, prioritizeFavorites: !prefs.prioritizeFavorites})} className={`flex items-center gap-2 ${prefs.prioritizeFavorites ? "text-yellow-400" : "text-zinc-500"}`}>
+                                    <button onClick={() => updatePrefs({...prefs, prioritizeFavorites: !prefs.prioritizeFavorites})} className={`flex items-center gap-2 ${prefs.prioritizeFavorites ? "text-yellow-500" : "text-zinc-400"}`}>
                                         {prefs.prioritizeFavorites ? <Icons.ToggleRight className="w-8 h-8"/> : <Icons.ToggleLeft className="w-8 h-8"/>}
                                     </button>
                                 </div>
@@ -565,7 +625,7 @@
                                             if(!item) return null;
                                             const isActive = !(prefs.ignoredFavoriteIds||[]).includes(id);
                                             return (
-                                                <button key={id} onClick={() => toggleFavoriteActive(id)} className={`px-2 py-1 rounded-lg text-xs border ${isActive ? 'bg-yellow-900/30 border-yellow-700 text-yellow-200' : 'bg-zinc-800 border-zinc-700 text-zinc-500 line-through'}`}>
+                                                <button key={id} onClick={() => toggleFavoriteActive(id)} className={`px-2 py-1 rounded-lg text-xs border ${isActive ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-200' : 'bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-zinc-400 line-through'}`}>
                                                     {item.name}
                                                 </button>
                                             )
@@ -575,17 +635,17 @@
                             </section>
                             <section>
                                 <h3 className="text-xs font-bold text-zinc-500 mb-2 uppercase">口味屏蔽</h3>
-                                <div className="grid grid-cols-4 gap-2">{FLAVOR_OPTIONS.map(f=><button key={f} onClick={()=>updatePrefs({...prefs, excludedTags:toggle(prefs.excludedTags,f)})} className={`py-2 rounded text-xs border ${prefs.excludedTags.includes(f)?'bg-red-900/30 border-red-800 text-red-400 line-through':'bg-zinc-800 border-zinc-700'}`}>{f}</button>)}</div>
+                                <div className="grid grid-cols-4 gap-2">{FLAVOR_OPTIONS.map(f=><button key={f} onClick={()=>updatePrefs({...prefs, excludedTags:toggle(prefs.excludedTags,f)})} className={`py-2 rounded text-xs border ${prefs.excludedTags.includes(f)?'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 line-through':'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700'}`}>{f}</button>)}</div>
                             </section>
                             <section>
                                 <h3 className="text-xs font-bold text-zinc-500 mb-2 uppercase">菜系屏蔽</h3>
-                                <div className="grid grid-cols-4 gap-2">{GEO_OPTIONS.map(g=><button key={g} onClick={()=>updatePrefs({...prefs, excludedTags:toggle(prefs.excludedTags,g)})} className={`py-2 rounded text-xs border ${prefs.excludedTags.includes(g)?'bg-red-900/30 border-red-800 text-red-400 line-through':'bg-zinc-800 border-zinc-700'}`}>{g}</button>)}</div>
+                                <div className="grid grid-cols-4 gap-2">{GEO_OPTIONS.map(g=><button key={g} onClick={()=>updatePrefs({...prefs, excludedTags:toggle(prefs.excludedTags,g)})} className={`py-2 rounded text-xs border ${prefs.excludedTags.includes(g)?'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 line-through':'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700'}`}>{g}</button>)}</div>
                             </section>
-                            <section className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                            <section className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border border-gray-200 dark:border-zinc-800">
                                 <h3 className="text-xs font-bold text-zinc-500 mb-2 uppercase">数据备份</h3>
                                 <div className="flex gap-2">
-                                    <button onClick={handleExport} className="flex-1 bg-zinc-800 py-2 rounded text-xs"><Icons.Download className="w-3 h-3 inline mr-1"/> 导出</button>
-                                    <button onClick={()=>fileInputRef.current.click()} className="flex-1 bg-zinc-800 py-2 rounded text-xs"><Icons.Upload className="w-3 h-3 inline mr-1"/> 导入</button>
+                                    <button onClick={handleExport} className="flex-1 bg-white dark:bg-zinc-800 py-2 rounded text-xs border border-gray-200 dark:border-zinc-700"><Icons.Download className="w-3 h-3 inline mr-1"/> 导出</button>
+                                    <button onClick={()=>fileInputRef.current.click()} className="flex-1 bg-white dark:bg-zinc-800 py-2 rounded text-xs border border-gray-200 dark:border-zinc-700"><Icons.Upload className="w-3 h-3 inline mr-1"/> 导入</button>
                                     <input type="file" ref={fileInputRef} hidden onChange={handleImport} accept=".json"/>
                                 </div>
                             </section>
@@ -600,17 +660,17 @@
             if(!isOpen || !item) return null;
             return (
                 <div className="fixed inset-0 z-[55] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in" onClick={onClose}>
-                    <div className="bg-zinc-900 w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl relative border border-zinc-800" onClick={e=>e.stopPropagation()}>
-                        <button onClick={onEdit} className="absolute top-4 right-4 p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white"><Icons.Edit2 className="w-5 h-5"/></button>
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl relative border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white transition-colors duration-300" onClick={e=>e.stopPropagation()}>
+                        <button onClick={onEdit} className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-zinc-800 rounded-full text-zinc-400 hover:text-black dark:hover:text-white"><Icons.Edit2 className="w-5 h-5"/></button>
                         <div className="text-8xl mb-6">{item.icon}</div>
                         <h2 className="text-3xl font-black mb-2">{item.name}</h2>
                         <div className="flex flex-wrap gap-2 justify-center mb-6">
                             {item.tags.map(t=>(
-                                <span key={t} className="px-2 py-1 bg-zinc-800 rounded-md text-xs text-zinc-400">{t}</span>
+                                <span key={t} className="px-2 py-1 bg-gray-100 dark:bg-zinc-800 rounded-md text-xs text-zinc-500 dark:text-zinc-400">{t}</span>
                             ))}
                         </div>
                         <p className="text-sm text-zinc-500 mb-8 leading-relaxed">{item.description}</p>
-                        <button onClick={onToggleFav} className={`w-full py-3 rounded-xl font-bold border flex items-center justify-center gap-2 ${isFav?'bg-yellow-900/20 border-yellow-700 text-yellow-500':'bg-zinc-950 border-zinc-800 text-zinc-400'}`}>
+                        <button onClick={onToggleFav} className={`w-full py-3 rounded-xl font-bold border flex items-center justify-center gap-2 ${isFav?'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700 text-yellow-600 dark:text-yellow-500':'bg-gray-100 dark:bg-zinc-950 border-gray-200 dark:border-zinc-800 text-zinc-400'}`}>
                             <Icons.Star className={`w-4 h-4 ${isFav?'fill-yellow-500':''}`}/> {isFav?'已收藏':'加入收藏'}
                         </button>
                     </div>
@@ -640,24 +700,24 @@
             return (
                 <>
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-                    <div className="bg-zinc-950 w-full max-w-2xl h-[85vh] rounded-2xl flex flex-col border border-zinc-800" onClick={e=>e.stopPropagation()}>
-                        <div className="p-4 border-b border-zinc-800 flex justify-between"><h2 className="font-bold">美食图鉴</h2><button onClick={onClose}><Icons.X/></button></div>
-                        <div className="p-4 space-y-3 border-b border-zinc-800">
+                    <div className="bg-white dark:bg-zinc-950 w-full max-w-2xl h-[85vh] rounded-2xl flex flex-col border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white transition-colors duration-300" onClick={e=>e.stopPropagation()}>
+                        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between"><h2 className="font-bold">美食图鉴</h2><button onClick={onClose}><Icons.X/></button></div>
+                        <div className="p-4 space-y-3 border-b border-zinc-200 dark:border-zinc-800">
                              <div className="flex gap-2">
-                                <div className="relative flex-1"><Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜索..." className="w-full bg-zinc-900 pl-9 p-2 rounded-xl border border-zinc-800"/></div>
-                                <button onClick={()=>setShowFavsOnly(!showFavsOnly)} className={`p-2 rounded-xl border ${showFavsOnly?'bg-yellow-900/30 border-yellow-700 text-yellow-500':'bg-zinc-900 border-zinc-800 text-zinc-400'}`}><Icons.Star className={`w-5 h-5 ${showFavsOnly?'fill-yellow-500':''}`}/></button>
+                                <div className="relative flex-1"><Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜索..." className="w-full bg-gray-50 dark:bg-zinc-900 pl-9 p-2 rounded-xl border border-gray-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500"/></div>
+                                <button onClick={()=>setShowFavsOnly(!showFavsOnly)} className={`p-2 rounded-xl border ${showFavsOnly?'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700 text-yellow-500':'bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-zinc-400'}`}><Icons.Star className={`w-5 h-5 ${showFavsOnly?'fill-yellow-500':''}`}/></button>
                              </div>
                              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                                {navTabs.map(t=>(<button key={t.id} onClick={()=>setActiveTabId(t.id)} className={`px-3 py-1 rounded-full text-xs border ${activeTabId===t.id?'bg-white text-black border-white':'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>{t.label}</button>))}
+                                {navTabs.map(t=>(<button key={t.id} onClick={()=>setActiveTabId(t.id)} className={`px-3 py-1 rounded-full text-xs border ${activeTabId===t.id?'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white':'bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-zinc-500'}`}>{t.label}</button>))}
                              </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-3 content-start">
                             {filtered.map(item=>(
-                                <div key={item.id} className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 text-center relative group aspect-square flex flex-col items-center justify-center" onClick={()=>setViewingItem(item)}>
-                                    <div className="absolute top-1 right-1"><Icons.Star className={`w-3 h-3 ${favs.includes(item.id)?'fill-yellow-500 text-yellow-500':'text-zinc-800'}`}/></div>
+                                <div key={item.id} className="bg-gray-50 dark:bg-zinc-900/50 p-3 rounded-xl border border-gray-200 dark:border-zinc-800 text-center relative group aspect-square flex flex-col items-center justify-center hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors" onClick={()=>setViewingItem(item)}>
+                                    <div className="absolute top-1 right-1"><Icons.Star className={`w-3 h-3 ${favs.includes(item.id)?'fill-yellow-500 text-yellow-500':'text-gray-300 dark:text-zinc-800'}`}/></div>
                                     <div className="text-3xl mb-1">{item.icon}</div>
                                     <div className="text-xs font-bold truncate w-full px-1">{item.name}</div>
-                                    <div className="text-[10px] text-zinc-600 mt-1">{CATEGORY_LABELS[item.category]}</div>
+                                    <div className="text-[10px] text-zinc-500 mt-1">{CATEGORY_LABELS[item.category]}</div>
                                 </div>
                             ))}
                         </div>
@@ -680,17 +740,17 @@
             if(!isOpen) return null;
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-                    <div className="bg-zinc-900 w-full max-w-sm h-[70vh] rounded-2xl p-6 flex flex-col border border-zinc-800" onClick={e=>e.stopPropagation()}>
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-sm h-[70vh] rounded-2xl p-6 flex flex-col border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white transition-colors duration-300" onClick={e=>e.stopPropagation()}>
                         <div className="flex justify-between mb-4"><h2 className="font-bold">历史记录</h2><button onClick={onClose}><Icons.X/></button></div>
                         <div className="flex-1 overflow-y-auto space-y-2">
                             {history.slice().reverse().map((h,i)=>(
-                                <div key={i} className="flex items-center gap-3 p-2 bg-zinc-800/50 rounded-lg">
+                                <div key={i} className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-zinc-800/50 rounded-lg">
                                     <span className="text-xl">{h.food.icon}</span>
                                     <div><div className="text-sm font-bold">{h.food.name}</div><div className="text-[10px] text-zinc-500">{new Date(h.timestamp).toLocaleTimeString()}</div></div>
                                 </div>
                             ))}
                         </div>
-                        {history.length>0 && <button onClick={onClear} className="mt-2 text-xs text-red-500">清空历史</button>}
+                        {history.length>0 && <button onClick={onClear} className="mt-2 text-xs text-red-500 hover:text-red-600 underline text-center w-full py-2">清空历史</button>}
                     </div>
                 </div>
             );
@@ -707,10 +767,25 @@
             const [history, setHistory] = useState([]);
             const [customItems, setCustomItems] = useState([]);
             const [foodOverrides, setFoodOverrides] = useState({});
+            const [theme, setTheme] = useState('dark');
             
             // Modals
             const [modals, setModals] = useState({ settings: false, history: false, add: false, library: false, catManager: false });
             const [editingItem, setEditingItem] = useState(null);
+
+            // Theme Init
+            useEffect(() => {
+                const savedTheme = localStorage.getItem('eat_theme') || 'dark';
+                setTheme(savedTheme);
+                document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+            }, []);
+
+            const toggleTheme = () => {
+                const newTheme = theme === 'dark' ? 'light' : 'dark';
+                setTheme(newTheme);
+                localStorage.setItem('eat_theme', newTheme);
+                document.documentElement.classList.toggle('dark', newTheme === 'dark');
+            }
 
             // Init
             useEffect(() => {
@@ -734,27 +809,20 @@
                 return [...builtins, ...customItems];
             }, [customItems, foodOverrides]);
 
-            // Filter items based on current tab and prefs
-            // WE DO NOT SET ITEMS HERE. We only use this to calculate pool for manual refresh.
-            // Items for Wheel are locked when spinning starts.
-            
             const generatePool = useCallback(() => {
                 const tab = navTabs.find(t=>t.id===activeTabId) || navTabs[0];
                 return getRandomBatch(8, prefs, tab, allItems);
             }, [activeTabId, prefs, allItems, navTabs]);
 
-            // Initial load or tab change (only if not spinning)
             useEffect(() => {
                 if(!isSpinning) {
                     setItems(generatePool());
                 }
-            }, [activeTabId, prefs, allItems, navTabs]); // isSpinning excluded to prevent updates during spin
+            }, [activeTabId, prefs, allItems, navTabs]);
 
             const handleSpin = () => { 
                 if(!isSpinning && items.length > 0) { 
-                    // 1. Lock state
                     setIsSpinning(true); 
-                    // 2. Pick winner from CURRENT wheel items (Logic Fix)
                     const winnerIndex = Math.floor(Math.random() * items.length);
                     const selectedWinner = items[winnerIndex];
                     setWinner(selectedWinner); 
@@ -763,7 +831,6 @@
 
             const handleSpinComplete = () => {
                 setIsSpinning(false); 
-                // Only now we add history
                 if(winner) setHistory(h=>[...h,{food:winner, timestamp:Date.now()}]);
             };
 
@@ -776,54 +843,54 @@
             };
 
             return (
-                <div className="max-w-[450px] mx-auto min-h-screen bg-black text-white relative flex flex-col shadow-2xl overflow-hidden selection:bg-white selection:text-black">
-                     <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[80%] bg-gradient-to-b from-zinc-800/20 to-transparent blur-3xl pointer-events-none rounded-full opacity-50"></div>
+                <div className="max-w-[450px] mx-auto min-h-screen bg-gray-50 dark:bg-black text-zinc-900 dark:text-white relative flex flex-col shadow-2xl overflow-hidden selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-300">
+                     <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[80%] bg-gradient-to-b from-gray-200/50 dark:from-zinc-800/20 to-transparent blur-3xl pointer-events-none rounded-full opacity-50"></div>
                      
                      {/* Header */}
                      <header className="px-6 pt-6 flex justify-between items-start z-10">
-                        <div><h1 className="text-3xl font-black tracking-tighter">选了么</h1><p className="text-[10px] text-zinc-500 font-bold tracking-[0.3em] mt-1">今天吃什么</p></div>
+                        <div><h1 className="text-3xl font-black tracking-tighter">选了么</h1><p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-[0.3em] mt-1">今天吃什么</p></div>
                         <div className="flex gap-2">
-                            <button onClick={()=>{setEditingItem(null); setModals({...modals, add:true})}} className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center border border-white/5"><Icons.Plus className="w-4 h-4 text-zinc-400"/></button>
-                            <button onClick={()=>setModals({...modals, library:true})} className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center border border-white/5"><Icons.BookOpen className="w-4 h-4 text-zinc-400"/></button>
-                            <button onClick={()=>setModals({...modals, settings:true})} className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center border border-white/5"><Icons.Settings className="w-4 h-4 text-zinc-400"/></button>
+                            <button onClick={()=>{setEditingItem(null); setModals({...modals, add:true})}} className="w-9 h-9 bg-white dark:bg-white/5 rounded-full flex items-center justify-center border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none"><Icons.Plus className="w-4 h-4 text-zinc-600 dark:text-zinc-400"/></button>
+                            <button onClick={()=>setModals({...modals, library:true})} className="w-9 h-9 bg-white dark:bg-white/5 rounded-full flex items-center justify-center border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none"><Icons.BookOpen className="w-4 h-4 text-zinc-600 dark:text-zinc-400"/></button>
+                            <button onClick={()=>setModals({...modals, settings:true})} className="w-9 h-9 bg-white dark:bg-white/5 rounded-full flex items-center justify-center border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none"><Icons.Settings className="w-4 h-4 text-zinc-600 dark:text-zinc-400"/></button>
                         </div>
                      </header>
 
                      {/* Nav */}
                      <div className="z-10 px-4 mt-4 w-full">
-                        <div className="flex items-center bg-white/5 backdrop-blur-xl border border-white/5 rounded-xl p-1">
+                        <div className="flex items-center bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-xl p-1 shadow-sm dark:shadow-none">
                             <div className="flex-1 overflow-x-auto scrollbar-hide flex gap-1">
                                 {navTabs.map(t => (
-                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border ${activeTabId===t.id ? 'bg-white text-black border-white' : 'text-zinc-500 border-transparent'}`}>
+                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border ${activeTabId===t.id ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' : 'text-zinc-500 border-transparent hover:bg-gray-100 dark:hover:bg-white/5'}`}>
                                         {ICON_MAP[t.iconName] || <Icons.Layers className="w-3 h-3 inline mr-1"/>} {t.label}
                                     </button>
                                 ))}
                             </div>
-                            <div className="w-px h-4 bg-white/10 mx-1"></div>
-                            <button onClick={()=>setModals({...modals, catManager:true})} className="p-1.5 text-zinc-500"><Icons.Edit className="w-3.5 h-3.5"/></button>
+                            <div className="w-px h-4 bg-gray-200 dark:bg-white/10 mx-1"></div>
+                            <button onClick={()=>setModals({...modals, catManager:true})} className="p-1.5 text-zinc-500 hover:text-black dark:hover:text-white"><Icons.Edit className="w-3.5 h-3.5"/></button>
                         </div>
                      </div>
 
                      {/* Main Wheel */}
                      <main className="flex-1 flex flex-col items-center justify-center py-2 relative z-0">
                         <div className="transition-transform duration-700">
-                             <Wheel items={items} isSpinning={isSpinning} onSpinComplete={handleSpinComplete} winner={winner} />
+                             <Wheel items={items} isSpinning={isSpinning} onSpinComplete={handleSpinComplete} winner={winner} theme={theme} />
                         </div>
                      </main>
 
                      {/* Footer Controls */}
                      <div className="w-full px-6 pb-8 z-20 flex flex-col items-center gap-6 mt-16">
-                        <button onClick={handleSpin} disabled={isSpinning||items.length===0} className={`text-4xl font-black tracking-[0.2em] italic transition-all duration-300 ${isSpinning?'text-zinc-600':'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] hover:drop-shadow-[0_0_25px_rgba(255,255,255,0.8)]'}`}>开始旋转</button>
+                        <button onClick={handleSpin} disabled={isSpinning||items.length===0} className={`text-4xl font-black tracking-[0.2em] italic transition-all duration-300 ${isSpinning?'text-zinc-400 dark:text-zinc-600':'text-zinc-900 dark:text-white drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] hover:scale-105'}`}>开始旋转</button>
                         <div className="flex items-center gap-10">
-                            <button onClick={()=>setItems(generatePool())} disabled={isSpinning} className="p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white transition-colors"><Icons.Shuffle className="w-4 h-4"/></button>
-                            <button onClick={()=>setModals({...modals, history:true})} className="p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white transition-colors"><Icons.History className="w-4 h-4"/></button>
+                            <button onClick={()=>setItems(generatePool())} disabled={isSpinning} className="p-2.5 rounded-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-zinc-500 hover:text-black dark:hover:text-white transition-colors shadow-lg dark:shadow-none"><Icons.Shuffle className="w-4 h-4"/></button>
+                            <button onClick={()=>setModals({...modals, history:true})} className="p-2.5 rounded-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-zinc-500 hover:text-black dark:hover:text-white transition-colors shadow-lg dark:shadow-none"><Icons.History className="w-4 h-4"/></button>
                         </div>
                      </div>
 
                      {/* Modals */}
-                     {!isSpinning && winner && <ResultCard winner={winner} onClose={()=>setWinner(null)} onRetry={()=>{setWinner(null); handleSpin();}} isFavorite={(prefs.favoriteItemIds||[]).includes(winner?.id)} onToggleFavorite={()=>setPrefs(p=>({...p, favoriteItemIds: p.favoriteItemIds.includes(winner.id)?p.favoriteItemIds.filter(x=>x!==winner.id):[...p.favoriteItemIds,winner.id]}))} />}
+                     {!isSpinning && winner && <ResultCard winner={winner} onClose={()=>setWinner(null)} onRetry={()=>{setWinner(null); handleSpin();}} isFavorite={(prefs.favoriteItemIds||[]).includes(winner?.id)} onToggleFavorite={()=>setPrefs(p=>({...p, favoriteItemIds: p.favoriteItemIds.includes(winner.id)?p.favoriteItemIds.filter(x=>x!==winner.id):[...p.favoriteItemIds,winner.id]}))} theme={theme} />}
                      
-                     <Settings isOpen={modals.settings} onClose={()=>setModals({...modals, settings:false})} prefs={prefs} updatePrefs={setPrefs} allFoodItems={allItems} />
+                     <Settings isOpen={modals.settings} onClose={()=>setModals({...modals, settings:false})} prefs={prefs} updatePrefs={setPrefs} allFoodItems={allItems} theme={theme} toggleTheme={toggleTheme} />
                      <History isOpen={modals.history} onClose={()=>setModals({...modals, history:false})} history={history} onClear={()=>setHistory([])} />
                      <FoodLibrary isOpen={modals.library} onClose={()=>setModals({...modals, library:false})} items={allItems} onEdit={i=>{setEditingItem(i); setModals({...modals, add:true})}} favs={prefs.favoriteItemIds} onToggleFav={id=>setPrefs(p=>({...p, favoriteItemIds:p.favoriteItemIds.includes(id)?p.favoriteItemIds.filter(x=>x!==id):[...p.favoriteItemIds,id]}))} navTabs={navTabs}/>
                      <CategoryManager isOpen={modals.catManager} onClose={()=>setModals({...modals, catManager:false})} tabs={navTabs} onUpdateTabs={setNavTabs} />
