@@ -541,78 +541,40 @@
                 if (isGenerating) return;
                 setIsGenerating(true);
                 
+                // Generate High-Res Poster for Export
                 const poster = document.createElement('div');
                 
-                // --- HARDCODED POSTER STYLES FOR RELIABILITY ---
-                let bgStyle = "";
-                let textColor = "";
-                let borderColor = "";
-                let subTextColor = "";
+                // Theme logic for export (same as preview)
+                let bg = 'white'; let text = 'black'; let border = '#e5e5e5';
+                if (posterTheme === 'black') { bg = '#09090b'; text = 'white'; border = '#27272a'; }
+                if (posterTheme === 'red') { bg = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)'; text = '#fffbeb'; border = '#fecaca'; }
 
-                if (posterTheme === 'white') {
-                    bgStyle = "background-color: #ffffff;";
-                    textColor = "#000000";
-                    borderColor = "#eeeeee";
-                    subTextColor = "#666666";
-                } else if (posterTheme === 'black') {
-                    bgStyle = "background-color: #0a0a0a;";
-                    textColor = "#ffffff";
-                    borderColor = "#333333";
-                    subTextColor = "#aaaaaa";
-                } else if (posterTheme === 'red') {
-                    // Safe linear gradient
-                    bgStyle = "background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);";
-                    textColor = "#ffffff";
-                    borderColor = "rgba(255,255,255,0.3)";
-                    subTextColor = "rgba(255,255,255,0.8)";
-                }
+                const texture = `background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");`;
 
-                // Noise texture base64
-                const noiseUrl = "data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E";
-
-                poster.style.cssText = `
-                    position: fixed; 
-                    top: 0; left: 0; 
-                    width: 375px; 
-                    min-height: 600px; 
-                    padding: 40px 20px; 
-                    text-align: center; 
-                    font-family: sans-serif; 
-                    z-index: -1;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    ${bgStyle}
-                `;
+                poster.style.cssText = `position:fixed;top:0;left:0;width:375px;height:auto;min-height:600px;padding:40px 20px;text-align:center;z-index:-1;font-family:sans-serif;display:block;background:${bg};color:${text};`;
                 
-                // Clean Layout: No Pill Box, Just Text & Border
+                // Fix: Increased top margin to prevent overlap with line
+                // Clean Layout without pill box
                 poster.innerHTML = `
-                    <div style="position:absolute; inset:0; background-image: url('${noiseUrl}'); pointer-events:none;"></div>
+                    <div style="position:absolute;inset:0;${texture}pointer-events:none;"></div>
+                    <div style="font-size:12px;opacity:0.6;letter-spacing:4px;margin-bottom:20px;text-align:center;text-transform:uppercase;">Today's Choice</div>
                     
-                    <div style="font-size:12px; color:${subTextColor}; letter-spacing:4px; margin-bottom:40px; text-align:center; text-transform:uppercase;">Today's Choice</div>
+                    <div style="font-size:100px;margin:10px auto 20px auto;text-align:center;display:block;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.2));">${winner.icon}</div>
                     
-                    <div style="font-size:100px; margin:10px 0 30px 0; text-shadow: 0 10px 20px rgba(0,0,0,0.15);">${winner.icon}</div>
+                    <h1 style="font-size:42px;font-weight:900;margin:0 0 10px 0;color:${text};text-align:center;line-height:1.1;">${winner.name}</h1>
                     
-                    <h1 style="font-size:42px; font-weight:900; margin:0 0 10px 0; color:${textColor}; line-height:1.1;">${winner.name}</h1>
-                    
-                    <div style="font-size:14px; font-weight:bold; color:${subTextColor}; margin-bottom:40px; border-top:1px solid ${borderColor}; border-bottom:1px solid ${borderColor}; padding:8px 20px; display:inline-block;">
+                    <div style="font-size:14px; font-weight:bold; opacity:0.8; margin-bottom:30px; border-top:1px solid ${border}; border-bottom:1px solid ${border}; padding:8px 0; width:100%; margin-top:20px;">
                         ${displayLabel}
                     </div>
                     
-                    <p style="font-size:15px; color:${subTextColor}; margin:0 20px 60px 20px; line-height:1.6;">${winner.description}</p>
-                    
-                    <div style="margin-top:auto; font-size:10px; color:${subTextColor}; opacity:0.5; letter-spacing:1px;">EAT · DECISION MAKER</div>
+                    <p style="font-size:15px;opacity:0.9;margin:0 auto 60px auto;max-width:85%;line-height:1.8;text-align:center;font-weight:500;">${winner.description}</p>
+                    <div style="border-top:1px solid ${border};padding-top:25px;font-size:10px;opacity:0.5;text-align:center;letter-spacing:1px;">EAT · DECISION MAKER</div>
                 `;
                 
                 document.body.appendChild(poster);
                 
                 try {
-                    const canvas = await html2canvas(poster, { 
-                        scale: 2, 
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: null 
-                    });
+                    const canvas = await html2canvas(poster, { scale: 2, useCORS: true });
                     document.body.removeChild(poster);
                     const blob = await new Promise(r => canvas.toBlob(r));
                     const file = new File([blob], "share.png", { type: "image/png" });
@@ -633,7 +595,7 @@
             
             const cardBorderClass = posterTheme === 'white' ? 'border-zinc-100' 
                                   : posterTheme === 'black' ? 'border-zinc-800' 
-                                  : 'border-red-500/30';
+                                  : 'border-red-400/30';
             
             const subTextClass = posterTheme === 'white' ? 'text-zinc-500' 
                                : posterTheme === 'black' ? 'text-zinc-400' 
@@ -660,11 +622,11 @@
                              <div className="text-8xl mb-4 drop-shadow-2xl active:scale-95 transition-transform">{winner.icon}</div>
                         </div>
                         
-                        <h2 className="text-3xl font-black mb-4 flex items-center justify-center gap-2" onClick={copyName}>{winner.name}</h2>
+                        <h2 className="text-3xl font-black mb-2 flex items-center justify-center gap-2" onClick={copyName}>{winner.name}</h2>
                         
-                        {/* Simple Label Layout (No Pill Box) */}
-                        <div className="mb-6 flex justify-center">
-                             <span className={`text-xs font-bold px-4 py-1 border-t border-b ${dividerClass} ${subTextClass}`}>{displayLabel}</span>
+                        {/* Fix: Removed Pill Box, use simple divider lines with margin to prevent overlap */}
+                        <div className="mb-6 flex justify-center w-full mt-4">
+                             <span className={`text-xs font-bold w-full py-2 border-t border-b ${dividerClass} ${subTextClass}`}>{displayLabel}</span>
                         </div>
 
                         <p className={`text-sm mb-8 px-4 leading-relaxed font-medium min-h-[3rem] ${subTextClass}`}>{winner.description}</p>
@@ -1197,7 +1159,7 @@
                         </div>
                      </header>
 
-                     {/* Nav */}
+                     {/* Nav (Fixed Center Alignment) */}
                      <div className="z-10 px-4 mt-4 w-full">
                         <div className="flex items-center justify-between bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-xl p-1 shadow-sm dark:shadow-none">
                             <div 
@@ -1209,11 +1171,9 @@
                                 onMouseMove={handleNavMouseMove}
                             >
                                 {navTabs.map(t => (
-                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border shrink-0 ${activeTabId===t.id ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' : 'text-zinc-500 border-transparent hover:bg-gray-100 dark:hover:bg-white/5'}`}>
-                                        <span className="flex items-center gap-1">
-                                            {ICON_MAP[t.iconName] || <Icons.Layers className="w-3 h-3"/>}
-                                            {t.label}
-                                        </span>
+                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border shrink-0 flex items-center justify-center gap-1.5 ${activeTabId===t.id ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' : 'text-zinc-500 border-transparent hover:bg-gray-100 dark:hover:bg-white/5'}`}>
+                                        {ICON_MAP[t.iconName] || <Icons.Layers className="w-3 h-3"/>}
+                                        <span>{t.label}</span>
                                     </button>
                                 ))}
                             </div>
