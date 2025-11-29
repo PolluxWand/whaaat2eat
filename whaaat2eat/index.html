@@ -86,11 +86,6 @@
             display: flex; justify-content: center; align-items: center; transition: opacity 0.5s;
         }
         .dark #loading-screen { background: #000; }
-
-        /* Noise Texture Class for Poster */
-        .bg-noise {
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
-        }
     </style>
 </head>
 <body>
@@ -107,7 +102,7 @@
             if(el) { el.style.opacity = '0'; setTimeout(()=>el.remove(), 500); }
         }, 500);
 
-        // --- AUDIO ENGINE (Realistic Ratchet) ---
+        // --- AUDIO ENGINE (White Noise Burst for Click) ---
         const AudioEngine = {
             ctx: null,
             init: () => {
@@ -121,38 +116,37 @@
                     AudioEngine.ctx.resume();
                 }
             },
-            // Generate a short burst of white noise (Click)
+            // Crisp Mechanical Click
             playClick: () => {
                 if (!AudioEngine.ctx) AudioEngine.init();
                 AudioEngine.resume();
                 if (!AudioEngine.ctx) return;
 
                 const t = AudioEngine.ctx.currentTime;
-                const bufferSize = AudioEngine.ctx.sampleRate * 0.01; // 10ms buffer
+                
+                // 1. White Noise Burst (The "Click")
+                const bufferSize = AudioEngine.ctx.sampleRate * 0.015; // 15ms burst
                 const buffer = AudioEngine.ctx.createBuffer(1, bufferSize, AudioEngine.ctx.sampleRate);
                 const data = buffer.getChannelData(0);
-
                 for (let i = 0; i < bufferSize; i++) {
-                    data[i] = Math.random() * 2 - 1;
+                    data[i] = (Math.random() * 2 - 1) * 0.8; // Reduce amplitude slightly
                 }
-
+                
                 const noise = AudioEngine.ctx.createBufferSource();
                 noise.buffer = buffer;
-                
-                // Filter to make it sound mechanical (High pass)
+
+                // Highpass filter to remove rumble, keep the "snap"
                 const filter = AudioEngine.ctx.createBiquadFilter();
                 filter.type = 'highpass';
-                filter.frequency.value = 1000;
+                filter.frequency.value = 1200; 
 
-                const gain = AudioEngine.ctx.createGain();
-                // Sharp decay envelope
-                gain.gain.setValueAtTime(0.4, t);
-                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.01);
+                const noiseGain = AudioEngine.ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.3, t);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.01);
 
                 noise.connect(filter);
-                filter.connect(gain);
-                gain.connect(AudioEngine.ctx.destination);
-                
+                filter.connect(noiseGain);
+                noiseGain.connect(AudioEngine.ctx.destination);
                 noise.start(t);
             },
             playWin: () => {
@@ -162,7 +156,7 @@
 
                 const t = AudioEngine.ctx.currentTime;
                 
-                // Simple Bell Sound
+                // Bright Bell Sound
                 const osc = AudioEngine.ctx.createOscillator();
                 const gain = AudioEngine.ctx.createGain();
                 
@@ -617,7 +611,12 @@
                         
                         <h2 className="text-3xl font-black mb-4 flex items-center justify-center gap-2" onClick={copyName}>{winner.name}</h2>
                         
-                        <p className="text-sm opacity-80 mb-8 px-4 leading-relaxed font-medium">{winner.description}</p>
+                        {/* Fixed Label Layout for Poster Preview */}
+                        <div className="mb-6">
+                             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${posterTheme === 'white' ? 'bg-gray-100 text-zinc-500 border-zinc-200' : 'bg-white/10 text-white/80 border-white/20'}`}>{displayLabel}</span>
+                        </div>
+
+                        <p className="text-sm opacity-80 mb-8 px-4 leading-relaxed font-medium min-h-[3rem]">{winner.description}</p>
                         
                         {/* Poster Theme Selector */}
                         <div className="mb-6">
@@ -906,6 +905,14 @@
 
             if(!isOpen) return null;
             
+            const getDisplayLabel = (item) => {
+                if (item.tags.includes('宵夜')) return '宵夜';
+                if (item.tags.includes('甜品')) return '甜品';
+                if (item.tags.includes('饮品')) return '饮品';
+                if (item.tags.includes('早餐')) return '早餐';
+                return CATEGORY_LABELS[item.category];
+            };
+
             const filtered = items.filter(item => {
                 if (showFavsOnly && !favs.includes(item.id)) return false;
                 if (search && !item.name.includes(search) && !item.tags.some(t=>t.includes(search))) return false;
@@ -994,6 +1001,12 @@
             const [modals, setModals] = useState({ settings: false, history: false, add: false, library: false, catManager: false });
             const [editingItem, setEditingItem] = useState(null);
 
+            // Drag to scroll refs
+            const navScrollRef = useRef(null);
+            const [isDraggingNav, setIsDraggingNav] = useState(false);
+            const [navStartX, setNavStartX] = useState(0);
+            const [navScrollLeft, setNavScrollLeft] = useState(0);
+
             // Theme Init
             useEffect(() => {
                 const savedTheme = localStorage.getItem('eat_theme') || 'dark';
@@ -1007,20 +1020,18 @@
                 let targetTab = 'all';
                 let greet = '今天吃什么';
 
-                if (hour >= 6 && hour < 10) { targetTab = 'breakfast'; greet = '早安，吃顿好的'; } // Assuming 'breakfast' tab exists or handled
+                if (hour >= 6 && hour < 10) { targetTab = 'breakfast'; greet = '早安，吃顿好的'; } 
                 else if (hour >= 14 && hour < 17) { targetTab = 'dessert'; greet = '下午茶时间到'; }
                 else if (hour >= 22 || hour < 4) { targetTab = 'night'; greet = '深夜了，整点夜宵？'; }
                 else { targetTab = 'meal'; greet = '干饭人，干饭魂'; }
 
                 setGreeting(greet);
                 
-                // Only auto-switch if user hasn't manually interacted yet (simple check: if active is default 'all')
-                // But let's just do it on mount to be helpful
                 const hasTab = navTabs.find(t => t.id === targetTab);
                 if (hasTab) {
                     setActiveTabId(targetTab);
                 }
-            }, [navTabs]); // Dep on navTabs to ensure they are loaded
+            }, [navTabs]);
 
             const toggleTheme = () => {
                 const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -1094,14 +1105,32 @@
                 if(!winner) return;
                 setPrefs(p => ({...p, sessionBannedIds: [...(p.sessionBannedIds||[]), winner.id]}));
                 setWinner(null);
-                // Trigger refresh immediately
-                // Due to react state batching, we might need a timeout or useEffect dependency
-                // But `items` useEffect depends on `prefs`, so it should auto-refresh the pool!
-                // Wait, generatePool uses prefs.sessionBannedIds. So yes.
-                // We just need to spin again? Or just show the new pool?
-                // Let's just show new pool.
-                setTimeout(() => handleSpin(), 500); // Auto respin
+                setTimeout(() => handleSpin(), 500);
             }
+
+            // --- Drag to Scroll Handlers ---
+            const handleNavMouseDown = (e) => {
+                if (!navScrollRef.current) return;
+                setIsDraggingNav(true);
+                setNavStartX(e.pageX - navScrollRef.current.offsetLeft);
+                setNavScrollLeft(navScrollRef.current.scrollLeft);
+            };
+
+            const handleNavMouseLeave = () => {
+                setIsDraggingNav(false);
+            };
+
+            const handleNavMouseUp = () => {
+                setIsDraggingNav(false);
+            };
+
+            const handleNavMouseMove = (e) => {
+                if (!isDraggingNav || !navScrollRef.current) return;
+                e.preventDefault();
+                const x = e.pageX - navScrollRef.current.offsetLeft;
+                const walk = (x - navStartX) * 2;
+                navScrollRef.current.scrollLeft = navScrollLeft - walk;
+            };
 
             return (
                 <div className="max-w-[450px] mx-auto min-h-screen bg-gray-50 dark:bg-black text-zinc-900 dark:text-white relative flex flex-col shadow-2xl overflow-hidden selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-300">
@@ -1119,16 +1148,26 @@
 
                      {/* Nav */}
                      <div className="z-10 px-4 mt-4 w-full">
-                        <div className="flex items-center bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-xl p-1 shadow-sm dark:shadow-none">
-                            <div className="flex-1 overflow-x-auto scrollbar-hide flex gap-1">
+                        <div className="flex items-center justify-between bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-xl p-1 shadow-sm dark:shadow-none">
+                            <div 
+                                ref={navScrollRef}
+                                className="flex-1 overflow-x-auto scrollbar-hide flex items-center gap-1 min-w-0 cursor-grab active:cursor-grabbing px-1"
+                                onMouseDown={handleNavMouseDown}
+                                onMouseLeave={handleNavMouseLeave}
+                                onMouseUp={handleNavMouseUp}
+                                onMouseMove={handleNavMouseMove}
+                            >
                                 {navTabs.map(t => (
-                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border ${activeTabId===t.id ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' : 'text-zinc-500 border-transparent hover:bg-gray-100 dark:hover:bg-white/5'}`}>
-                                        {ICON_MAP[t.iconName] || <Icons.Layers className="w-3 h-3 inline mr-1"/>} {t.label}
+                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border shrink-0 ${activeTabId===t.id ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' : 'text-zinc-500 border-transparent hover:bg-gray-100 dark:hover:bg-white/5'}`}>
+                                        <span className="flex items-center gap-1">
+                                            {ICON_MAP[t.iconName] || <Icons.Layers className="w-3 h-3"/>}
+                                            {t.label}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
-                            <div className="w-px h-4 bg-gray-200 dark:bg-white/10 mx-1"></div>
-                            <button onClick={()=>setModals({...modals, catManager:true})} className="p-1.5 text-zinc-500 hover:text-black dark:hover:text-white"><Icons.Edit className="w-3.5 h-3.5"/></button>
+                            <div className="w-px h-4 bg-gray-200 dark:bg-white/10 mx-1 shrink-0"></div>
+                            <button onClick={()=>setModals({...modals, catManager:true})} className="p-1.5 text-zinc-500 hover:text-black dark:hover:text-white shrink-0"><Icons.Edit className="w-3.5 h-3.5"/></button>
                         </div>
                      </div>
 
