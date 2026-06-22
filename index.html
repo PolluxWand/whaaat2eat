@@ -29,9 +29,9 @@
     </script>
     
     <!-- React & Babel -->
-    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
     
     <!-- Screenshot Tool -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -122,61 +122,53 @@
                 AudioEngine.resume();
                 if (!AudioEngine.ctx) return;
 
-                try {
-                    const t = AudioEngine.ctx.currentTime;
-                    const bufferSize = AudioEngine.ctx.sampleRate * 0.015; // 15ms burst
-                    const buffer = AudioEngine.ctx.createBuffer(1, bufferSize, AudioEngine.ctx.sampleRate);
-                    const data = buffer.getChannelData(0);
+                const t = AudioEngine.ctx.currentTime;
+                const bufferSize = AudioEngine.ctx.sampleRate * 0.015; // 15ms burst
+                const buffer = AudioEngine.ctx.createBuffer(1, bufferSize, AudioEngine.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
 
-                    for (let i = 0; i < bufferSize; i++) {
-                        data[i] = (Math.random() * 2 - 1) * 0.8;
-                    }
-
-                    const noise = AudioEngine.ctx.createBufferSource();
-                    noise.buffer = buffer;
-
-                    const filter = AudioEngine.ctx.createBiquadFilter();
-                    filter.type = 'highpass';
-                    filter.frequency.value = 1200;
-
-                    const gain = AudioEngine.ctx.createGain();
-                    gain.gain.setValueAtTime(0.3, t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.01);
-
-                    noise.connect(filter);
-                    filter.connect(gain);
-                    gain.connect(AudioEngine.ctx.destination);
-
-                    noise.start(t);
-                } catch(e) {
-                    console.error('音效播放失败:', e);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.8; 
                 }
+
+                const noise = AudioEngine.ctx.createBufferSource();
+                noise.buffer = buffer;
+                
+                const filter = AudioEngine.ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 1200;
+
+                const gain = AudioEngine.ctx.createGain();
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.01);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(AudioEngine.ctx.destination);
+                
+                noise.start(t);
             },
             playWin: () => {
                 if (!AudioEngine.ctx) AudioEngine.init();
                 AudioEngine.resume();
                 if (!AudioEngine.ctx) return;
 
-                try {
-                    const t = AudioEngine.ctx.currentTime;
-
-                    const osc = AudioEngine.ctx.createOscillator();
-                    const gain = AudioEngine.ctx.createGain();
-
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, t); // A5
-
-                    gain.gain.setValueAtTime(0, t);
-                    gain.gain.linearRampToValueAtTime(0.2, t + 0.01);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
-
-                    osc.connect(gain);
-                    gain.connect(AudioEngine.ctx.destination);
-                    osc.start(t);
-                    osc.stop(t + 1.5);
-                } catch(e) {
-                    console.error('胜利音效播放失败:', e);
-                }
+                const t = AudioEngine.ctx.currentTime;
+                
+                const osc = AudioEngine.ctx.createOscillator();
+                const gain = AudioEngine.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, t); // A5
+                
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.2, t + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                
+                osc.connect(gain);
+                gain.connect(AudioEngine.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 1.5);
             }
         };
 
@@ -246,89 +238,6 @@
             western: '西式正餐', healthy: '轻食沙拉', dessert: '甜点饮品', noodle: '面食粉类', hotpot: '火锅冒菜'
         };
 
-        // 模糊搜索关键词映射表
-        const FUZZY_SEARCH_MAP = {
-            // 汤水类
-            '汤': ['汤水', '汤饭', '汤面', '面食', '粉类'],
-            '汤汤水水': ['汤水', '汤饭', '汤面', '面食', '粉类'],
-            '喝汤': ['汤水', '鸡汤', '火锅', '面食'],
-            '有汤': ['汤水', '汤饭', '汤面', '火锅'],
-            '带汤': ['汤水', '汤饭', '汤面', '面食', '粉类'],
-
-            // 温度类
-            '热的': ['热饮', '汤水', '汤面', '火锅'],
-            '烫的': ['热饮', '汤水', '火锅', '汤面'],
-            '不要冰': ['热饮', '汤水', '汤面', '汤饭', '!冰品'],
-            '不要凉': ['热饮', '汤水', '汤面', '!生冷', '!冰品'],
-            '冰的': ['冰品', '冰淇淋', '果茶', '奶茶'],
-            '凉的': ['冰品', '生冷', '果茶'],
-            '冰爽': ['冰品', '冰淇淋', '果茶'],
-
-            // 主食类
-            '米饭': ['米饭', '主食'],
-            '面条': ['面食', '汤面', '主食'],
-            '面': ['面食', '汤面', '主食'],
-            '粉': ['粉类', '主食'],
-            '面食': ['面食', '汤面', '粉类', '主食'],
-            '主食': ['主食', '米饭', '面食'],
-
-            // 荤素类
-            '肉': ['肉食', '猪肉', '牛肉', '鸡肉', '羊肉'],
-            '素': ['素食', '蔬菜', '清淡'],
-            '海鲜': ['海鲜', '鱼', '虾', '蟹'],
-            '鱼': ['海鲜', '鱼'],
-
-            // 口味类
-            '不辣': ['!辣', '清淡', '咸香'],
-            '微辣': ['辣'],
-            '很辣': ['辣', '川湘'],
-            '清淡': ['清淡', '!辣', '!重口'],
-            '重口': ['辣', '重口', '咸香'],
-            '酸': ['酸'],
-            '酸爽': ['酸', '辣'],
-
-            // 饮品类
-            '喝的': ['饮品', '奶茶', '咖啡', '果茶'],
-            '奶茶': ['奶茶', '饮品'],
-            '咖啡': ['咖啡', '饮品'],
-            '果茶': ['果茶', '饮品'],
-            '热饮': ['热饮', '咖啡', '豆浆'],
-
-            // 甜品类
-            '甜': ['甜品', '蛋糕', '冰淇淋'],
-            '甜品': ['甜品', '蛋糕', '冰淇淋', '烘焙'],
-            '蛋糕': ['蛋糕', '烘焙', '甜品'],
-            '冰淇淋': ['冰淇淋', '冰品', '甜品'],
-
-            // 场景类
-            '下午茶': ['甜品', '饮品', '蛋糕', '奶茶', '咖啡'],
-            '夜宵': ['宵夜', '烧烤', '串串', '小吃'],
-            '宵夜': ['宵夜', '烧烤', '串串', '小吃'],
-            '早餐': ['早餐', '豆浆', '包子', '面食'],
-
-            // 烹饪方式
-            '烤': ['烧烤', '宵夜'],
-            '炸': ['油炸', '炸鸡'],
-            '蒸': ['蒸菜', '清淡'],
-            '煮': ['汤水', '汤面', '面食'],
-            '炒': ['米饭', '粉类'],
-
-            // 火锅类
-            '火锅': ['火锅', '汤水', '辣'],
-            '涮': ['火锅', '汤水'],
-            '麻辣烫': ['汤水', '辣', '川湘'],
-
-            // 地域偏好
-            '川菜': ['川湘', '辣'],
-            '湘菜': ['川湘', '辣'],
-            '粤菜': ['粤闽', '清淡'],
-            '江浙菜': ['江浙', '清淡'],
-            '北方菜': ['北方', '咸香'],
-            '日料': ['日韩', '生冷', '海鲜'],
-            '韩餐': ['日韩', '辣'],
-            '西餐': ['欧美', '牛排', '披萨'],
-        };
-
         const DEFAULT_NAV_TABS = [
             { id: 'all', label: '全部', iconName: 'Layers', filterTags: [] },
             { id: 'meal', label: '正餐', iconName: 'Utensils', filterTags: ['正餐', '快餐', '面食', '火锅菜'] },
@@ -337,259 +246,104 @@
             { id: 'night', label: '宵夜', iconName: 'Moon', filterTags: ['宵夜', '烧烤', '冷串', '卤味'] },
         ];
 
-        // MASSIVE FOOD DATABASE - 300+ 美食数据库
-        // 标签体系说明：
-        // 第一类：类型标签（正餐、快餐、小吃、甜品、饮品、宵夜、早餐）
-        // 第二类：地域标签（川湘、粤闽、江浙、北方、日韩、欧美、东南亚、通用）
-        // 第三类：口味标签（辣、清淡、甜、酸、咸香、油炸、生冷、重口）
-        // 第四类：特征标签（汤水、热饮、冰品、面食、米饭、主食、汤饭、粉类、肉食、海鲜、素食等）
+        // EXPANDED FOOD DATABASE (Sanitized Descriptions)
         const FOOD_DATABASE = [
             // --- 快餐/简餐 ---
-            { id: '1', name: '麦当劳', icon: '🍟', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '汉堡', '主食'], description: '全球知名连锁快餐，汉堡与薯条的经典组合，方便快捷。' },
-            { id: '2', name: '肯德基', icon: '🍗', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '鸡肉', '主食'], description: '经典炸鸡快餐，原味鸡外皮酥脆，肉质鲜嫩多汁。' },
-            { id: '20', name: '汉堡王', icon: '🍔', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '牛肉', '主食'], description: '主打火烤牛肉饼，皇堡分量十足，肉香浓郁。' },
-            { id: '33', name: '塔斯汀', icon: '🥯', category: 'fast_food', tags: ['快餐', '通用', '咸香', '中式汉堡', '主食'], description: '特色现烤面皮，口感筋道，融合中式风味的汉堡。' },
-            { id: '34', name: '德克士', icon: '🍗', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '脆皮鸡', '主食'], description: '脆皮炸鸡是一绝，外皮金黄酥脆，鸡肉鲜嫩入味。' },
-            { id: '16', name: '赛百味', icon: '🥪', category: 'healthy', tags: ['快餐', '欧美', '生冷', '三明治', '主食'], description: '新鲜蔬菜搭配低脂肉类，面包现烤，清爽健康的选择。' },
-            { id: '4', name: '沙县小吃', icon: '🥟', category: 'chinese', tags: ['快餐', '粤闽', '清淡', '扁肉', '主食'], description: '经济实惠的国民小吃，扁肉皮薄馅韧，拌面香气扑鼻。' },
-            { id: '13', name: '黄焖鸡米饭', icon: '🍛', category: 'chinese', tags: ['正餐', '北方', '咸香', '米饭', '主食'], description: '鸡肉滑嫩，汤汁浓郁咸香，非常适合搭配米饭食用。' },
-            { id: '36', name: '隆江猪脚饭', icon: '🍱', category: 'chinese', tags: ['正餐', '粤闽', '咸香', '米饭', '主食'], description: '猪脚卤得软糯入味，肥而不腻，搭配酸菜解腻开胃。' },
-            { id: '40', name: '木桶饭', icon: '🪵', category: 'chinese', tags: ['快餐', '川湘', '辣', '米饭', '主食'], description: '现炒现卖，菜品丰富多样，带有独特的木桶清香。' },
-            { id: '41', name: '盖浇饭', icon: '🍛', category: 'chinese', tags: ['快餐', '通用', '咸香', '米饭', '主食'], description: '菜饭合一，方便快捷，口味选择多样，解决工作餐难题。' },
-            { id: '80', name: '兰州牛肉面', icon: '🍜', category: 'noodle', tags: ['快餐', '北方', '咸香', '清真', '面食', '汤水'], description: '汤清面筋，萝卜白净，辣油红亮，香菜翠绿，一碗入魂。' },
-            { id: '81', name: '真功夫', icon: '🍲', category: 'fast_food', tags: ['快餐', '粤闽', '清淡', '蒸菜', '米饭'], description: '主打蒸品，保留食材原味和营养，清淡不油腻。' },
-            { id: '82', name: '吉野家', icon: '🍚', category: 'fast_food', tags: ['快餐', '日韩', '咸香', '牛肉饭', '米饭'], description: '招牌牛肉饭，肥牛片薄入味，洋葱甘甜，汤汁拌饭一绝。' },
-            { id: '83', name: '老乡鸡', icon: '🐔', category: 'chinese', tags: ['快餐', '江浙', '咸香', '鸡汤', '汤水'], description: '以肥西老母鸡汤为特色，菜品家常，口味清鲜。' },
-            { id: '400', name: '和府捞面', icon: '🍜', category: 'noodle', tags: ['快餐', '江浙', '清淡', '面食', '汤水'], description: '书房式面馆，汤头清鲜，面条劲道，环境雅致。' },
-            { id: '401', name: '味千拉面', icon: '🍜', category: 'noodle', tags: ['快餐', '日韩', '咸香', '面食', '汤水'], description: '白汤拉面，汤底浓郁，搭配叉烧和溏心蛋。' },
-            { id: '402', name: '张亮麻辣烫', icon: '🍲', category: 'chinese', tags: ['快餐', '川湘', '辣', '汤水', '主食'], description: '麻辣汤底浓郁，食材丰富，搭配芝麻酱更香。' },
-            { id: '403', name: '杨国福麻辣烫', icon: '🥘', category: 'chinese', tags: ['快餐', '川湘', '辣', '汤水', '主食'], description: '经典麻辣烫连锁，食材新鲜，汤底麻辣鲜香。' },
-            { id: '404', name: '袁记云饺', icon: '🥟', category: 'chinese', tags: ['快餐', '北方', '咸香', '面食', '主食'], description: '云吞水饺，皮薄馅大，汤底鲜美，性价比高。' },
-            { id: '405', name: '鸡公煲', icon: '🍲', category: 'chinese', tags: ['正餐', '川湘', '辣', '肉食', '米饭'], description: '砂锅炖煮，鸡肉入味，配菜丰富，越煮越香。' },
-            { id: '406', name: '黄太吉煎饼', icon: '🌯', category: 'chinese', tags: ['快餐', '北方', '咸香', '早餐', '主食'], description: '现代化煎饼果子，馅料创新，口感丰富。' },
-            { id: '407', name: '永和大王', icon: '🥛', category: 'chinese', tags: ['快餐', '通用', '清淡', '早餐', '豆浆'], description: '台式早餐连锁，豆浆油条，烧饼套餐，传统味道。' },
-            { id: '408', name: '华莱士', icon: '🍔', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '汉堡', '主食'], description: '国产汉堡品牌，价格实惠，炸鸡汉堡样样齐全。' },
-            { id: '409', name: '乡村基', icon: '🍱', category: 'fast_food', tags: ['快餐', '川湘', '咸香', '米饭', '主食'], description: '西南快餐代表，宫保鸡丁饭，酸辣粉，川味十足。' },
-            { id: '410', name: '大米先生', icon: '🍚', category: 'chinese', tags: ['快餐', '通用', '咸香', '米饭', '主食'], description: '中式快餐，菜品多样，米饭松软，上班族首选。' },
+            { id: '1', name: '麦当劳', icon: '🍟', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '汉堡'], description: '全球知名连锁快餐，汉堡与薯条的经典组合，方便快捷。' },
+            { id: '2', name: '肯德基', icon: '🍗', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '鸡肉'], description: '经典炸鸡快餐，原味鸡外皮酥脆，肉质鲜嫩多汁。' },
+            { id: '20', name: '汉堡王', icon: '🍔', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '牛肉'], description: '主打火烤牛肉饼，皇堡分量十足，肉香浓郁。' },
+            { id: '33', name: '塔斯汀', icon: '🥯', category: 'fast_food', tags: ['快餐', '通用', '咸香', '中式汉堡'], description: '特色现烤面皮，口感筋道，融合中式风味的汉堡。' },
+            { id: '34', name: '德克士', icon: '🍗', category: 'fast_food', tags: ['快餐', '欧美', '油炸', '脆皮鸡'], description: '脆皮炸鸡是一绝，外皮金黄酥脆，鸡肉鲜嫩入味。' },
+            { id: '16', name: '赛百味', icon: '🥪', category: 'healthy', tags: ['快餐', '欧美', '生冷', '三明治'], description: '新鲜蔬菜搭配低脂肉类，面包现烤，清爽健康的选择。' },
+            { id: '4', name: '沙县小吃', icon: '🥟', category: 'chinese', tags: ['快餐', '粤闽', '清淡', '扁肉'], description: '经济实惠的国民小吃，扁肉皮薄馅韧，拌面香气扑鼻。' },
+            { id: '13', name: '黄焖鸡米饭', icon: '🍛', category: 'chinese', tags: ['正餐', '北方', '咸香', '米饭'], description: '鸡肉滑嫩，汤汁浓郁咸香，非常适合搭配米饭食用。' },
+            { id: '36', name: '隆江猪脚饭', icon: '🍱', category: 'chinese', tags: ['正餐', '粤闽', '咸香', '米饭'], description: '猪脚卤得软糯入味，肥而不腻，搭配酸菜解腻开胃。' },
+            { id: '40', name: '木桶饭', icon: '🪵', category: 'chinese', tags: ['快餐', '川湘', '辣', '米饭'], description: '现炒现卖，菜品丰富多样，带有独特的木桶清香。' },
+            { id: '41', name: '盖浇饭', icon: '🍛', category: 'chinese', tags: ['快餐', '通用', '咸香', '米饭'], description: '菜饭合一，方便快捷，口味选择多样，解决工作餐难题。' },
+            { id: '80', name: '兰州牛肉面', icon: '🍜', category: 'noodle', tags: ['快餐', '北方', '咸香', '清真'], description: '汤清面筋，萝卜白净，辣油红亮，香菜翠绿，一碗入魂。' },
+            { id: '81', name: '真功夫', icon: '🍲', category: 'fast_food', tags: ['快餐', '粤闽', '清淡', '蒸菜'], description: '主打蒸品，保留食材原味和营养，清淡不油腻。' },
+            { id: '82', name: '吉野家', icon: '🍚', category: 'fast_food', tags: ['快餐', '日韩', '咸香', '牛肉饭'], description: '招牌牛肉饭，肥牛片薄入味，洋葱甘甜，汤汁拌饭一绝。' },
+            { id: '83', name: '老乡鸡', icon: '🐔', category: 'chinese', tags: ['快餐', '江浙', '咸香', '鸡汤'], description: '以肥西老母鸡汤为特色，菜品家常，口味清鲜。' },
 
             // --- 正餐 (中式/西式/日韩) ---
-            { id: '3', name: '必胜客', icon: '🍕', category: 'western', tags: ['正餐', '欧美', '咸香', '披萨', '主食'], description: '经典铁盘披萨，芝士浓郁拉丝，适合多人聚餐分享。' },
-            { id: '6', name: '重庆火锅', icon: '🔥', category: 'hotpot', tags: ['正餐', '川湘', '辣', '聚餐', '汤水'], description: '红油汤底醇厚香辣，毛肚鸭肠口感爽脆，聚餐氛围浓厚。' },
-            { id: '47', name: '海底捞', icon: '🥘', category: 'hotpot', tags: ['正餐', '川湘', '咸香', '服务', '汤水'], description: '服务周到热情，番茄汤底浓郁好喝，菜品新鲜多样。' },
-            { id: '48', name: '呷哺呷哺', icon: '🍲', category: 'hotpot', tags: ['正餐', '北方', '咸香', '一人食', '汤水'], description: '吧台式小火锅，秘制麻酱蘸料风味独特，一人食也精彩。' },
-            { id: '43', name: '潮汕牛肉火锅', icon: '🐂', category: 'hotpot', tags: ['正餐', '粤闽', '清淡', '牛肉', '汤水'], description: '讲究牛肉鲜切，部位细分，汤底清淡，突出牛肉本味。' },
-            { id: '22', name: '酸菜鱼', icon: '🐟', category: 'chinese', tags: ['正餐', '川湘', '辣', '酸', '鱼', '汤水'], description: '鱼肉鲜嫩滑爽，酸菜酸爽开胃，汤底金黄诱人。' },
-            { id: '24', name: '太二酸菜鱼', icon: '🐟', category: 'chinese', tags: ['正餐', '川湘', '辣', '酸', '汤水'], description: '主打老坛子酸菜鱼，酸菜口感脆爽，鱼肉无刺鲜嫩。' },
-            { id: '71', name: '小龙虾', icon: '🦞', category: 'chinese', tags: ['正餐', '川湘', '辣', '宵夜', '海鲜'], description: '口味多样，麻辣鲜香，肉质Q弹，夜宵聚餐的热门选择。' },
-            { id: '301', name: '红烧肉', icon: '🥩', category: 'chinese', tags: ['正餐', '川湘', '咸香', '肉食', '米饭'], description: '五花肉肥瘦相间，色泽红亮，口感软糯，咸甜适口。' },
-            { id: '302', name: '水饺', icon: '🥟', category: 'chinese', tags: ['正餐', '北方', '咸香', '面食', '主食'], description: '皮薄馅大，汁水丰富，馅料选择多样，传统面食代表。' },
-            { id: '305', name: '烤鸭', icon: '🦆', category: 'chinese', tags: ['正餐', '北方', '咸香', '聚餐', '肉食'], description: '鸭皮酥脆，鸭肉细嫩，搭配荷叶饼和甜面酱，风味独特。' },
-            { id: '17', name: '日式拉面', icon: '🍥', category: 'japanese', tags: ['正餐', '日韩', '咸香', '汤面', '面食', '汤水'], description: '豚骨汤底长时间熬制，浓郁醇厚，面条劲道，配料丰富。' },
-            { id: '9', name: '寿司', icon: '🍣', category: 'japanese', tags: ['正餐', '日韩', '生冷', '海鲜', '主食'], description: '米饭酸甜适度，鱼生新鲜肥美，造型精致，口感丰富。' },
-            { id: '18', name: '石锅拌饭', icon: '🍳', category: 'korean', tags: ['正餐', '日韩', '辣', '米饭', '主食'], description: '热石锅激发出米饭焦香，配菜丰富，拌入辣酱风味十足。' },
+            { id: '3', name: '必胜客', icon: '🍕', category: 'western', tags: ['正餐', '欧美', '咸香', '披萨'], description: '经典铁盘披萨，芝士浓郁拉丝，适合多人聚餐分享。' },
+            { id: '6', name: '重庆火锅', icon: '🔥', category: 'hotpot', tags: ['正餐', '川湘', '辣', '聚餐'], description: '红油汤底醇厚香辣，毛肚鸭肠口感爽脆，聚餐氛围浓厚。' },
+            { id: '47', name: '海底捞', icon: '🥘', category: 'hotpot', tags: ['正餐', '川湘', '咸香', '服务'], description: '服务周到热情，番茄汤底浓郁好喝，菜品新鲜多样。' },
+            { id: '48', name: '呷哺呷哺', icon: '🍲', category: 'hotpot', tags: ['正餐', '北方', '咸香', '一人食'], description: '吧台式小火锅，秘制麻酱蘸料风味独特，一人食也精彩。' },
+            { id: '43', name: '潮汕牛肉火锅', icon: '🐂', category: 'hotpot', tags: ['正餐', '粤闽', '清淡', '牛肉'], description: '讲究牛肉鲜切，部位细分，汤底清淡，突出牛肉本味。' },
+            { id: '22', name: '酸菜鱼', icon: '🐟', category: 'chinese', tags: ['正餐', '川湘', '辣', '酸', '鱼'], description: '鱼肉鲜嫩滑爽，酸菜酸爽开胃，汤底金黄诱人。' },
+            { id: '24', name: '太二酸菜鱼', icon: '🐟', category: 'chinese', tags: ['正餐', '川湘', '辣', '酸'], description: '主打老坛子酸菜鱼，酸菜口感脆爽，鱼肉无刺鲜嫩。' },
+            { id: '71', name: '小龙虾', icon: '🦞', category: 'chinese', tags: ['正餐', '川湘', '辣', '宵夜'], description: '口味多样，麻辣鲜香，肉质Q弹，夜宵聚餐的热门选择。' },
+            { id: '301', name: '红烧肉', icon: '🥩', category: 'chinese', tags: ['正餐', '川湘', '咸香', '肉食'], description: '五花肉肥瘦相间，色泽红亮，口感软糯，咸甜适口。' },
+            { id: '302', name: '水饺', icon: '🥟', category: 'chinese', tags: ['正餐', '北方', '咸香', '面食'], description: '皮薄馅大，汁水丰富，馅料选择多样，传统面食代表。' },
+            { id: '305', name: '烤鸭', icon: '🦆', category: 'chinese', tags: ['正餐', '北方', '咸香', '聚餐'], description: '鸭皮酥脆，鸭肉细嫩，搭配荷叶饼和甜面酱，风味独特。' },
+            { id: '17', name: '日式拉面', icon: '🍥', category: 'japanese', tags: ['正餐', '日韩', '咸香', '汤面'], description: '豚骨汤底长时间熬制，浓郁醇厚，面条劲道，配料丰富。' },
+            { id: '9', name: '寿司', icon: '🍣', category: 'japanese', tags: ['正餐', '日韩', '生冷', '海鲜'], description: '米饭酸甜适度，鱼生新鲜肥美，造型精致，口感丰富。' },
+            { id: '18', name: '石锅拌饭', icon: '🍳', category: 'korean', tags: ['正餐', '日韩', '辣', '米饭'], description: '热石锅激发出米饭焦香，配菜丰富，拌入辣酱风味十足。' },
             { id: '10', name: '韩式炸鸡', icon: '🍗', category: 'korean', tags: ['快餐', '日韩', '甜', '辣', '油炸'], description: '炸鸡外壳酥脆，裹满甜辣酱汁，肉质鲜嫩，风味独特。' },
-            { id: '49', name: '牛排', icon: '🥩', category: 'western', tags: ['正餐', '欧美', '咸香', '肉食', '主食'], description: '精选优质牛肉，煎烤至适宜熟度，肉质鲜嫩多汁。' },
-            { id: '84', name: '西贝莜面村', icon: '🍜', category: 'chinese', tags: ['正餐', '北方', '咸香', '面食', '主食'], description: '主打西北风味，莜面筋道，羊肉鲜美，食材天然健康。' },
-            { id: '85', name: '外婆家', icon: '👵', category: 'chinese', tags: ['正餐', '江浙', '咸香', '杭帮菜', '米饭'], description: '杭帮家常菜，口味适中，环境温馨，性价比高。' },
-            { id: '86', name: '绿茶餐厅', icon: '🍵', category: 'chinese', tags: ['正餐', '江浙', '咸香', '杭帮菜', '米饭'], description: '融合菜系，菜品精致，环境优雅，适合休闲聚餐。' },
-            { id: '411', name: '小肥羊', icon: '🐑', category: 'hotpot', tags: ['正餐', '北方', '咸香', '羊肉', '汤水'], description: '内蒙风味火锅，羊肉鲜嫩无膻，汤底醇香。' },
-            { id: '412', name: '捞王猪肚鸡', icon: '🐔', category: 'hotpot', tags: ['正餐', '粤闽', '清淡', '汤水', '鸡汤'], description: '胡椒猪肚鸡，汤底浓白鲜香，暖胃滋补。' },
-            { id: '413', name: '东来顺', icon: '🥘', category: 'hotpot', tags: ['正餐', '北方', '清淡', '羊肉', '汤水'], description: '百年老字号，涮羊肉薄如纸，麻酱蘸料经典。' },
-            { id: '414', name: '巴奴毛肚火锅', icon: '🔥', category: 'hotpot', tags: ['正餐', '川湘', '辣', '汤水', '毛肚'], description: '主打毛肚和菌汤锅底，食材新鲜，品质至上。' },
-            { id: '415', name: '湊湊火锅', icon: '🍲', category: 'hotpot', tags: ['正餐', '川湘', '辣', '汤水', '茶饮'], description: '火锅+奶茶组合，台式麻辣锅，年轻人喜爱。' },
-            { id: '416', name: '米线', icon: '🍜', category: 'noodle', tags: ['快餐', '川湘', '辣', '粉类', '汤水'], description: '过桥米线，米线滑嫩，配料丰富，汤鲜味美。' },
-            { id: '417', name: '桂林米粉', icon: '🍜', category: 'noodle', tags: ['快餐', '粤闽', '咸香', '粉类', '汤水'], description: '卤水米粉，粉条爽滑，卤汁浓香，经典广西味。' },
-            { id: '418', name: '螺蛳粉', icon: '🐚', category: 'noodle', tags: ['快餐', '粤闽', '酸', '辣', '粉类', '汤水'], description: '酸笋螺蛳汤底，臭中带香，米粉Q弹，上瘾美食。' },
-            { id: '419', name: '重庆小面', icon: '🍜', category: 'noodle', tags: ['快餐', '川湘', '辣', '面食', '汤水'], description: '麻辣鲜香，面条劲道，花生碎增香，重庆早餐之魂。' },
-            { id: '420', name: '热干面', icon: '🍜', category: 'noodle', tags: ['快餐', '川湘', '咸香', '面食', '主食'], description: '武汉特色，芝麻酱拌面，口感筋道，咸香浓郁。' },
-            { id: '421', name: '担担面', icon: '🍜', category: 'noodle', tags: ['快餐', '川湘', '辣', '面食', '主食'], description: '四川名面，麻辣鲜香，肉臊酥香，回味无穷。' },
-            { id: '422', name: '刀削面', icon: '🔪', category: 'noodle', tags: ['快餐', '北方', '咸香', '面食', '汤水'], description: '山西特色，面片厚实，口感筋道，汤底浓郁。' },
-            { id: '423', name: 'biangbiang面', icon: '🍜', category: 'noodle', tags: ['快餐', '北方', '辣', '面食', '主食'], description: '陕西宽面，油泼辣子，面宽如腰带，香辣过瘾。' },
-            { id: '424', name: '炸酱面', icon: '🍜', category: 'noodle', tags: ['快餐', '北方', '咸香', '面食', '主食'], description: '老北京炸酱面，酱香浓郁，配菜清爽，拌匀入魂。' },
-            { id: '425', name: '阳春面', icon: '🍜', category: 'noodle', tags: ['快餐', '江浙', '清淡', '面食', '汤水'], description: '苏式清汤面，汤清面白，简单却鲜美，江南味道。' },
-            { id: '426', name: '片儿川', icon: '🍜', category: 'noodle', tags: ['快餐', '江浙', '咸香', '面食', '汤水'], description: '杭州传统面，笋片肉片，汤头鲜美，经典早餐。' },
-            { id: '427', name: '猫耳朵', icon: '🐱', category: 'noodle', tags: ['快餐', '江浙', '咸香', '面食', '汤水'], description: '浙江特色面食，形似猫耳，Q弹可爱，汤鲜味美。' },
-            { id: '428', name: '云吞面', icon: '🥟', category: 'noodle', tags: ['快餐', '粤闽', '清淡', '面食', '汤水'], description: '广式云吞面，皮薄馅鲜，面条爽滑，汤底清香。' },
-            { id: '429', name: '河粉', icon: '🍜', category: 'noodle', tags: ['快餐', '粤闽', '清淡', '粉类', '汤水'], description: '广东河粉，粉嫩滑爽，牛肉鲜嫩，汤底清甜。' },
-            { id: '430', name: '肠粉', icon: '🥢', category: 'chinese', tags: ['快餐', '粤闽', '清淡', '粉类', '早餐'], description: '广式早茶，米浆蒸制，皮薄如纸，酱汁鲜香。' },
-            { id: '431', name: '生煎包', icon: '🥟', category: 'chinese', tags: ['快餐', '江浙', '咸香', '面食', '早餐'], description: '上海名点，底部金黄酥脆，肉馅汁水丰盈。' },
-            { id: '432', name: '小笼包', icon: '🥟', category: 'chinese', tags: ['快餐', '江浙', '咸香', '面食', '汤水'], description: '皮薄汁多，轻轻一咬汤汁四溢，江南美食代表。' },
-            { id: '433', name: '灌汤包', icon: '🥟', category: 'chinese', tags: ['快餐', '北方', '咸香', '面食', '汤水'], description: '开封名吃，汤汁丰富，皮薄馅嫩，鲜香可口。' },
-            { id: '434', name: '锅贴', icon: '🥟', category: 'chinese', tags: ['快餐', '北方', '咸香', '面食', '主食'], description: '底部煎得金黄酥脆，肉馅鲜嫩多汁，经典小吃。' },
-            { id: '435', name: '馄饨', icon: '🥟', category: 'chinese', tags: ['快餐', '江浙', '清淡', '面食', '汤水'], description: '皮薄馅嫩，汤清味鲜，紫菜虾皮提味，温暖治愈。' },
+            { id: '49', name: '牛排', icon: '🥩', category: 'western', tags: ['正餐', '欧美', '咸香', '肉食'], description: '精选优质牛肉，煎烤至适宜熟度，肉质鲜嫩多汁。' },
+            { id: '84', name: '西贝莜面村', icon: '🍜', category: 'chinese', tags: ['正餐', '北方', '咸香', '面食'], description: '主打西北风味，莜面筋道，羊肉鲜美，食材天然健康。' },
+            { id: '85', name: '外婆家', icon: '👵', category: 'chinese', tags: ['正餐', '江浙', '咸香', '杭帮菜'], description: '杭帮家常菜，口味适中，环境温馨，性价比高。' },
+            { id: '86', name: '绿茶餐厅', icon: '🍵', category: 'chinese', tags: ['正餐', '江浙', '咸香', '杭帮菜'], description: '融合菜系，菜品精致，环境优雅，适合休闲聚餐。' },
 
             // --- 宵夜/小吃 ---
-            { id: '12', name: '烧烤/烤串', icon: '🍢', category: 'chinese', tags: ['小吃', '北方', '咸香', '宵夜', '肉食'], description: '炭火烤制，孜然辣椒增香，肉串外焦里嫩，夜宵首选。' },
+            { id: '12', name: '烧烤/烤串', icon: '🍢', category: 'chinese', tags: ['小吃', '北方', '咸香', '宵夜'], description: '炭火烤制，孜然辣椒增香，肉串外焦里嫩，夜宵首选。' },
             { id: '67', name: '绝味鸭脖', icon: '🦆', category: 'chinese', tags: ['小吃', '川湘', '辣', '宵夜', '卤味'], description: '卤味香辣浓郁，越嚼越香，适合休闲解馋。' },
             { id: '68', name: '周黑鸭', icon: '🦆', category: 'chinese', tags: ['小吃', '川湘', '甜', '辣', '宵夜', '卤味'], description: '入口微甜，回味麻辣，肉质紧实，风味独特。' },
-            { id: '201', name: '关东煮', icon: '🍢', category: 'chinese', tags: ['小吃', '日韩', '清淡', '宵夜', '汤水'], description: '汤底清鲜，食材吸满汤汁，口感软糯，温暖治愈。' },
+            { id: '201', name: '关东煮', icon: '🍢', category: 'chinese', tags: ['小吃', '日韩', '清淡', '宵夜'], description: '汤底清鲜，食材吸满汤汁，口感软糯，温暖治愈。' },
             { id: '202', name: '正新鸡排', icon: '🍗', category: 'fast_food', tags: ['小吃', '通用', '油炸', '宵夜'], description: '鸡排炸至金黄，外酥里嫩，撒上调料香气四溢。' },
-            { id: '203', name: '铁板鱿鱼', icon: '🦑', category: 'chinese', tags: ['小吃', '通用', '辣', '宵夜', '海鲜'], description: '鱿鱼在铁板上滋滋作响，洋葱增香，口感弹牙。' },
+            { id: '203', name: '铁板鱿鱼', icon: '🦑', category: 'chinese', tags: ['小吃', '通用', '辣', '宵夜'], description: '鱿鱼在铁板上滋滋作响，洋葱增香，口感弹牙。' },
             { id: '205', name: '臭豆腐', icon: '⬛', category: 'chinese', tags: ['小吃', '川湘', '辣', '臭', '宵夜'], description: '闻着臭吃着香，外皮酥脆，内里软嫩，汤汁鲜辣。' },
             { id: '206', name: '烤生蚝', icon: '🦪', category: 'chinese', tags: ['小吃', '粤闽', '咸香', '海鲜', '宵夜'], description: '生蚝肥美多汁，搭配蒜蓉粉丝，鲜味十足。' },
-            { id: '207', name: '钵钵鸡', icon: '🍢', category: 'chinese', tags: ['小吃', '川湘', '辣', '冷串', '宵夜'], description: '食材浸泡在红油汤汁中，麻辣鲜香，拿取方便。' },
-            { id: '208', name: '泡面', icon: '🍜', category: 'fast_food', tags: ['快餐', '通用', '咸香', '宵夜', '面食'], description: '面条Q弹，汤头浓郁，简单快捷，深夜慰藉。' },
-            { id: '42', name: '煎饼果子', icon: '🌯', category: 'chinese', tags: ['小吃', '北方', '咸香', '早餐', '主食'], description: '杂粮饼皮摊鸡蛋，刷酱加薄脆，口感层次丰富。' },
-            { id: '39', name: '凉皮', icon: '🥢', category: 'chinese', tags: ['小吃', '北方', '辣', '酸', '生冷'], description: '凉皮透亮劲道，搭配黄瓜丝面筋，酸辣爽口。' },
-            { id: '87', name: '煌上煌', icon: '🦆', category: 'chinese', tags: ['小吃', '江浙', '咸香', '卤味', '宵夜'], description: '酱卤风味，咸甜适中，肉质干香，回味悠长。' },
+            { id: '207', name: '钵钵鸡', icon: '🍢', category: 'chinese', tags: ['小吃', '川湘', '辣', '冷串'], description: '食材浸泡在红油汤汁中，麻辣鲜香，拿取方便。' },
+            { id: '208', name: '泡面', icon: '🍜', category: 'fast_food', tags: ['快餐', '通用', '咸香', '宵夜'], description: '面条Q弹，汤头浓郁，简单快捷，深夜慰藉。' },
+            { id: '42', name: '煎饼果子', icon: '🌯', category: 'chinese', tags: ['小吃', '北方', '咸香', '早餐'], description: '杂粮饼皮摊鸡蛋，刷酱加薄脆，口感层次丰富。' },
+            { id: '39', name: '凉皮', icon: '🥢', category: 'chinese', tags: ['小吃', '北方', '辣', '酸'], description: '凉皮透亮劲道，搭配黄瓜丝面筋，酸辣爽口。' },
+            { id: '87', name: '煌上煌', icon: '🦆', category: 'chinese', tags: ['小吃', '江浙', '咸香', '卤味'], description: '酱卤风味，咸甜适中，肉质干香，回味悠长。' },
             { id: '88', name: '夸父炸串', icon: '🍢', category: 'chinese', tags: ['小吃', '川湘', '辣', '油炸', '宵夜'], description: '乐山油炸串串，食材丰富，刷上秘制酱料，香脆可口。' },
             { id: '89', name: '喜姐炸串', icon: '🍢', category: 'chinese', tags: ['小吃', '通用', '油炸', '宵夜'], description: '炸串品类多样，外皮酥脆不油腻，适合边走边吃。' },
-            { id: '436', name: '麻辣香锅', icon: '🥘', category: 'chinese', tags: ['正餐', '川湘', '辣', '宵夜', '主食'], description: '干锅炒制，麻辣鲜香，食材丰富，越吃越过瘾。' },
-            { id: '437', name: '冒菜', icon: '🍲', category: 'chinese', tags: ['快餐', '川湘', '辣', '宵夜', '汤水'], description: '一人食的小火锅，麻辣汤底，配菜丰富。' },
-            { id: '438', name: '串串香', icon: '🍢', category: 'chinese', tags: ['正餐', '川湘', '辣', '宵夜', '汤水'], description: '成都特色，一串一串涮着吃，麻辣鲜香。' },
-            { id: '439', name: '烤冷面', icon: '🍳', category: 'chinese', tags: ['小吃', '北方', '甜', '宵夜', '主食'], description: '东北街头小吃，煎得香脆，酸甜酱汁，加蛋更香。' },
-            { id: '440', name: '炒河粉', icon: '🍜', category: 'chinese', tags: ['快餐', '粤闽', '咸香', '粉类', '主食'], description: '干炒河粉，粉条爽滑，豆芽韭黄增脆，火候十足。' },
-            { id: '441', name: '炒粉丝', icon: '🥢', category: 'chinese', tags: ['快餐', '通用', '咸香', '粉类', '主食'], description: '粉丝吸满汤汁，配菜丰富，下饭好菜。' },
-            { id: '442', name: '酸辣粉', icon: '🍜', category: 'noodle', tags: ['快餐', '川湘', '酸', '辣', '粉类', '汤水'], description: '重庆名小吃，酸辣开胃，红薯粉Q弹，汤底浓郁。' },
-            { id: '443', name: '土豆粉', icon: '🥔', category: 'noodle', tags: ['快餐', '川湘', '辣', '粉类', '汤水'], description: '土豆粉筋道爽滑，麻辣汤底，配菜丰富。' },
-            { id: '444', name: '炸鸡柳', icon: '🍗', category: 'fast_food', tags: ['小吃', '通用', '油炸', '宵夜'], description: '鸡肉条裹面包糠炸制，外酥里嫩，配番茄酱。' },
-            { id: '445', name: '炸薯条', icon: '🍟', category: 'fast_food', tags: ['小吃', '欧美', '油炸', '宵夜'], description: '金黄酥脆，撒盐调味，简单却令人上瘾。' },
-            { id: '446', name: '鸡蛋灌饼', icon: '🥙', category: 'chinese', tags: ['小吃', '北方', '咸香', '早餐', '主食'], description: '面饼中灌入鸡蛋液，煎得金黄，夹生菜火腿。' },
-            { id: '447', name: '手抓饼', icon: '🥙', category: 'chinese', tags: ['小吃', '通用', '咸香', '早餐', '主食'], description: '层层酥脆，可夹培根鸡蛋，街头早餐人气王。' },
-            { id: '448', name: '肉夹馍', icon: '🥙', category: 'chinese', tags: ['小吃', '北方', '咸香', '宵夜', '主食'], description: '陕西名吃，腊汁肉夹白吉馍，肉烂汁浓。' },
-            { id: '449', name: '羊肉泡馍', icon: '🍲', category: 'chinese', tags: ['正餐', '北方', '咸香', '汤水', '主食'], description: '西安特色，羊肉汤浓郁，掰馍泡汤，滋味醇厚。' },
-            { id: '450', name: '胡辣汤', icon: '🍜', category: 'chinese', tags: ['小吃', '北方', '辣', '早餐', '汤水'], description: '河南名吃，汤底浓稠，胡椒味浓，配油条绝配。' },
-            { id: '451', name: '豆腐脑', icon: '🥣', category: 'chinese', tags: ['小吃', '通用', '咸香', '早餐', '汤水'], description: '嫩滑豆腐脑，浇卤汁或糖浆，南北各有风味。' },
-            { id: '452', name: '豆浆油条', icon: '🥛', category: 'chinese', tags: ['小吃', '通用', '咸香', '早餐', '主食'], description: '经典中式早餐，豆浆醇香，油条酥脆。' },
-            { id: '453', name: '包子', icon: '🥟', category: 'chinese', tags: ['小吃', '通用', '咸香', '早餐', '主食'], description: '皮松软馅丰富，猪肉包菜包豆沙包，应有尽有。' },
-            { id: '454', name: '烧麦', icon: '🥟', category: 'chinese', tags: ['小吃', '北方', '咸香', '早餐', '主食'], description: '糯米烧麦，顶部开口，馅料饱满，蒸制而成。' },
-            { id: '455', name: '韭菜盒子', icon: '🥙', category: 'chinese', tags: ['小吃', '北方', '咸香', '早餐', '主食'], description: '韭菜鸡蛋馅，煎得两面金黄，外脆内香。' },
 
-            // --- 饮品 (咖啡/奶茶/果茶/热饮) ---
-            { id: '26', name: '瑞幸咖啡', icon: '🦌', category: 'dessert', tags: ['饮品', '通用', '苦', '咖啡', '热饮'], description: '高性价比咖啡连锁，生椰拿铁口感顺滑，广受欢迎。' },
-            { id: '15', name: '星巴克', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡', '热饮'], description: '全球知名咖啡品牌，环境舒适，咖啡饮品选择丰富。' },
-            { id: '25', name: '喜茶', icon: '🥤', category: 'dessert', tags: ['饮品', '粤闽', '甜', '奶茶', '冰品'], description: '新茶饮代表，使用真奶真果，芝士茗茶口感细腻。' },
-            { id: '28', name: '奈雪的茶', icon: '🍵', category: 'dessert', tags: ['饮品', '粤闽', '甜', '果茶', '冰品'], description: '霸气鲜果茶，搭配软欧包，精致下午茶。' },
-            { id: '31', name: '霸王茶姬', icon: '👘', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶', '热饮'], description: '新中式国风茶饮，原叶鲜奶茶，茶香浓郁不腻。' },
-            { id: '54', name: '茶百道', icon: '🐼', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶', '冰品'], description: '饮品口味独特，用料扎实，豆乳玉麒麟风味浓郁。' },
-            { id: '53', name: '古茗', icon: '🍶', category: 'dessert', tags: ['饮品', '江浙', '甜', '果茶', '冰品'], description: '水果茶新鲜好喝，芝士奶盖醇厚，性价比之选。' },
-            { id: '27', name: '蜜雪冰城', icon: '⛄', category: 'dessert', tags: ['饮品', '通用', '甜', '冰淇淋', '冰品'], description: '价格亲民，冰淇淋和柠檬水是招牌，门店遍布。' },
-            { id: '30', name: 'CoCo都可', icon: '🧋', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '老牌奶茶连锁，奶茶三兄弟配料丰富，口感经典。' },
-            { id: '52', name: '1点点', icon: '🟢', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '台式奶茶代表，可免费添加配料，定制化程度高。' },
-            { id: '55', name: '沪上阿姨', icon: '👩', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '热饮'], description: '主打现煮五谷茶饮，血糯米奶茶香甜软糯，健康养生。' },
-            { id: '56', name: '书亦烧仙草', icon: '🥣', category: 'dessert', tags: ['饮品', '川湘', '甜', '加料', '冰品'], description: '烧仙草奶茶配料丰富，半杯都是料，口感层次分明。' },
-            { id: '57', name: '益禾堂', icon: '🥛', category: 'dessert', tags: ['饮品', '粤闽', '甜', '便宜', '奶茶'], description: '益禾烤奶，焦香浓郁，便宜大杯，学生党最爱。' },
-            { id: '63', name: '茶颜悦色', icon: '🎏', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶', '热饮'], description: '长沙特色奶茶，奶油顶配碧根果，茶底清爽，国风包装。' },
-            { id: '90', name: 'Manner', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡', '热饮'], description: '国产精品咖啡，门店小巧精致，咖啡品质优良。' },
-            { id: '91', name: 'Tims', icon: '🍁', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡', '热饮'], description: '贝果配咖啡，加拿大国民品牌。' },
-            { id: '92', name: '贡茶', icon: '🍵', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '奶盖茶的先驱，咸香奶盖搭配清茶，风味独特。' },
-            { id: '93', name: '林里', icon: '🍋', category: 'dessert', tags: ['饮品', '粤闽', '酸', '果茶', '冰品'], description: '手打柠檬茶，香气浓郁，口感酸爽解腻。' },
-            { id: '94', name: 'KOI', icon: '🧋', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '黄金珍奶，珍珠Q弹金黄，口感极佳。' },
-            { id: '95', name: '鹿角巷', icon: '🦌', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '黑糖鹿丸鲜奶，挂壁纹路好看又好喝。' },
-            { id: '456', name: '幸运咖', icon: '☕', category: 'dessert', tags: ['饮品', '通用', '苦', '咖啡', '热饮'], description: '平价咖啡，性价比高，适合日常饮用。' },
-            { id: '457', name: 'M Stand', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡', '热饮'], description: '精品咖啡连锁，空间设计感强，咖啡品质优秀。' },
-            { id: '458', name: 'Seesaw', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡', '热饮'], description: '上海精品咖啡品牌，拉花精美，豆子新鲜。' },
-            { id: '459', name: '%Arabica', icon: '☕', category: 'dessert', tags: ['饮品', '日韩', '苦', '咖啡', '热饮'], description: '日式极简咖啡馆，拿铁顺滑，环境高级。' },
-            { id: '460', name: '库迪咖啡', icon: '☕', category: 'dessert', tags: ['饮品', '通用', '苦', '咖啡', '热饮'], description: '新兴咖啡品牌，价格实惠，口味稳定。' },
-            { id: '461', name: '挪瓦咖啡', icon: '☕', category: 'dessert', tags: ['饮品', '通用', '苦', '咖啡', '热饮'], description: '现磨咖啡，性价比之选，适合通勤人群。' },
-            { id: '462', name: '一点点柠檬茶', icon: '🍋', category: 'dessert', tags: ['饮品', '粤闽', '酸', '果茶', '冰品'], description: '鲜柠檬手打，果肉丰富，清爽解渴。' },
-            { id: '463', name: '茶理宜世', icon: '🍵', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '芝士奶盖系列，茶底清香，奶盖绵密。' },
-            { id: '464', name: '7分甜', icon: '🥤', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '杨枝甘露系列，芒果香浓，椰汁顺滑。' },
-            { id: '465', name: '甜啦啦', icon: '🥤', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '平价奶茶，份量足，性价比超高。' },
-            { id: '466', name: '快乐柠檬', icon: '🍋', category: 'dessert', tags: ['饮品', '通用', '甜', '果茶', '冰品'], description: '台式茶饮，岩盐芝士系列，咸甜搭配。' },
-            { id: '467', name: '都可', icon: '🧋', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶', '冰品'], description: '奶茶三兄弟，珍珠椰果布丁，配料丰富。' },
-            { id: '468', name: '鲜榨果汁', icon: '🍹', category: 'dessert', tags: ['饮品', '通用', '甜', '果汁', '冰品'], description: '新鲜水果现榨，维生素丰富，健康选择。' },
-            { id: '469', name: '豆浆', icon: '🥛', category: 'dessert', tags: ['饮品', '通用', '清淡', '豆浆', '热饮'], description: '现磨豆浆，豆香浓郁，营养健康，早餐绝配。' },
-            { id: '470', name: '酸梅汤', icon: '🍵', category: 'dessert', tags: ['饮品', '通用', '酸', '果茶', '冰品'], description: '传统消暑饮品，酸甜解腻，清热降火。' },
-            { id: '471', name: '冰糖雪梨', icon: '🍐', category: 'dessert', tags: ['饮品', '通用', '甜', '热饮', '汤水'], description: '养生热饮，润肺止咳，甘甜滋润。' },
-            { id: '472', name: '红糖姜茶', icon: '🫖', category: 'dessert', tags: ['饮品', '通用', '甜', '热饮', '汤水'], description: '暖胃驱寒，红糖甜润，姜味温和，女生最爱。' },
-            { id: '473', name: '银耳汤', icon: '🥣', category: 'dessert', tags: ['饮品', '通用', '甜', '热饮', '汤水'], description: '滋补养颜，银耳软糯，汤汁浓稠，清甜可口。' },
-            { id: '474', name: '绿豆汤', icon: '🥣', category: 'dessert', tags: ['饮品', '通用', '清淡', '热饮', '汤水'], description: '夏日消暑，绿豆软烂，汤清味甘，清热解毒。' },
-            { id: '475', name: '红豆汤', icon: '🥣', category: 'dessert', tags: ['饮品', '通用', '甜', '热饮', '汤水'], description: '暖心甜品，红豆沙绵，汤底浓郁，补气养血。' },
+            // --- 饮品 (具体品牌) ---
+            { id: '26', name: '瑞幸咖啡', icon: '🦌', category: 'dessert', tags: ['饮品', '通用', '苦', '咖啡'], description: '高性价比咖啡连锁，生椰拿铁口感顺滑，广受欢迎。' },
+            { id: '15', name: '星巴克', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡'], description: '全球知名咖啡品牌，环境舒适，咖啡饮品选择丰富。' },
+            { id: '25', name: '喜茶', icon: '🥤', category: 'dessert', tags: ['饮品', '粤闽', '甜', '奶茶'], description: '新茶饮代表，使用真奶真果，芝士茗茶口感细腻。' },
+            { id: '28', name: '奈雪的茶', icon: '🍵', category: 'dessert', tags: ['饮品', '粤闽', '甜', '果茶'], description: '霸气鲜果茶，搭配软欧包，精致下午茶。' },
+            { id: '31', name: '霸王茶姬', icon: '👘', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶'], description: '新中式国风茶饮，原叶鲜奶茶，茶香浓郁不腻。' },
+            { id: '54', name: '茶百道', icon: '🐼', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶'], description: '饮品口味独特，用料扎实，豆乳玉麒麟风味浓郁。' },
+            { id: '53', name: '古茗', icon: '🍶', category: 'dessert', tags: ['饮品', '江浙', '甜', '果茶'], description: '水果茶新鲜好喝，芝士奶盖醇厚，性价比之选。' },
+            { id: '27', name: '蜜雪冰城', icon: '⛄', category: 'dessert', tags: ['饮品', '通用', '甜', '冰淇淋'], description: '价格亲民，冰淇淋和柠檬水是招牌，门店遍布。' },
+            { id: '30', name: 'CoCo都可', icon: '🧋', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '老牌奶茶连锁，奶茶三兄弟配料丰富，口感经典。' },
+            { id: '52', name: '1点点', icon: '🟢', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '台式奶茶代表，可免费添加配料，定制化程度高。' },
+            { id: '55', name: '沪上阿姨', icon: '👩', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '主打现煮五谷茶饮，血糯米奶茶香甜软糯，健康养生。' },
+            { id: '56', name: '书亦烧仙草', icon: '🥣', category: 'dessert', tags: ['饮品', '川湘', '甜', '加料'], description: '烧仙草奶茶配料丰富，半杯都是料，口感层次分明。' },
+            { id: '57', name: '益禾堂', icon: '🥛', category: 'dessert', tags: ['饮品', '粤闽', '甜', '便宜'], description: '益禾烤奶，焦香浓郁，便宜大杯，学生党最爱。' },
+            { id: '63', name: '茶颜悦色', icon: '🎏', category: 'dessert', tags: ['饮品', '川湘', '甜', '奶茶'], description: '长沙特色奶茶，奶油顶配碧根果，茶底清爽，国风包装。' },
+            { id: '90', name: 'Manner', icon: '☕', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡'], description: '国产精品咖啡，门店小巧精致，咖啡品质优良。' },
+            { id: '91', name: 'Tims', icon: '🍁', category: 'dessert', tags: ['饮品', '欧美', '苦', '咖啡'], description: '贝果配咖啡，加拿大国民品牌。' },
+            { id: '92', name: '贡茶', icon: '🍵', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '奶盖茶的先驱，咸香奶盖搭配清茶，风味独特。' },
+            { id: '93', name: '林里', icon: '🍋', category: 'dessert', tags: ['饮品', '粤闽', '酸', '果茶'], description: '手打柠檬茶，香气浓郁，口感酸爽解腻。' },
+            { id: '94', name: 'KOI', icon: '🧋', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '黄金珍奶，珍珠Q弹金黄，口感极佳。' },
+            { id: '95', name: '鹿角巷', icon: '🦌', category: 'dessert', tags: ['饮品', '通用', '甜', '奶茶'], description: '黑糖鹿丸鲜奶，挂壁纹路好看又好喝。' },
 
-            // --- 甜品 (冰品/蛋糕/烘焙) ---
-            { id: '29', name: 'DQ冰淇淋', icon: '🍦', category: 'dessert', tags: ['甜品', '欧美', '甜', '冰淇淋', '冰品'], description: '美式冰淇淋，暴风雪系列倒杯不洒，奶香浓郁。' },
-            { id: '60', name: '鲜芋仙', icon: '🍧', category: 'dessert', tags: ['甜品', '通用', '甜', '台式', '冰品'], description: '台式甜品，芋圆软糯Q弹，仙草清热解暑，份量足。' },
-            { id: '32', name: '满记甜品', icon: '🍮', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式', '冰品'], description: '港式甜品连锁，芒果班戟和双皮奶是经典之选。' },
-            { id: '96', name: '哈根达斯', icon: '🍨', category: 'dessert', tags: ['甜品', '欧美', '甜', '冰淇淋', '冰品'], description: '高端冰淇淋品牌，口感纯正，质地细腻浓郁。' },
-            { id: '97', name: '好利来', icon: '🍰', category: 'dessert', tags: ['甜品', '北方', '甜', '烘焙', '蛋糕'], description: '知名烘焙品牌，半熟芝士口感轻盈，入口即化。' },
-            { id: '98', name: '许留山', icon: '🥭', category: 'dessert', tags: ['甜品', '粤闽', '甜', '芒果', '冰品'], description: '专注于芒果甜品，多芒小丸子清甜爽口，芒果香浓。' },
-            { id: '99', name: '鲍师傅', icon: '🥯', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '蛋糕'], description: '网红糕点，肉松小贝外酥里嫩，海苔味香脆。' },
-            { id: '100', name: '爸爸糖', icon: '🍞', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '面包'], description: '手工吐司专卖，奶香浓郁，口感松软拉丝。' },
-            { id: '101', name: '西树泡芙', icon: '🥯', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '蛋糕'], description: '现烤泡芙，外皮酥脆，内馅细腻爆浆。' },
+            // --- 甜品 ---
+            { id: '29', name: 'DQ冰淇淋', icon: '🍦', category: 'dessert', tags: ['甜品', '欧美', '甜', '冰淇淋'], description: '美式冰淇淋，暴风雪系列倒杯不洒，奶香浓郁。' },
+            { id: '60', name: '鲜芋仙', icon: '🍧', category: 'dessert', tags: ['甜品', '通用', '甜', '台式'], description: '台式甜品，芋圆软糯Q弹，仙草清热解暑，份量足。' },
+            { id: '32', name: '满记甜品', icon: '🍮', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式'], description: '港式甜品连锁，芒果班戟和双皮奶是经典之选。' },
+            { id: '96', name: '哈根达斯', icon: '🍨', category: 'dessert', tags: ['甜品', '欧美', '甜', '冰淇淋'], description: '高端冰淇淋品牌，口感纯正，质地细腻浓郁。' },
+            { id: '97', name: '好利来', icon: '🍰', category: 'dessert', tags: ['甜品', '北方', '甜', '烘焙'], description: '知名烘焙品牌，半熟芝士口感轻盈，入口即化。' },
+            { id: '98', name: '许留山', icon: '🥭', category: 'dessert', tags: ['甜品', '粤闽', '甜', '芒果'], description: '专注于芒果甜品，多芒小丸子清甜爽口，芒果香浓。' },
+            { id: '99', name: '鲍师傅', icon: '🥯', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙'], description: '网红糕点，肉松小贝外酥里嫩，海苔味香脆。' },
+            { id: '100', name: '爸爸糖', icon: '🍞', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙'], description: '手工吐司专卖，奶香浓郁，口感松软拉丝。' },
+            { id: '101', name: '西树泡芙', icon: '🥯', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙'], description: '现烤泡芙，外皮酥脆，内馅细腻爆浆。' },
             { id: '102', name: 'Lady M', icon: '🍰', category: 'dessert', tags: ['甜品', '欧美', '甜', '蛋糕'], description: '精品蛋糕店，千层蛋糕层层分明，口感细腻优雅。' },
-            { id: '476', name: '85度C', icon: '🍰', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '蛋糕'], description: '台式烘焙连锁，海盐咖啡搭配蛋糕，性价比高。' },
-            { id: '477', name: '原麦山丘', icon: '🍞', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '面包'], description: '欧包专门店，全麦软欧，健康低糖，口感扎实。' },
-            { id: '478', name: '味多美', icon: '🍰', category: 'dessert', tags: ['甜品', '北方', '甜', '烘焙', '蛋糕'], description: '北京老牌烘焙，拿破仑蛋糕，口感酥脆。' },
-            { id: '479', name: '面包新语', icon: '🥐', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '面包'], description: '新加坡品牌，肉松面包，咸甜适中。' },
-            { id: '480', name: '巴黎贝甜', icon: '🥐', category: 'dessert', tags: ['甜品', '欧美', '甜', '烘焙', '面包'], description: '法式烘焙，可颂酥脆，羊角面包层次分明。' },
-            { id: '481', name: '宜芝多', icon: '🍞', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '面包'], description: '平价烘焙，吐司松软，蛋糕香甜。' },
-            { id: '482', name: '仟吉', icon: '🥮', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '糕点'], description: '武汉品牌，雪媚娘软糯，中式糕点为主。' },
-            { id: '483', name: '幸福西饼', icon: '🎂', category: 'dessert', tags: ['甜品', '通用', '甜', '蛋糕', '烘焙'], description: '生日蛋糕专家，款式多样，配送快捷。' },
-            { id: '484', name: '21cake', icon: '🎂', category: 'dessert', tags: ['甜品', '欧美', '甜', '蛋糕', '烘焙'], description: '精品蛋糕，黑天鹅系列，高端礼盒装。' },
-            { id: '485', name: '泸溪河', icon: '🥮', category: 'dessert', tags: ['甜品', '江浙', '甜', '烘焙', '糕点'], description: '桃酥专家，酥香掉渣，传统口味。' },
-            { id: '486', name: '墨茉点心局', icon: '🥮', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '糕点'], description: '新中式点心，麻薯系列，软糯香甜。' },
-            { id: '487', name: '虎头局', icon: '🐯', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '糕点'], description: '国潮点心铺，麻薯面包，颜值高味道好。' },
-            { id: '488', name: '酥先生', icon: '🥮', category: 'dessert', tags: ['甜品', '通用', '甜', '烘焙', '糕点'], description: '肉松小贝鼻祖，海苔口味，网红点心。' },
-            { id: '489', name: '詹记甜品', icon: '🍧', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式', '冰品'], description: '港式甜品，杨枝甘露，芒果西米露。' },
-            { id: '490', name: '满杯百香果', icon: '🍹', category: 'dessert', tags: ['甜品', '通用', '酸', '果茶', '冰品'], description: '百香果特饮，果肉丰富，酸甜解腻。' },
-            { id: '491', name: '雪冰', icon: '🍧', category: 'dessert', tags: ['甜品', '日韩', '甜', '冰品', '刨冰'], description: '韩式绵绵冰，口感细腻，配料丰富。' },
-            { id: '492', name: '贡茶甜品', icon: '🍮', category: 'dessert', tags: ['甜品', '通用', '甜', '台式', '冰品'], description: '布丁烧仙草，珍珠椰果，台式风味。' },
-            { id: '493', name: '龟苓膏', icon: '🟫', category: 'dessert', tags: ['甜品', '粤闽', '清淡', '港式', '养生'], description: '传统凉茶，清热降火，配蜜糖或炼乳。' },
-            { id: '494', name: '糖水铺子', icon: '🥣', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式', '汤水'], description: '广式糖水，红豆沙、绿豆沙，暖心甜品。' },
-            { id: '495', name: '双皮奶', icon: '🥛', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式', '养生'], description: '顺德特色，奶皮双层，口感滑嫩，奶香浓郁。' },
-            { id: '496', name: '姜撞奶', icon: '🥛', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式', '热饮'], description: '广东传统，姜汁牛奶，暖胃驱寒，嫩滑香甜。' },
-            { id: '497', name: '杨枝甘露', icon: '🥭', category: 'dessert', tags: ['甜品', '粤闽', '甜', '港式', '冰品'], description: '港式经典，芒果西柚椰汁西米，清爽消暑。' },
-            { id: '498', name: '芋圆仙草', icon: '🍧', category: 'dessert', tags: ['甜品', '通用', '甜', '台式', '冰品'], description: '芋圆Q弹，仙草滑嫩，配椰奶或红豆。' },
-            { id: '499', name: '麻糬', icon: '🍡', category: 'dessert', tags: ['甜品', '日韩', '甜', '糯米', '糕点'], description: '日式糯米团，软糯香甜，抹茶红豆各有风味。' },
-            { id: '500', name: '铜锣烧', icon: '🥞', category: 'dessert', tags: ['甜品', '日韩', '甜', '糕点', '红豆'], description: '哆啦A梦最爱，红豆馅甜而不腻，饼皮松软。' },
         ];
 
         // --- 2. UTILS ---
-        // 模糊搜索：将用户输入转换为标签过滤
-        const parseFuzzySearch = (input) => {
-            if (!input || input.trim() === '') return { includeTags: [], excludeTags: [] };
-
-            const inputLower = input.toLowerCase().trim();
-            const includeTags = [];
-            const excludeTags = [];
-
-            // 遍历映射表匹配关键词
-            Object.keys(FUZZY_SEARCH_MAP).forEach(keyword => {
-                if (inputLower.includes(keyword)) {
-                    const tags = FUZZY_SEARCH_MAP[keyword];
-                    tags.forEach(tag => {
-                        if (tag.startsWith('!')) {
-                            // 排除标签
-                            const excludeTag = tag.substring(1);
-                            if (!excludeTags.includes(excludeTag)) {
-                                excludeTags.push(excludeTag);
-                            }
-                        } else {
-                            // 包含标签
-                            if (!includeTags.includes(tag)) {
-                                includeTags.push(tag);
-                            }
-                        }
-                    });
-                }
-            });
-
-            return { includeTags, excludeTags };
-        };
-
-        const getRandomBatch = (count, preferences, currentTab, sourceData, fuzzySearch = null) => {
+        const getRandomBatch = (count, preferences, currentTab, sourceData) => {
             let filteredPool = sourceData.filter(item => {
                 if (!currentTab.filterTags || currentTab.filterTags.length === 0) return true;
                 return currentTab.filterTags.some(tag => item.tags.includes(tag));
             });
-
-            // 模糊搜索过滤
-            if (fuzzySearch && (fuzzySearch.includeTags.length > 0 || fuzzySearch.excludeTags.length > 0)) {
-                filteredPool = filteredPool.filter(item => {
-                    // 必须包含至少一个 includeTags（如果有的话）
-                    if (fuzzySearch.includeTags.length > 0) {
-                        const hasInclude = fuzzySearch.includeTags.some(tag => item.tags.includes(tag));
-                        if (!hasInclude) return false;
-                    }
-                    // 不能包含任何 excludeTags
-                    if (fuzzySearch.excludeTags.length > 0) {
-                        const hasExclude = fuzzySearch.excludeTags.some(tag => item.tags.includes(tag));
-                        if (hasExclude) return false;
-                    }
-                    return true;
-                });
-            }
 
             // Session Ban Logic (Filtered at selection time)
             if (preferences.sessionBannedIds && preferences.sessionBannedIds.length > 0) {
@@ -820,21 +574,17 @@
                 document.body.appendChild(poster);
                 
                 try {
-                    const canvas = await html2canvas(poster, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: bg.includes('gradient') ? '#ef4444' : bg });
+                    const canvas = await html2canvas(poster, { scale: 2, useCORS: true });
                     document.body.removeChild(poster);
                     const blob = await new Promise(r => canvas.toBlob(r));
                     const file = new File([blob], "share.png", { type: "image/png" });
-
+                    
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({ files: [file] });
                     } else {
                         const a = document.createElement('a'); a.href = canvas.toDataURL(); a.download = 'eat.png'; a.click();
                     }
-                } catch (e) {
-                    console.error('海报生成失败:', e);
-                    alert('海报生成失败，请稍后重试');
-                    if(document.body.contains(poster)) document.body.removeChild(poster);
-                }
+                } catch (e) { console.error(e); if(document.body.contains(poster)) document.body.removeChild(poster); }
                 setIsGenerating(false);
             };
 
@@ -1259,9 +1009,7 @@
             const [theme, setTheme] = useState('dark');
             const [isMuted, setIsMuted] = useState(false);
             const [greeting, setGreeting] = useState('今天吃什么');
-            const [fuzzySearchInput, setFuzzySearchInput] = useState('');
-            const [fuzzySearchTags, setFuzzySearchTags] = useState({ includeTags: [], excludeTags: [] });
-
+            
             // Modals
             const [modals, setModals] = useState({ settings: false, history: false, add: false, library: false, catManager: false });
             const [editingItem, setEditingItem] = useState(null);
@@ -1279,25 +1027,24 @@
                 document.documentElement.classList.toggle('dark', savedTheme === 'dark');
             }, []);
 
-            // Time Awareness - 只在初始化时执行一次
+            // Time Awareness
             useEffect(() => {
                 const hour = new Date().getHours();
                 let targetTab = 'all';
                 let greet = '今天吃什么';
 
-                if (hour >= 6 && hour < 10) { targetTab = 'breakfast'; greet = '早安，吃顿好的'; }
+                if (hour >= 6 && hour < 10) { targetTab = 'breakfast'; greet = '早安，吃顿好的'; } 
                 else if (hour >= 14 && hour < 17) { targetTab = 'dessert'; greet = '下午茶时间到'; }
                 else if (hour >= 22 || hour < 4) { targetTab = 'night'; greet = '深夜了，整点夜宵？'; }
                 else { targetTab = 'meal'; greet = '干饭人，干饭魂'; }
 
                 setGreeting(greet);
-
-                // 只在初始化时设置，用户手动切换后不再自动覆盖
+                
                 const hasTab = navTabs.find(t => t.id === targetTab);
-                if (hasTab && activeTabId === 'all') {
+                if (hasTab) {
                     setActiveTabId(targetTab);
                 }
-            }, []); // 空依赖，只执行一次
+            }, [navTabs]);
 
             const toggleTheme = () => {
                 const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -1312,59 +1059,21 @@
                 else if (AudioEngine.ctx && AudioEngine.ctx.state === 'suspended') AudioEngine.ctx.resume();
             }
 
-            // Init - 带容错的本地存储读取
+            // Init
             useEffect(() => {
-                try {
-                    const lp = localStorage.getItem('eat_prefs');
-                    if(lp) setPrefs(JSON.parse(lp));
-                } catch(e) { console.error('读取偏好设置失败:', e); }
-
-                try {
-                    const lh = localStorage.getItem('eat_history');
-                    if(lh) setHistory(JSON.parse(lh));
-                } catch(e) { console.error('读取历史记录失败:', e); }
-
-                try {
-                    const lc = localStorage.getItem('eat_custom');
-                    if(lc) setCustomItems(JSON.parse(lc));
-                } catch(e) { console.error('读取自定义美食失败:', e); }
-
-                try {
-                    const lo = localStorage.getItem('eat_overrides');
-                    if(lo) setFoodOverrides(JSON.parse(lo));
-                } catch(e) { console.error('读取美食覆盖失败:', e); }
-
-                try {
-                    const lt = localStorage.getItem('eat_tabs');
-                    if(lt) setNavTabs(JSON.parse(lt));
-                } catch(e) { console.error('读取分类标签失败:', e); }
+                const lp = localStorage.getItem('eat_prefs'); if(lp) setPrefs(JSON.parse(lp));
+                const lh = localStorage.getItem('eat_history'); if(lh) setHistory(JSON.parse(lh));
+                const lc = localStorage.getItem('eat_custom'); if(lc) setCustomItems(JSON.parse(lc));
+                const lo = localStorage.getItem('eat_overrides'); if(lo) setFoodOverrides(JSON.parse(lo));
+                const lt = localStorage.getItem('eat_tabs'); if(lt) setNavTabs(JSON.parse(lt));
             }, []);
 
-            // Save - 带容错的本地存储保存
-            useEffect(() => {
-                try { localStorage.setItem('eat_prefs', JSON.stringify(prefs)); }
-                catch(e) { console.error('保存偏好设置失败:', e); }
-            }, [prefs]);
-
-            useEffect(() => {
-                try { localStorage.setItem('eat_history', JSON.stringify(history)); }
-                catch(e) { console.error('保存历史记录失败:', e); }
-            }, [history]);
-
-            useEffect(() => {
-                try { localStorage.setItem('eat_custom', JSON.stringify(customItems)); }
-                catch(e) { console.error('保存自定义美食失败:', e); }
-            }, [customItems]);
-
-            useEffect(() => {
-                try { localStorage.setItem('eat_overrides', JSON.stringify(foodOverrides)); }
-                catch(e) { console.error('保存美食覆盖失败:', e); }
-            }, [foodOverrides]);
-
-            useEffect(() => {
-                try { localStorage.setItem('eat_tabs', JSON.stringify(navTabs)); }
-                catch(e) { console.error('保存分类标签失败:', e); }
-            }, [navTabs]);
+            // Save
+            useEffect(() => localStorage.setItem('eat_prefs', JSON.stringify(prefs)), [prefs]);
+            useEffect(() => localStorage.setItem('eat_history', JSON.stringify(history)), [history]);
+            useEffect(() => localStorage.setItem('eat_custom', JSON.stringify(customItems)), [customItems]);
+            useEffect(() => localStorage.setItem('eat_overrides', JSON.stringify(foodOverrides)), [foodOverrides]);
+            useEffect(() => localStorage.setItem('eat_tabs', JSON.stringify(navTabs)), [navTabs]);
 
             // Compute Data
             const allItems = useMemo(() => {
@@ -1374,27 +1083,14 @@
 
             const generatePool = useCallback(() => {
                 const tab = navTabs.find(t=>t.id===activeTabId) || navTabs[0];
-                return getRandomBatch(8, prefs, tab, allItems, fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 ? fuzzySearchTags : null);
-            }, [activeTabId, prefs, allItems, navTabs, fuzzySearchTags]);
+                return getRandomBatch(8, prefs, tab, allItems);
+            }, [activeTabId, prefs, allItems, navTabs]);
 
             useEffect(() => {
-                if(!isSpinning && items.length > 0) {
+                if(!isSpinning) {
                     setItems(generatePool());
                 }
-            }, [activeTabId, prefs.excludedCategories, prefs.excludedTags, prefs.sessionBannedIds, generatePool]);
-
-            // 模糊搜索处理
-            const handleFuzzySearch = (input) => {
-                setFuzzySearchInput(input);
-                const tags = parseFuzzySearch(input);
-                setFuzzySearchTags(tags);
-            };
-
-            // 清除搜索
-            const clearFuzzySearch = () => {
-                setFuzzySearchInput('');
-                setFuzzySearchTags({ includeTags: [], excludeTags: [] });
-            };
+            }, [activeTabId, prefs, allItems, navTabs]);
 
             const handleSpin = () => { 
                 if(!isSpinning && items.length > 0) { 
@@ -1462,42 +1158,6 @@
                             <button onClick={()=>setModals({...modals, settings:true})} className="w-9 h-9 bg-white dark:bg-white/5 rounded-full flex items-center justify-center border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none"><Icons.Settings className="w-4 h-4 text-zinc-600 dark:text-zinc-400"/></button>
                         </div>
                      </header>
-
-                     {/* Fuzzy Search Bar */}
-                     <div className="px-6 mt-4 z-10">
-                        <div className="relative">
-                            <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500 pointer-events-none"/>
-                            <input
-                                type="text"
-                                value={fuzzySearchInput}
-                                onChange={(e) => handleFuzzySearch(e.target.value)}
-                                placeholder="想吃什么？试试「汤汤水水」「不要冰的」「下午茶」"
-                                className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-xl pl-10 pr-10 py-3 text-sm outline-none focus:ring-2 focus:ring-zinc-500 dark:focus:ring-white/20 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
-                            />
-                            {fuzzySearchInput && (
-                                <button
-                                    onClick={clearFuzzySearch}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-                                >
-                                    <Icons.X className="w-4 h-4 text-zinc-400"/>
-                                </button>
-                            )}
-                        </div>
-                        {(fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0) && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {fuzzySearchTags.includeTags.map(tag => (
-                                    <span key={tag} className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full border border-green-200 dark:border-green-800">
-                                        ✓ {tag}
-                                    </span>
-                                ))}
-                                {fuzzySearchTags.excludeTags.map(tag => (
-                                    <span key={tag} className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs rounded-full border border-red-200 dark:border-red-800">
-                                        ✗ {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                     </div>
 
                      {/* Nav (Fixed Center Alignment) */}
                      <div className="z-10 px-4 mt-4 w-full">
