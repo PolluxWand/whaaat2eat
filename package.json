@@ -1,0 +1,14 @@
+{
+  "name": "whaaat2eat",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/regression-check.mjs",
+    "serve": "python -m http.server 8081"
+  },
+  "devDependencies": {
+    "@babel/standalone": "7.23.5"
+  }
+}

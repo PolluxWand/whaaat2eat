@@ -1,0 +1,23 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@babel/standalone':
+        specifier: 7.23.5
+        version: 7.23.5
+
+packages:
+
+  '@babel/standalone@7.23.5':
+    resolution: {integrity: sha512-4bqgawmyDPu+9gQhZOKh1ftCUa6BAT0KztElMcWAJgOgQJRNhmGVA0M0McedEqvGi7SbfiBBvlH13Jc47P919A==}
+    engines: {node: '>=6.9.0'}
+
+snapshots:
+
+  '@babel/standalone@7.23.5': {}
