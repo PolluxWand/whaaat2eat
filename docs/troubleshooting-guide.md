@@ -419,3 +419,43 @@ C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bi
 1. 黑夜模式打开页面，检查转盘文字是否有明显反差描边。
 2. 抽选结果后切换海报主题，预览卡应立刻变为对应样式。
 3. 构建后确认 `index.html` 包含 `poster-preview-black` 且不包含浏览器端 Babel。
+
+## 18. 后期界面参考：zelda-hyrule-ui
+
+### 参考来源
+
+GitHub: `https://github.com/chaos-xxl/zelda-hyrule-ui`
+
+### 使用建议
+
+这个仓库可以作为后期整体界面优化的灵感参考，尤其是装饰边框、状态面板、仪式感按钮、游戏化菜单层级等方向。
+
+### 注意事项
+
+1. 仓库代码许可证为 MIT，但 Zelda / Nintendo 相关商标、角色、图形和游戏 IP 不在授权范围内。
+2. 仓库说明中提到原始 UI 素材基于 CC BY 4.0，需要保留署名。
+3. 当前项目已经形成黑白高对比、iOS 毛玻璃、金属刻度的视觉方向，后续不建议直接套 Zelda 主题；更适合借鉴“精致装饰逻辑”和“游戏化交互层级”，再转译成自己的风格。
+
+## 19. 线上巡检发现：Tailwind CDN 生产警告
+
+### 现象
+
+浏览器控制台出现警告：`cdn.tailwindcss.com should not be used in production`。
+
+### 原因
+
+当前项目为了保持单文件静态部署，仍在浏览器端加载 Tailwind CDN。它能运行，但不属于 Tailwind 官方推荐的生产构建方式。
+
+### 影响
+
+短期不阻断使用，也不会影响转盘、搜索或分享功能；长期会影响首屏性能、离线稳定性和线上发布质量。
+
+### 后续建议
+
+后期做整体性能优化时，把 Tailwind 改为构建期产物：使用 Tailwind CLI 或 PostCSS 在本地生成 CSS，再由 `index.html` 引入静态 CSS 文件。
+
+### 验证方法
+
+1. 打开浏览器控制台，确认该警告是否仍存在。
+2. 改为构建期 CSS 后，线上页面仍应保持原样式。
+3. 构建后继续确认 `index.html` 不包含浏览器端 Babel。

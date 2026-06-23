@@ -2923,6 +2923,7 @@ const Wheel = ({
       '烧烤/烤串': '烤串',
       'biangbiang面': 'biang面',
       'Lady M': 'Lady',
+      '21cake': '21cake',
       'M Stand': 'M站',
       'Seesaw': 'Seesaw',
       '%Arabica': '%咖啡',
@@ -4051,6 +4052,10 @@ const App = () => {
     const tab = navTabs.find(t => t.id === activeTabId) || navTabs[0];
     return getRandomBatch(8, prefs, tab, allItems, fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || fuzzySearchTags.excludeKeywords && fuzzySearchTags.excludeKeywords.length > 0 ? fuzzySearchTags : null);
   }, [activeTabId, prefs, allItems, navTabs, fuzzySearchTags]);
+  const visibleExcludeKeywords = useMemo(() => {
+    const excludedTagSet = new Set(fuzzySearchTags.excludeTags || []);
+    return (fuzzySearchTags.excludeKeywords || []).filter(keyword => keyword && !excludedTagSet.has(keyword));
+  }, [fuzzySearchTags]);
   useEffect(() => {
     if (!isSpinning) {
       setItems(generatePool());
@@ -4218,7 +4223,7 @@ const App = () => {
     className: "w-4 h-4"
   }))))), React.createElement("div", {
     className: "px-6 z-10"
-  }, (fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || fuzzySearchTags.excludeKeywords && fuzzySearchTags.excludeKeywords.length > 0) && React.createElement("div", {
+  }, (fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || visibleExcludeKeywords.length > 0) && React.createElement("div", {
     className: "flex flex-wrap gap-2 mt-2"
   }, fuzzySearchTags.includeTags.map(tag => React.createElement("span", {
     key: tag,
@@ -4226,7 +4231,7 @@ const App = () => {
   }, "+ ", tag)), fuzzySearchTags.excludeTags.map(tag => React.createElement("span", {
     key: tag,
     className: "px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold rounded-full border border-rose-200 dark:border-rose-800/70"
-  }, "- ", tag)), (fuzzySearchTags.excludeKeywords || []).map(keyword => React.createElement("span", {
+  }, "- ", tag)), visibleExcludeKeywords.map(keyword => React.createElement("span", {
     key: `keyword-${keyword}`,
     className: "px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold rounded-full border border-rose-200 dark:border-rose-800/70"
   }, "- ", keyword)))), React.createElement("div", {

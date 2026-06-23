@@ -1240,6 +1240,7 @@
                     '烧烤/烤串': '烤串',
                     'biangbiang面': 'biang面',
                     'Lady M': 'Lady',
+                    '21cake': '21cake',
                     'M Stand': 'M站',
                     'Seesaw': 'Seesaw',
                     '%Arabica': '%咖啡',
@@ -2038,6 +2039,11 @@
                 return getRandomBatch(8, prefs, tab, allItems, fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || (fuzzySearchTags.excludeKeywords && fuzzySearchTags.excludeKeywords.length > 0) ? fuzzySearchTags : null);
             }, [activeTabId, prefs, allItems, navTabs, fuzzySearchTags]);
 
+            const visibleExcludeKeywords = useMemo(() => {
+                const excludedTagSet = new Set(fuzzySearchTags.excludeTags || []);
+                return (fuzzySearchTags.excludeKeywords || []).filter(keyword => keyword && !excludedTagSet.has(keyword));
+            }, [fuzzySearchTags]);
+
             useEffect(() => {
                 if(!isSpinning) {
                     setItems(generatePool());
@@ -2159,7 +2165,7 @@
 
                      {/* Fuzzy Search Bar */}
                      <div className="px-6 z-10">
-                        {(fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || (fuzzySearchTags.excludeKeywords && fuzzySearchTags.excludeKeywords.length > 0)) && (
+                        {(fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || visibleExcludeKeywords.length > 0) && (
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {fuzzySearchTags.includeTags.map(tag => (
                                     <span key={tag} className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold rounded-full border border-emerald-200 dark:border-emerald-800/70">
@@ -2171,7 +2177,7 @@
                                         - {tag}
                                     </span>
                                 ))}
-                                {(fuzzySearchTags.excludeKeywords || []).map(keyword => (
+                                {visibleExcludeKeywords.map(keyword => (
                                     <span key={`keyword-${keyword}`} className="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold rounded-full border border-rose-200 dark:border-rose-800/70">
                                         - {keyword}
                                     </span>
