@@ -182,8 +182,8 @@
         }
 
         .wheel-frame {
-            width: min(88dvw, 386px);
-            max-width: calc(100% - 20px);
+            width: min(92dvw, 402px);
+            max-width: calc(100% - 12px);
             aspect-ratio: 1 / 1;
         }
 
@@ -222,9 +222,9 @@
 
         .app-header-grid {
             display: grid;
-            grid-template-columns: 104px minmax(0, 1fr) 40px;
+            grid-template-columns: 84px minmax(0, 1fr) 36px;
             align-items: center;
-            column-gap: 8px;
+            column-gap: 7px;
         }
 
         .result-panel {
@@ -401,21 +401,21 @@
 
         @media (min-width: 500px) {
             .wheel-frame {
-                width: min(calc(100% - 28px), 386px);
+                width: min(calc(100% - 18px), 402px);
             }
         }
 
         @media (max-height: 680px) {
             .wheel-frame {
-                width: min(calc(100% - 28px), 356px);
+                width: min(calc(100% - 8px), 372px);
             }
 
             .compact-header {
-                padding-top: 12px;
+                padding-top: 10px;
             }
 
             .compact-title {
-                font-size: 30px;
+                font-size: 24px;
             }
 
             .compact-subtitle {
@@ -430,8 +430,8 @@
             }
 
             .compact-search-input {
-                padding-top: 6px;
-                padding-bottom: 6px;
+                padding-top: 5px;
+                padding-bottom: 5px;
                 padding-left: 2rem !important;
                 padding-right: 2rem !important;
                 font-size: 12px;
@@ -439,16 +439,16 @@
             }
 
             .compact-nav {
-                margin-top: 10px;
+                margin-top: 6px;
             }
 
             .compact-nav-button {
-                padding-top: 5px;
-                padding-bottom: 5px;
+                padding-top: 4px;
+                padding-bottom: 4px;
             }
 
             .compact-wheel-zone {
-                padding-top: 4px;
+                padding-top: 0;
                 padding-bottom: 2px;
             }
 
@@ -2086,10 +2086,10 @@
                      <div className="absolute inset-x-6 top-[138px] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
                      
                      {/* Header */}
-                     <header className="app-header-grid compact-header px-6 pt-6 z-10">
+                     <header className="app-header-grid compact-header px-5 pt-4 z-10">
                         <div className="shrink-0">
-                            <h1 className="compact-title text-[34px] leading-none font-black tracking-tighter">选了么</h1>
-                            <p className="compact-subtitle text-[10px] text-zinc-400 dark:text-zinc-500 font-bold tracking-[0.26em] mt-2">{greeting}</p>
+                            <h1 className="compact-title text-[27px] leading-none font-black tracking-tighter">选了么</h1>
+                            <p className="compact-subtitle text-[9px] text-zinc-400 dark:text-zinc-500 font-bold tracking-[0.18em] mt-1.5">{greeting}</p>
                         </div>
                         <div className="compact-search z-10">
                             <div className="relative">
@@ -2099,7 +2099,7 @@
                                     value={fuzzySearchInput}
                                     onChange={(e) => handleFuzzySearch(e.target.value)}
                                     placeholder="想吃什么？"
-                                    className="compact-search-input ios-glass-input w-full rounded-2xl pl-11 pr-11 py-4 text-[15px] outline-none focus:ring-2 focus:ring-white/25 focus:border-white/30 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                                    className="compact-search-input ios-glass-input w-full rounded-2xl pl-10 pr-10 py-3 text-[14px] outline-none focus:ring-2 focus:ring-white/25 focus:border-white/30 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                                 />
                                 {fuzzySearchInput && (
                                     <button
@@ -2112,7 +2112,7 @@
                             </div>
                         </div>
                         <div className="relative shrink-0">
-                            <button onClick={()=>setShowTopMenu(v=>!v)} aria-label="更多操作" title="更多操作" className="ios-glass-soft ios-icon-button w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"><Icons.Settings className="w-4 h-4"/></button>
+                            <button onClick={()=>setShowTopMenu(v=>!v)} aria-label="更多操作" title="更多操作" className="ios-glass-soft ios-icon-button w-9 h-9 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"><Icons.Settings className="w-4 h-4"/></button>
                             {showTopMenu && (
                                 <div className="top-menu-popover ios-glass">
                                     <button onClick={()=>{setShowTopMenu(false); setEditingItem(null); setModals({...modals, add:true})}} aria-label="添加美食" title="添加美食" className="ios-glass-soft ios-icon-button w-9 h-9 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"><Icons.Plus className="w-4 h-4"/></button>
@@ -2147,8 +2147,8 @@
                      </div>
 
                      {/* Nav (Fixed Center Alignment) */}
-                     <div className="compact-nav z-10 px-4 mt-4 w-full">
-                        <div className="ios-glass flex items-center justify-between rounded-2xl p-1.5">
+                     <div className="compact-nav z-10 px-4 mt-2.5 w-full">
+                        <div className="ios-glass flex items-center justify-between rounded-2xl p-1">
                             <div
                                 ref={navScrollRef}
                                 className="flex-1 overflow-x-auto nav-scrollbar flex items-center gap-1 min-w-0 cursor-grab active:cursor-grabbing px-1 pb-1"
@@ -2158,7 +2158,7 @@
                                 onMouseMove={handleNavMouseMove}
                             >
                                 {navTabs.map(t => (
-                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`compact-nav-button min-w-[76px] px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap border shrink-0 flex items-center justify-center gap-1.5 active:scale-95 transition-all ${activeTabId===t.id ? 'ios-nav-active' : 'text-zinc-600 dark:text-zinc-300 border-transparent hover:bg-white/35 dark:hover:bg-white/10'}`}>
+                                    <button key={t.id} onClick={()=>!isSpinning&&setActiveTabId(t.id)} className={`compact-nav-button min-w-[66px] px-2.5 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap border shrink-0 flex items-center justify-center gap-1 active:scale-95 transition-all ${activeTabId===t.id ? 'ios-nav-active' : 'text-zinc-600 dark:text-zinc-300 border-transparent hover:bg-white/35 dark:hover:bg-white/10'}`}>
                                         {ICON_MAP[t.iconName] || <Icons.Layers className="w-3 h-3"/>}
                                         <span>{t.label}</span>
                                     </button>
@@ -2170,7 +2170,7 @@
                      </div>
 
                      {/* Main Wheel */}
-                     <main className="compact-wheel-zone wheel-zone flex-1 flex flex-col items-center justify-center pt-3 pb-1 relative z-0">
+                     <main className="compact-wheel-zone wheel-zone flex-1 flex flex-col items-center justify-center pt-1 pb-1 relative z-0">
                         <div className="relative transition-transform duration-700">
                              <div className="absolute inset-[9%] rounded-full bg-white/10 dark:bg-white/5 blur-3xl pointer-events-none"></div>
                              <Wheel items={items} isSpinning={isSpinning} onSpinComplete={handleSpinComplete} winner={winner} theme={theme} isMuted={isMuted}/>
