@@ -1318,7 +1318,6 @@
                                     // High Contrast B&W Logic
                                     const sliceColor = isBlackSlice ? '#18181B' : '#FFFFFF';
                                     const textColor = isBlackSlice ? '#FFFFFF' : '#18181B';
-                                    const textStrokeColor = isBlackSlice ? '#000000' : '#FFFFFF';
                                     const strokeColor = isBlackSlice ? '#333333' : '#E5E5E5';
                                     const label = formatWheelLabel(item.name);
                                     const iconRadius = RADIUS * 0.67;
@@ -1331,7 +1330,7 @@
                                                 <text textAnchor="middle" fontSize="46" dy="3">{item.icon}</text>
                                             </g>
                                             <g transform={`translate(${CENTER + labelRadius * Math.cos(angle * Math.PI / 180)}, ${CENTER + labelRadius * Math.sin(angle * Math.PI / 180)}) rotate(${angle + 90})`}>
-                                                <text textAnchor="middle" fill={textColor} fontSize={label.length > 4 ? "13" : "14"} fontWeight="900" dy="4" paintOrder="stroke" stroke={textStrokeColor} strokeWidth="4" strokeLinejoin="round">{label}</text>
+                                                <text textAnchor="middle" fill={textColor} fontSize={label.length > 4 ? "13" : "14"} fontWeight="850" dy="4">{label}</text>
                                             </g>
                                         </g>
                                     );

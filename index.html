@@ -3002,7 +3002,6 @@ const Wheel = ({
     const angle = index * SLICE_ANGLE + SLICE_ANGLE / 2 - 90;
     const sliceColor = isBlackSlice ? '#18181B' : '#FFFFFF';
     const textColor = isBlackSlice ? '#FFFFFF' : '#18181B';
-    const textStrokeColor = isBlackSlice ? '#000000' : '#FFFFFF';
     const strokeColor = isBlackSlice ? '#333333' : '#E5E5E5';
     const label = formatWheelLabel(item.name);
     const iconRadius = RADIUS * 0.67;
@@ -3029,12 +3028,8 @@ const Wheel = ({
       textAnchor: "middle",
       fill: textColor,
       fontSize: label.length > 4 ? "13" : "14",
-      fontWeight: "900",
-      dy: "4",
-      paintOrder: "stroke",
-      stroke: textStrokeColor,
-      strokeWidth: "4",
-      strokeLinejoin: "round"
+      fontWeight: "850",
+      dy: "4"
     }, label)));
   }))), React.createElement("div", {
     className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[12%] h-[12%] z-20 flex items-center justify-center pointer-events-none"
