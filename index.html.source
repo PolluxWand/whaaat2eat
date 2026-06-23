@@ -208,6 +208,24 @@
             pointer-events: auto;
         }
 
+        .wheel-pointer {
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            width: 26px;
+            height: 36px;
+            transform: translateX(-50%);
+            z-index: 30;
+            pointer-events: none;
+            color: #18181b;
+            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.20));
+        }
+
+        .dark .wheel-pointer {
+            color: #f4f4f5;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.42));
+        }
+
         .top-menu-popover {
             position: absolute;
             top: 0;
@@ -1298,8 +1316,12 @@
                         <div className={`absolute inset-[-8px] rounded-full blur-2xl opacity-25 ${isDark ? 'bg-white' : 'bg-black'} animate-pulse-slow`}></div>
 
                         {/* Pointer */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 transform -translate-y-4 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] pointer-events-none">
-                           <svg width="48" height="60" viewBox="0 0 34 42" fill="none"><path d="M17 40L3 14L5 4H29L31 14L17 40Z" fill={isDark?"#E4E4E7":"#18181B"} stroke={isDark?"#52525b":"#000000"} strokeWidth="1"/></svg>
+                        <div className="wheel-pointer" aria-hidden="true">
+                           <svg width="26" height="36" viewBox="0 0 26 36" fill="none">
+                               <path d="M13 34L5.5 17.5C3.2 12.4 6.9 6.5 12.5 6.5H13.5C19.1 6.5 22.8 12.4 20.5 17.5L13 34Z" fill={isDark ? 'rgba(244,244,245,0.88)' : 'rgba(24,24,27,0.88)'} stroke={isDark ? 'rgba(255,255,255,0.42)' : 'rgba(0,0,0,0.20)'} strokeWidth="1"/>
+                               <path d="M13 9V26" stroke={isDark ? 'rgba(0,0,0,0.48)' : 'rgba(255,255,255,0.62)'} strokeWidth="1.4" strokeLinecap="round"/>
+                               <circle cx="13" cy="14" r="3.5" fill={isDark ? 'rgba(0,0,0,0.24)' : 'rgba(255,255,255,0.22)'} stroke={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.50)'} strokeWidth="0.8"/>
+                           </svg>
                         </div>
                         
                         {/* Wheel SVG */}
