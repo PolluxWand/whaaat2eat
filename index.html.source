@@ -210,20 +210,18 @@
 
         .wheel-pointer {
             position: absolute;
-            top: -9px;
+            top: -10px;
             left: 50%;
-            width: 26px;
-            height: 36px;
+            width: 24px;
+            height: 42px;
             transform: translateX(-50%);
             z-index: 30;
             pointer-events: none;
-            color: #18181b;
-            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.20));
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.24));
         }
 
         .dark .wheel-pointer {
-            color: #f4f4f5;
-            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.42));
+            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.52));
         }
 
         .top-menu-popover {
@@ -1317,10 +1315,24 @@
 
                         {/* Pointer */}
                         <div className="wheel-pointer" aria-hidden="true">
-                           <svg width="26" height="36" viewBox="0 0 26 36" fill="none">
-                               <path d="M13 34L5.5 17.5C3.2 12.4 6.9 6.5 12.5 6.5H13.5C19.1 6.5 22.8 12.4 20.5 17.5L13 34Z" fill={isDark ? 'rgba(244,244,245,0.88)' : 'rgba(24,24,27,0.88)'} stroke={isDark ? 'rgba(255,255,255,0.42)' : 'rgba(0,0,0,0.20)'} strokeWidth="1"/>
-                               <path d="M13 9V26" stroke={isDark ? 'rgba(0,0,0,0.48)' : 'rgba(255,255,255,0.62)'} strokeWidth="1.4" strokeLinecap="round"/>
-                               <circle cx="13" cy="14" r="3.5" fill={isDark ? 'rgba(0,0,0,0.24)' : 'rgba(255,255,255,0.22)'} stroke={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.50)'} strokeWidth="0.8"/>
+                           <svg width="24" height="42" viewBox="0 0 24 42" fill="none">
+                               <defs>
+                                   <linearGradient id="pointerMetal" x1="3" y1="4" x2="21" y2="38" gradientUnits="userSpaceOnUse">
+                                       <stop offset="0" stopColor={isDark ? '#FFFFFF' : '#FAFAFA'} />
+                                       <stop offset="0.22" stopColor={isDark ? '#A1A1AA' : '#D4D4D8'} />
+                                       <stop offset="0.48" stopColor={isDark ? '#F4F4F5' : '#FFFFFF'} />
+                                       <stop offset="0.72" stopColor={isDark ? '#71717A' : '#A1A1AA'} />
+                                       <stop offset="1" stopColor={isDark ? '#E4E4E7' : '#E5E7EB'} />
+                                   </linearGradient>
+                                   <linearGradient id="pointerEdge" x1="12" y1="3" x2="12" y2="39" gradientUnits="userSpaceOnUse">
+                                       <stop offset="0" stopColor={isDark ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.90)'} />
+                                       <stop offset="1" stopColor={isDark ? 'rgba(0,0,0,0.58)' : 'rgba(24,24,27,0.48)'} />
+                                   </linearGradient>
+                               </defs>
+                               <path d="M12 40L4.5 14L8.2 4H15.8L19.5 14L12 40Z" fill="url(#pointerMetal)" stroke="url(#pointerEdge)" strokeWidth="0.9" strokeLinejoin="miter"/>
+                               <path d="M12 5.5V34" stroke={isDark ? 'rgba(255,255,255,0.68)' : 'rgba(255,255,255,0.86)'} strokeWidth="0.9"/>
+                               <path d="M7.8 14H16.2" stroke={isDark ? 'rgba(0,0,0,0.40)' : 'rgba(24,24,27,0.28)'} strokeWidth="0.8"/>
+                               <path d="M9.4 5.5L5.9 14L12 35.2" stroke={isDark ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.46)'} strokeWidth="0.8"/>
                            </svg>
                         </div>
                         
