@@ -459,3 +459,36 @@ GitHub: `https://github.com/chaos-xxl/zelda-hyrule-ui`
 1. 打开浏览器控制台，确认该警告是否仍存在。
 2. 改为构建期 CSS 后，线上页面仍应保持原样式。
 3. 构建后继续确认 `index.html` 不包含浏览器端 Babel。
+
+## 20. 应用内浏览器自动化标签页漂移，导致点击验收误判
+
+### 现象
+
+使用 Codex 应用内浏览器做自动点击验收时，刚拿到的标签页 ID 可能很快失效，报类似：
+
+```text
+Tab not found
+Tab is not part of browser session
+```
+
+这会导致测试脚本点不到按钮，看起来像功能失效。
+
+### 原因
+
+这是 Codex 应用内浏览器自动化连接状态漂移，不是页面代码本身的问题。尤其在反复刷新、本地构建、重新打开标签页后更容易出现。
+
+### 解决办法
+
+不要把应用内浏览器失败直接当成产品 bug。优先使用项目内 CDP 冒烟测试，它会启动本机 Chrome 并真实点击页面：
+
+```powershell
+C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\smoke-cdp.mjs
+```
+
+### 验证命令
+
+完整验收建议运行：
+
+```powershell
+C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\build.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\regression-check.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\smoke-cdp.mjs
+```

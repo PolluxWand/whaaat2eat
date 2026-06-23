@@ -70,6 +70,45 @@ const cases = [
     forbiddenTerms: ['酸辣粉', '酸菜鱼', '麻辣', '辣'],
   },
   {
+    input: '吃点辣的',
+    expectedTab: 'meal',
+    requiredAnyTags: ['辣', '重口'],
+    forbiddenTerms: ['清淡', '豆浆', '阳春面', '真功夫', '霸王茶姬', '茶百道', '书亦烧仙草', '茶颜悦色'],
+  },
+  {
+    input: '来点麻辣的',
+    expectedTab: 'meal',
+    requiredAnyTags: ['辣', '重口'],
+    forbiddenTerms: ['清淡', '豆浆', '阳春面', '真功夫', '霸王茶姬', '茶百道', '书亦烧仙草', '茶颜悦色'],
+  },
+  {
+    input: '想吃重口的',
+    expectedTab: 'meal',
+    requiredAnyTags: ['辣', '重口'],
+    forbiddenTerms: ['清淡', '豆浆', '阳春面', '真功夫', '霸王茶姬', '茶百道', '书亦烧仙草', '茶颜悦色'],
+  },
+  {
+    input: '不吃清淡的',
+    expectedTab: 'meal',
+    mustExcludeTags: ['清淡'],
+    requiredAnyTags: ['辣', '重口'],
+    forbiddenTerms: ['清淡', '清汤', '汤清', '豆浆', '阳春面', '真功夫'],
+  },
+  {
+    input: '别太清淡',
+    expectedTab: 'meal',
+    mustExcludeTags: ['清淡'],
+    requiredAnyTags: ['辣', '重口'],
+    forbiddenTerms: ['清淡', '清汤', '汤清', '豆浆', '阳春面', '真功夫'],
+  },
+  {
+    input: '不要太淡',
+    expectedTab: 'meal',
+    mustExcludeTags: ['清淡'],
+    requiredAnyTags: ['辣', '重口'],
+    forbiddenTerms: ['清淡', '清汤', '汤清', '豆浆', '阳春面', '真功夫'],
+  },
+  {
     input: '不吃鱼',
     mustExcludeTags: ['海鲜', '鱼'],
     forbiddenTerms: ['鱼', '海鲜', '虾', '蟹', '生蚝', '寿司'],
@@ -100,6 +139,25 @@ const cases = [
 
 const failures = [];
 const summaries = [];
+
+const staticChecks = [
+  {
+    name: '像素转盘外框不能套在旋转 SVG 上',
+    failed: /\.visual-pixel\s+\.wheel-frame\s+svg/.test(source),
+  },
+  {
+    name: '转盘旋转层必须单独使用 wheel-rotor',
+    failed: !/className="wheel-rotor[^"]*"/.test(source) || !/\.visual-pixel\s+\.wheel-rotor\s+svg\s*\{[\s\S]*?background:\s*transparent;[\s\S]*?border:\s*0;[\s\S]*?box-shadow:\s*none;/.test(source),
+  },
+  {
+    name: '已废弃的主题和老虎机按钮文案不能残留',
+    failed: /开始开摇|slot-lever-hint|visual-hyrule|海拉鲁|HYRULE/.test(source),
+  },
+];
+
+for (const check of staticChecks) {
+  if (check.failed) failures.push(check.name);
+}
 
 for (const testCase of cases) {
   const result = searchAll(testCase.input);

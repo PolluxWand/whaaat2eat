@@ -1,0 +1,297 @@
+import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+const chromeCandidates = [
+  process.env.CHROME_PATH,
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+].filter(Boolean);
+
+const chromePath = chromeCandidates.find((candidate) => existsSync(candidate));
+if (!chromePath) {
+  throw new Error('No Chrome or Edge executable found. Set CHROME_PATH to run smoke tests.');
+}
+
+const port = 9300 + Math.floor(Math.random() * 500);
+const userDataDir = await mkdtemp(join(tmpdir(), 'whaaat2eat-cdp-'));
+const targetUrl = process.env.SMOKE_URL || 'http://localhost:8081/index.html?cdp_smoke=1';
+
+const chrome = spawn(chromePath, [
+  '--headless=new',
+  `--remote-debugging-port=${port}`,
+  `--user-data-dir=${userDataDir}`,
+  '--disable-gpu',
+  '--no-first-run',
+  '--no-default-browser-check',
+  targetUrl,
+], { stdio: 'ignore' });
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function getWsUrl() {
+  for (let i = 0; i < 60; i += 1) {
+    try {
+      const list = await fetch(`http://127.0.0.1:${port}/json/list`).then((response) => response.json());
+      const page = list.find((item) => item.type === 'page');
+      if (page?.webSocketDebuggerUrl) return page.webSocketDebuggerUrl;
+    } catch {
+      // Chrome may still be starting.
+    }
+    await sleep(100);
+  }
+  throw new Error('Chrome debug port did not become ready.');
+}
+
+async function runSmoke() {
+  const ws = new WebSocket(await getWsUrl());
+  await new Promise((resolve, reject) => {
+    ws.addEventListener('open', resolve, { once: true });
+    ws.addEventListener('error', reject, { once: true });
+  });
+
+  let id = 0;
+  const pending = new Map();
+  const runtimeErrors = [];
+
+  ws.addEventListener('message', (event) => {
+    const msg = JSON.parse(event.data);
+    if (msg.id && pending.has(msg.id)) {
+      const { resolve, reject } = pending.get(msg.id);
+      pending.delete(msg.id);
+      if (msg.error) reject(new Error(msg.error.message));
+      else resolve(msg.result);
+    }
+    if (msg.method === 'Runtime.exceptionThrown') {
+      runtimeErrors.push(
+        msg.params?.exceptionDetails?.exception?.description
+        || msg.params?.exceptionDetails?.text
+        || 'Runtime exception',
+      );
+    }
+  });
+
+  function send(method, params = {}) {
+    const callId = ++id;
+    ws.send(JSON.stringify({ id: callId, method, params }));
+    return new Promise((resolve, reject) => pending.set(callId, { resolve, reject }));
+  }
+
+  async function evalValue(expression, timeout = 30000) {
+    const result = await send('Runtime.evaluate', {
+      expression,
+      awaitPromise: true,
+      returnByValue: true,
+      timeout,
+    });
+    if (result.exceptionDetails) {
+      throw new Error(
+        result.exceptionDetails.exception?.description
+        || result.exceptionDetails.text
+        || 'Runtime.evaluate failed',
+      );
+    }
+    return result.result?.value;
+  }
+
+  try {
+    await send('Runtime.enable');
+    await send('Page.enable');
+    await evalValue(`
+      new Promise((resolve) => {
+        if (document.readyState === 'complete') resolve(true);
+        else window.addEventListener('load', () => resolve(true), { once: true });
+      })
+    `);
+    await evalValue(`
+      new Promise((resolve) => {
+        const start = Date.now();
+        const tick = () => document.querySelector('.app-shell')
+          ? resolve(true)
+          : Date.now() - start > 10000
+            ? resolve(false)
+            : setTimeout(tick, 50);
+        tick();
+      })
+    `);
+
+    const smoke = await evalValue(`(async () => {
+      const out = { checks: [] };
+      const fail = (name, extra = {}) => out.checks.push({ name, ok: false, ...extra });
+      const pass = (name, extra = {}) => out.checks.push({ name, ok: true, ...extra });
+      const S = {
+        more: '\\u66f4\\u591a\\u64cd\\u4f5c',
+        wheel: '\\u8f6c\\u76d8',
+        slot: '\\u6447\\u6447\\u673a',
+        glass: '\\u73bb\\u7483',
+        pixel: '\\u50cf\\u7d20',
+        all: '\\u5168\\u90e8',
+        meal: '\\u6b63\\u9910',
+        dessert: '\\u751c\\u54c1',
+        drink: '\\u996e\\u6599',
+        night: '\\u5bb5\\u591c',
+        catButton: '\\u7ba1\\u7406\\u5206\\u7c7b',
+        catTitle: '\\u5206\\u7c7b\\u7ba1\\u7406',
+        shuffle: '\\u6362\\u4e00\\u6279\\u5019\\u9009',
+        history: '\\u5386\\u53f2\\u8bb0\\u5f55',
+        spin: '\\u5f00\\u59cb\\u65cb\\u8f6c',
+        black: '\\u6697\\u591c\\u9ed1',
+        red: '\\u9526\\u9ca4\\u7ea2',
+        close: '\\u5173\\u95ed',
+        add: '\\u6dfb\\u52a0\\u7f8e\\u98df',
+        addTitle: '\\u6dfb\\u52a0\\u7f8e\\u98df',
+        library: '\\u7f8e\\u98df\\u56fe\\u9274',
+        settings: '\\u504f\\u597d\\u8bbe\\u7f6e'
+      };
+      const byText = (text) => [...document.querySelectorAll('button')].find((button) => button.innerText.trim() === text);
+      const byLabel = (label) => [...document.querySelectorAll('button')].find((button) => button.getAttribute('aria-label') === label);
+      const h2 = (text) => [...document.querySelectorAll('h2')].some((heading) => heading.innerText.trim() === text);
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const waitFor = async (fn, ms = 6000) => {
+        const start = Date.now();
+        while (Date.now() - start < ms) {
+          const value = fn();
+          if (value) return value;
+          await wait(50);
+        }
+        return null;
+      };
+      const click = async (element, name) => {
+        if (!element) throw new Error('missing ' + name);
+        element.click();
+        await wait(100);
+      };
+      const closeModal = async () => {
+        const close = document.querySelector('.modal-panel .modal-close') || byLabel(S.close);
+        if (close) close.click();
+        await wait(140);
+      };
+
+      try {
+        const labels = [...document.querySelectorAll('button')]
+          .map((button) => button.innerText.trim() || button.getAttribute('aria-label'))
+          .filter(Boolean);
+        const required = [S.more, S.wheel, S.slot, S.glass, S.pixel, S.all, S.meal, S.dessert, S.drink, S.night, S.catButton, S.shuffle, S.history, S.spin];
+        const missing = required.filter((label) => !labels.includes(label));
+        missing.length ? fail('initial controls present', { missing }) : pass('initial controls present');
+
+        await click(byText(S.drink), 'drink tab');
+        const drinkClass = byText(S.drink)?.className || '';
+        await click(byText(S.night), 'night tab');
+        const nightClass = byText(S.night)?.className || '';
+        await click(byText(S.all), 'all tab');
+        pass('category nav clickable', { drinkClass, nightClass });
+
+        const firstLabels = [...document.querySelectorAll('.wheel-rotor text')].slice(0, 6).map((node) => node.textContent).join('|');
+        await click(byLabel(S.shuffle), 'shuffle');
+        await wait(120);
+        const secondLabels = [...document.querySelectorAll('.wheel-rotor text')].slice(0, 6).map((node) => node.textContent).join('|');
+        firstLabels !== secondLabels ? pass('shuffle refreshes candidates', { before: firstLabels, after: secondLabels }) : pass('shuffle button clickable', { note: 'random batch may repeat' });
+
+        await click(byText(S.pixel), 'pixel');
+        document.querySelector('.app-shell')?.className.includes('visual-pixel') ? pass('pixel theme switch') : fail('pixel theme switch');
+        await click(byText(S.spin), 'spin');
+        await wait(300);
+        const frameInline = document.querySelector('.wheel-frame')?.style.transform || '';
+        const frameComputed = getComputedStyle(document.querySelector('.wheel-frame')).transform;
+        const rotorInline = document.querySelector('.wheel-rotor')?.style.transform || '';
+        !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline)
+          ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline })
+          : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline });
+        await waitFor(() => document.querySelector('.result-panel'), 6500);
+        document.querySelector('.result-panel') ? pass('wheel result modal') : fail('wheel result modal');
+        await click(byLabel(S.black), 'black poster');
+        const blackClass = document.querySelector('.poster-preview')?.className || '';
+        await click(byLabel(S.red), 'red poster');
+        const redClass = document.querySelector('.poster-preview')?.className || '';
+        blackClass.includes('poster-preview-black') && redClass.includes('poster-preview-red')
+          ? pass('poster theme switch')
+          : fail('poster theme switch', { blackClass, redClass });
+        await click(byLabel(S.close), 'close result');
+
+        await click(byText(S.slot), 'slot');
+        const slotBefore = {
+          hasSlot: !!document.querySelector('.slot-machine-frame'),
+          hasWheel: !!document.querySelector('.wheel-frame'),
+          hasFooterSpin: !!byText(S.spin),
+        };
+        slotBefore.hasSlot && !slotBefore.hasWheel && !slotBefore.hasFooterSpin
+          ? pass('slot mode switch', slotBefore)
+          : fail('slot mode switch', slotBefore);
+        await click(document.querySelector('.slot-lever'), 'slot lever');
+        await wait(260);
+        const slotDuring = {
+          leverPulled: document.querySelector('.slot-machine-frame')?.className.includes('is-lever-pulled'),
+          spinningReels: document.querySelectorAll('.slot-strip.is-spinning').length,
+        };
+        slotDuring.leverPulled && slotDuring.spinningReels === 3
+          ? pass('slot lever animation starts', slotDuring)
+          : fail('slot lever animation starts', slotDuring);
+        await waitFor(() => document.querySelector('.result-panel'), 3500);
+        const slotAfter = {
+          resultVisible: !!document.querySelector('.result-panel'),
+          settledReels: document.querySelectorAll('.slot-strip.is-settled').length,
+        };
+        slotAfter.resultVisible && slotAfter.settledReels === 3
+          ? pass('slot result modal')
+          : fail('slot result modal', slotAfter);
+        await click(byLabel(S.close), 'close slot result');
+
+        await click(byLabel(S.more), 'more menu');
+        const menuEntries = {
+          add: !!byLabel(S.add),
+          library: !!byLabel(S.library),
+          settings: !!byLabel(S.settings),
+        };
+        menuEntries.add && menuEntries.library && menuEntries.settings ? pass('top menu entries') : fail('top menu entries', menuEntries);
+        await click(byLabel(S.add), 'add food');
+        h2(S.addTitle) ? pass('add modal') : fail('add modal');
+        await closeModal();
+        await click(byLabel(S.more), 'more menu 2');
+        await click(byLabel(S.library), 'library');
+        h2(S.library) ? pass('library modal') : fail('library modal');
+        await closeModal();
+        await click(byLabel(S.more), 'more menu 3');
+        await click(byLabel(S.settings), 'settings');
+        h2(S.settings) ? pass('settings modal') : fail('settings modal');
+        await closeModal();
+
+        await click(byLabel(S.catButton), 'category manager');
+        h2(S.catTitle) ? pass('category modal') : fail('category modal');
+        await closeModal();
+        await click(byLabel(S.history), 'history');
+        h2(S.history) ? pass('history modal') : fail('history modal');
+      } catch (error) {
+        fail('smoke script exception', { message: String(error && error.message || error) });
+      }
+      out.failed = out.checks.filter((check) => !check.ok);
+      return out;
+    })()`, 70000);
+
+    return { smoke, runtimeErrors };
+  } finally {
+    try {
+      ws.close();
+    } catch {
+      // Ignore close failures.
+    }
+  }
+}
+
+try {
+  const result = await runSmoke();
+  console.log(JSON.stringify(result, null, 2));
+  if (result.smoke.failed.length || result.runtimeErrors.length) process.exitCode = 1;
+} finally {
+  try {
+    chrome.kill('SIGTERM');
+  } catch {
+    // Ignore process cleanup failures.
+  }
+  await sleep(1000);
+  await rm(userDataDir, { recursive: true, force: true }).catch(() => {});
+}

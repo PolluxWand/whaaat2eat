@@ -6,6 +6,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node scripts/regression-check.mjs",
+    "smoke": "node scripts/smoke-cdp.mjs",
+    "verify": "node scripts/build.mjs && node scripts/regression-check.mjs && node scripts/smoke-cdp.mjs",
     "serve": "python -m http.server 8081"
   },
   "devDependencies": {
