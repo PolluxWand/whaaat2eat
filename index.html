@@ -256,6 +256,31 @@
             opacity: 0.58;
         }
 
+        .poster-preview {
+            border-radius: 18px;
+            border: 1px solid rgba(24,24,27,0.10);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 12px 28px rgba(0,0,0,0.16);
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .poster-preview-white {
+            background: #ffffff;
+            color: #09090b;
+            border-color: rgba(24,24,27,0.10);
+        }
+
+        .poster-preview-black {
+            background: #09090b;
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.16);
+        }
+
+        .poster-preview-red {
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            color: #fffbeb;
+            border-color: rgba(254,202,202,0.35);
+        }
+
         .modal-backdrop {
             background: rgba(0,0,0,0.72);
             -webkit-backdrop-filter: blur(20px) saturate(1.25);
@@ -2976,7 +3001,8 @@ const Wheel = ({
     const isBlackSlice = index % 2 === 1;
     const angle = index * SLICE_ANGLE + SLICE_ANGLE / 2 - 90;
     const sliceColor = isBlackSlice ? '#18181B' : '#FFFFFF';
-    const textColor = isBlackSlice ? '#FFFFFF' : '#000000';
+    const textColor = isBlackSlice ? '#FFFFFF' : '#18181B';
+    const textStrokeColor = isBlackSlice ? '#000000' : '#FFFFFF';
     const strokeColor = isBlackSlice ? '#333333' : '#E5E5E5';
     const label = formatWheelLabel(item.name);
     const iconRadius = RADIUS * 0.67;
@@ -3006,8 +3032,9 @@ const Wheel = ({
       fontWeight: "900",
       dy: "4",
       paintOrder: "stroke",
-      stroke: isBlackSlice ? '#18181B' : '#FFFFFF',
-      strokeWidth: "3"
+      stroke: textStrokeColor,
+      strokeWidth: "4",
+      strokeLinejoin: "round"
     }, label)));
   }))), React.createElement("div", {
     className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[12%] h-[12%] z-20 flex items-center justify-center pointer-events-none"
@@ -3050,6 +3077,11 @@ const ResultCard = ({
   const copyName = () => {
     navigator.clipboard.writeText(winner.name);
     alert(`已复制: ${winner.name}`);
+  };
+  const posterThemeLabels = {
+    white: '极简白',
+    black: '暗夜黑',
+    red: '锦鲤红'
   };
   const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({
     '&': '&amp;',
@@ -3167,27 +3199,42 @@ const ResultCard = ({
   }, displayLabel)), React.createElement("p", {
     className: "result-description text-sm mb-5 px-2 leading-relaxed font-medium min-h-[2.6rem] text-zinc-600 dark:text-zinc-300"
   }, winner.description), React.createElement("div", {
+    className: `poster-preview poster-preview-${posterTheme} mb-4 px-4 py-3 text-left`
+  }, React.createElement("div", {
+    className: "flex items-center justify-between gap-3"
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "text-[10px] font-black tracking-[0.2em] opacity-60"
+  }, "\u6D77\u62A5\u9884\u89C8"), React.createElement("div", {
+    className: "text-sm font-black mt-1"
+  }, posterThemeLabels[posterTheme])), React.createElement("div", {
+    className: "text-3xl leading-none"
+  }, winner.icon)), React.createElement("div", {
+    className: "mt-2 text-xs opacity-70 truncate"
+  }, winner.name, " \xB7 ", displayLabel)), React.createElement("div", {
     className: "mb-4 flex items-center justify-center gap-3"
   }, React.createElement("span", {
     className: "text-[10px] font-bold tracking-[0.18em] text-zinc-500 dark:text-zinc-400"
-  }, "\u6D77\u62A5"), React.createElement("div", {
+  }, "\u6837\u5F0F"), React.createElement("div", {
     className: "flex justify-center gap-3",
     "aria-label": "\u6D77\u62A5\u4E3B\u9898"
   }, React.createElement("button", {
     onClick: () => setPosterTheme('white'),
     "aria-pressed": posterTheme === 'white',
     className: "result-theme-dot bg-white",
-    title: "\u6781\u7B80\u767D"
+    title: "\u6781\u7B80\u767D",
+    "aria-label": "\u6781\u7B80\u767D"
   }), React.createElement("button", {
     onClick: () => setPosterTheme('black'),
     "aria-pressed": posterTheme === 'black',
     className: "result-theme-dot bg-zinc-950",
-    title: "\u6697\u591C\u9ED1"
+    title: "\u6697\u591C\u9ED1",
+    "aria-label": "\u6697\u591C\u9ED1"
   }), React.createElement("button", {
     onClick: () => setPosterTheme('red'),
     "aria-pressed": posterTheme === 'red',
     className: "result-theme-dot bg-gradient-to-br from-red-500 to-red-700",
-    title: "\u9526\u9CA4\u7EA2"
+    title: "\u9526\u9CA4\u7EA2",
+    "aria-label": "\u9526\u9CA4\u7EA2"
   }))), React.createElement("div", {
     className: "grid grid-cols-2 gap-3 mb-3"
   }, React.createElement("button", {

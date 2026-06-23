@@ -257,6 +257,31 @@
             opacity: 0.58;
         }
 
+        .poster-preview {
+            border-radius: 18px;
+            border: 1px solid rgba(24,24,27,0.10);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 12px 28px rgba(0,0,0,0.16);
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .poster-preview-white {
+            background: #ffffff;
+            color: #09090b;
+            border-color: rgba(24,24,27,0.10);
+        }
+
+        .poster-preview-black {
+            background: #09090b;
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.16);
+        }
+
+        .poster-preview-red {
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            color: #fffbeb;
+            border-color: rgba(254,202,202,0.35);
+        }
+
         .modal-backdrop {
             background: rgba(0,0,0,0.72);
             -webkit-backdrop-filter: blur(20px) saturate(1.25);
@@ -1292,7 +1317,8 @@
                                     
                                     // High Contrast B&W Logic
                                     const sliceColor = isBlackSlice ? '#18181B' : '#FFFFFF';
-                                    const textColor = isBlackSlice ? '#FFFFFF' : '#000000';
+                                    const textColor = isBlackSlice ? '#FFFFFF' : '#18181B';
+                                    const textStrokeColor = isBlackSlice ? '#000000' : '#FFFFFF';
                                     const strokeColor = isBlackSlice ? '#333333' : '#E5E5E5';
                                     const label = formatWheelLabel(item.name);
                                     const iconRadius = RADIUS * 0.67;
@@ -1305,7 +1331,7 @@
                                                 <text textAnchor="middle" fontSize="46" dy="3">{item.icon}</text>
                                             </g>
                                             <g transform={`translate(${CENTER + labelRadius * Math.cos(angle * Math.PI / 180)}, ${CENTER + labelRadius * Math.sin(angle * Math.PI / 180)}) rotate(${angle + 90})`}>
-                                                <text textAnchor="middle" fill={textColor} fontSize={label.length > 4 ? "13" : "14"} fontWeight="900" dy="4" paintOrder="stroke" stroke={isBlackSlice ? '#18181B' : '#FFFFFF'} strokeWidth="3">{label}</text>
+                                                <text textAnchor="middle" fill={textColor} fontSize={label.length > 4 ? "13" : "14"} fontWeight="900" dy="4" paintOrder="stroke" stroke={textStrokeColor} strokeWidth="4" strokeLinejoin="round">{label}</text>
                                             </g>
                                         </g>
                                     );
@@ -1351,6 +1377,12 @@
                 navigator.clipboard.writeText(winner.name);
                 alert(`已复制: ${winner.name}`);
             }
+
+            const posterThemeLabels = {
+                white: '极简白',
+                black: '暗夜黑',
+                red: '锦鲤红'
+            };
 
             const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
                 '&': '&amp;',
@@ -1446,12 +1478,23 @@
 
                         <p className="result-description text-sm mb-5 px-2 leading-relaxed font-medium min-h-[2.6rem] text-zinc-600 dark:text-zinc-300">{winner.description}</p>
                         
+                        <div className={`poster-preview poster-preview-${posterTheme} mb-4 px-4 py-3 text-left`}>
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <div className="text-[10px] font-black tracking-[0.2em] opacity-60">海报预览</div>
+                                    <div className="text-sm font-black mt-1">{posterThemeLabels[posterTheme]}</div>
+                                </div>
+                                <div className="text-3xl leading-none">{winner.icon}</div>
+                            </div>
+                            <div className="mt-2 text-xs opacity-70 truncate">{winner.name} · {displayLabel}</div>
+                        </div>
+
                         <div className="mb-4 flex items-center justify-center gap-3">
-                            <span className="text-[10px] font-bold tracking-[0.18em] text-zinc-500 dark:text-zinc-400">海报</span>
+                            <span className="text-[10px] font-bold tracking-[0.18em] text-zinc-500 dark:text-zinc-400">样式</span>
                             <div className="flex justify-center gap-3" aria-label="海报主题">
-                                <button onClick={() => setPosterTheme('white')} aria-pressed={posterTheme === 'white'} className="result-theme-dot bg-white" title="极简白"></button>
-                                <button onClick={() => setPosterTheme('black')} aria-pressed={posterTheme === 'black'} className="result-theme-dot bg-zinc-950" title="暗夜黑"></button>
-                                <button onClick={() => setPosterTheme('red')} aria-pressed={posterTheme === 'red'} className="result-theme-dot bg-gradient-to-br from-red-500 to-red-700" title="锦鲤红"></button>
+                                <button onClick={() => setPosterTheme('white')} aria-pressed={posterTheme === 'white'} className="result-theme-dot bg-white" title="极简白" aria-label="极简白"></button>
+                                <button onClick={() => setPosterTheme('black')} aria-pressed={posterTheme === 'black'} className="result-theme-dot bg-zinc-950" title="暗夜黑" aria-label="暗夜黑"></button>
+                                <button onClick={() => setPosterTheme('red')} aria-pressed={posterTheme === 'red'} className="result-theme-dot bg-gradient-to-br from-red-500 to-red-700" title="锦鲤红" aria-label="锦鲤红"></button>
                             </div>
                         </div>
 
