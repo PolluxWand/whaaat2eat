@@ -210,18 +210,18 @@
 
         .wheel-pointer {
             position: absolute;
-            top: -10px;
+            top: -11px;
             left: 50%;
-            width: 24px;
+            width: 16px;
             height: 42px;
             transform: translateX(-50%);
             z-index: 30;
             pointer-events: none;
-            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.24));
+            filter: drop-shadow(0 7px 10px rgba(0,0,0,0.26));
         }
 
         .dark .wheel-pointer {
-            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.52));
+            filter: drop-shadow(0 7px 12px rgba(0,0,0,0.56));
         }
 
         .top-menu-popover {
@@ -1315,24 +1315,23 @@
 
                         {/* Pointer */}
                         <div className="wheel-pointer" aria-hidden="true">
-                           <svg width="24" height="42" viewBox="0 0 24 42" fill="none">
+                           <svg width="16" height="42" viewBox="0 0 16 42" fill="none">
                                <defs>
-                                   <linearGradient id="pointerMetal" x1="3" y1="4" x2="21" y2="38" gradientUnits="userSpaceOnUse">
-                                       <stop offset="0" stopColor={isDark ? '#FFFFFF' : '#FAFAFA'} />
-                                       <stop offset="0.22" stopColor={isDark ? '#A1A1AA' : '#D4D4D8'} />
-                                       <stop offset="0.48" stopColor={isDark ? '#F4F4F5' : '#FFFFFF'} />
-                                       <stop offset="0.72" stopColor={isDark ? '#71717A' : '#A1A1AA'} />
-                                       <stop offset="1" stopColor={isDark ? '#E4E4E7' : '#E5E7EB'} />
+                                   <linearGradient id="pointerMetal" x1="5" y1="4" x2="11" y2="38" gradientUnits="userSpaceOnUse">
+                                       <stop offset="0" stopColor={isDark ? '#FFFFFF' : '#F8FAFC'} />
+                                       <stop offset="0.32" stopColor={isDark ? '#B8BCC5' : '#C7CBD1'} />
+                                       <stop offset="0.54" stopColor={isDark ? '#F5F7FA' : '#FFFFFF'} />
+                                       <stop offset="1" stopColor={isDark ? '#7E838C' : '#9CA3AF'} />
                                    </linearGradient>
-                                   <linearGradient id="pointerEdge" x1="12" y1="3" x2="12" y2="39" gradientUnits="userSpaceOnUse">
-                                       <stop offset="0" stopColor={isDark ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.90)'} />
-                                       <stop offset="1" stopColor={isDark ? 'rgba(0,0,0,0.58)' : 'rgba(24,24,27,0.48)'} />
+                                   <linearGradient id="pointerEdge" x1="8" y1="3" x2="8" y2="39" gradientUnits="userSpaceOnUse">
+                                       <stop offset="0" stopColor={isDark ? 'rgba(255,255,255,0.76)' : 'rgba(255,255,255,0.92)'} />
+                                       <stop offset="1" stopColor={isDark ? 'rgba(0,0,0,0.64)' : 'rgba(24,24,27,0.56)'} />
                                    </linearGradient>
                                </defs>
-                               <path d="M12 40L4.5 14L8.2 4H15.8L19.5 14L12 40Z" fill="url(#pointerMetal)" stroke="url(#pointerEdge)" strokeWidth="0.9" strokeLinejoin="miter"/>
-                               <path d="M12 5.5V34" stroke={isDark ? 'rgba(255,255,255,0.68)' : 'rgba(255,255,255,0.86)'} strokeWidth="0.9"/>
-                               <path d="M7.8 14H16.2" stroke={isDark ? 'rgba(0,0,0,0.40)' : 'rgba(24,24,27,0.28)'} strokeWidth="0.8"/>
-                               <path d="M9.4 5.5L5.9 14L12 35.2" stroke={isDark ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.46)'} strokeWidth="0.8"/>
+                               <path d="M8 40L3.8 13.5L5.9 4H10.1L12.2 13.5L8 40Z" fill="url(#pointerMetal)" stroke="url(#pointerEdge)" strokeWidth="0.75" strokeLinejoin="miter"/>
+                               <path d="M8 5.2V34.5" stroke={isDark ? 'rgba(255,255,255,0.74)' : 'rgba(255,255,255,0.92)'} strokeWidth="0.7"/>
+                               <path d="M5 13.5H11" stroke={isDark ? 'rgba(0,0,0,0.45)' : 'rgba(24,24,27,0.34)'} strokeWidth="0.65"/>
+                               <path d="M6.4 5.2L4.8 13.6L8 35" stroke={isDark ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.50)'} strokeWidth="0.55"/>
                            </svg>
                         </div>
                         
