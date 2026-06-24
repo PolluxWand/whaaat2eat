@@ -676,13 +676,37 @@ async function runSmoke() {
         Object.values(resultColors).every((color) => color !== 'rgb(255, 255, 255)' && color !== 'rgba(255, 255, 255, 0)')
           ? pass('pixel result modal text contrast', resultColors)
           : fail('pixel result modal text contrast', resultColors);
+        const readPosterPreviewStyle = () => {
+          const preview = document.querySelector('.poster-preview');
+          if (!preview) return {};
+          const style = getComputedStyle(preview);
+          return {
+            className: preview.className,
+            color: style.color,
+            backgroundImage: style.backgroundImage,
+            backgroundColor: style.backgroundColor,
+            borderColor: style.borderColor,
+          };
+        };
+        const whitePreview = readPosterPreviewStyle();
         await click(byLabel(S.black), 'black poster');
         const blackClass = document.querySelector('.poster-preview')?.className || '';
+        const blackPreview = readPosterPreviewStyle();
         await click(byLabel(S.red), 'red poster');
         const redClass = document.querySelector('.poster-preview')?.className || '';
-        blackClass.includes('poster-preview-black') && redClass.includes('poster-preview-red')
-          ? pass('poster theme switch')
-          : fail('poster theme switch', { blackClass, redClass });
+        const redPreview = readPosterPreviewStyle();
+        const previewBackgrounds = new Set([
+          (whitePreview.backgroundImage || '') + '|' + (whitePreview.backgroundColor || ''),
+          (blackPreview.backgroundImage || '') + '|' + (blackPreview.backgroundColor || ''),
+          (redPreview.backgroundImage || '') + '|' + (redPreview.backgroundColor || ''),
+        ]);
+        blackClass.includes('poster-preview-black')
+          && redClass.includes('poster-preview-red')
+          && previewBackgrounds.size === 3
+          && whitePreview.color !== blackPreview.color
+          && blackPreview.color !== redPreview.color
+          ? pass('poster theme switch', { whitePreview, blackPreview, redPreview })
+          : fail('poster theme switch', { blackClass, redClass, whitePreview, blackPreview, redPreview, previewBackgrounds: [...previewBackgrounds] });
         await click(byLabel(S.close), 'close result');
 
         await click(byText(S.slot), 'slot');
