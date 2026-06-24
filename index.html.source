@@ -9,6 +9,8 @@
     <meta property="og:description" content="输入口味偏好或忌口，让转盘帮你快速决定这一餐。">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary">
+    <meta name="darkreader-lock">
+    <meta name="color-scheme" content="only light">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -1223,6 +1225,7 @@
         .visual-pixel .mode-chip,
         .visual-pixel .slot-name,
         .visual-pixel .slot-brand,
+        .visual-pixel .wheel-label-text,
         .visual-pixel .slot-machine-titlebar,
         .visual-pixel .slot-marquee,
         .visual-pixel .compact-spin-button,
@@ -1244,6 +1247,39 @@
         .visual-pixel * {
             font-family: "Ark Pixel", "Courier New", monospace !important;
             letter-spacing: 0;
+            -webkit-font-smoothing: none;
+            font-smooth: never;
+            text-rendering: geometricPrecision;
+        }
+
+        .visual-pixel.app-shell {
+            color-scheme: only light;
+            forced-color-adjust: none;
+        }
+
+        .visual-pixel .wheel-label-text {
+            paint-order: stroke fill;
+            stroke: #0a1726 !important;
+            stroke-width: 3.8px;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+            fill: #fffdf4 !important;
+            text-shadow: none;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .visual-pixel .slot-name,
+        .visual-pixel .slot-brand,
+        .visual-pixel .mode-chip,
+        .visual-pixel .compact-nav-button,
+        .visual-pixel .compact-spin-button,
+        .visual-pixel .compact-title,
+        .visual-pixel .compact-search-input {
+            text-shadow:
+                1px 0 0 #f8fbff,
+                -1px 0 0 #f8fbff,
+                0 1px 0 #f8fbff,
+                0 -1px 0 #f8fbff;
         }
 
         .visual-pixel .compact-title {
@@ -1537,7 +1573,11 @@
             background: linear-gradient(180deg, #ffffff, #d9e2ee) !important;
             color: #102033 !important;
             border-color: #1f2d42 !important;
-            text-shadow: 1px 1px 0 rgba(255,255,255,0.72);
+            text-shadow:
+                1px 0 0 #ffffff,
+                -1px 0 0 #ffffff,
+                0 1px 0 #ffffff,
+                0 -1px 0 #ffffff;
         }
 
         .visual-pixel .slot-lamps {
@@ -2820,7 +2860,19 @@
                                                 <text textAnchor="middle" fontSize="46" dy="3">{item.icon}</text>
                                             </g>
                                             <g transform={`translate(${CENTER + labelRadius * Math.cos(angle * Math.PI / 180)}, ${CENTER + labelRadius * Math.sin(angle * Math.PI / 180)}) rotate(${angle + 90})`}>
-                                                <text textAnchor="middle" fill={textColor} fontSize={label.length > 4 ? "13" : "14"} fontWeight="850" dy="4">{label}</text>
+                                                <text
+                                                    className="wheel-label-text"
+                                                    data-darkreader-ignore
+                                                    textAnchor="middle"
+                                                    fill={textColor}
+                                                    stroke={isBlackSlice ? '#0a1726' : '#fffdf4'}
+                                                    strokeWidth="1.6"
+                                                    strokeLinejoin="round"
+                                                    paintOrder="stroke fill"
+                                                    fontSize={label.length > 4 ? "13" : "14"}
+                                                    fontWeight="850"
+                                                    dy="4"
+                                                >{label}</text>
                                             </g>
                                         </g>
                                     );
@@ -3728,7 +3780,7 @@
             };
 
             return (
-                <div className={`app-shell visual-${visualStyle} max-w-[450px] mx-auto bg-gray-50 dark:bg-black text-zinc-900 dark:text-white relative flex flex-col shadow-2xl selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-300`}>
+                <div data-darkreader-ignore className={`app-shell visual-${visualStyle} max-w-[450px] mx-auto bg-gray-50 dark:bg-black text-zinc-900 dark:text-white relative flex flex-col shadow-2xl selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-300`}>
                      <div className="absolute top-[-18%] left-[-20%] w-[140%] h-[58%] bg-gradient-to-b from-gray-200/60 dark:from-zinc-800/30 to-transparent blur-3xl pointer-events-none opacity-60"></div>
                      <div className="absolute inset-x-6 top-[138px] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
                      

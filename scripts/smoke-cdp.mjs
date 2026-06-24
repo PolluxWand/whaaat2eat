@@ -498,12 +498,22 @@ async function runSmoke() {
           .filter((rule) => rule.constructor?.name === 'CSSFontFaceRule' && rule.cssText.includes('Ark Pixel'))
           .map((rule) => rule.cssText);
         const pixelText = {
+          appIgnoresDarkReader: document.querySelector('.app-shell')?.hasAttribute('data-darkreader-ignore') || false,
+          darkReaderLock: !!document.querySelector('meta[name="darkreader-lock"]'),
+          colorSchemeMeta: document.querySelector('meta[name="color-scheme"]')?.content || '',
           searchColor: getComputedStyle(document.querySelector('.compact-search-input')).color,
           spinColor: getComputedStyle(byText(S.spin)).color,
           titleFont: getComputedStyle(document.querySelector('.compact-title')).fontFamily,
           searchFont: getComputedStyle(document.querySelector('.compact-search-input')).fontFamily,
           navFont: getComputedStyle(document.querySelector('.compact-nav-button')).fontFamily,
           modeFont: getComputedStyle(byText(S.wheel)).fontFamily,
+          wheelLabelCount: document.querySelectorAll('.wheel-label-text').length,
+          wheelLabelsIgnoreDarkReader: [...document.querySelectorAll('.wheel-label-text')].every((node) => node.hasAttribute('data-darkreader-ignore')),
+          wheelLabelStroke: getComputedStyle(document.querySelector('.wheel-label-text')).stroke,
+          wheelLabelStrokeWidth: getComputedStyle(document.querySelector('.wheel-label-text')).strokeWidth,
+          wheelLabelPaintOrder: getComputedStyle(document.querySelector('.wheel-label-text')).paintOrder,
+          appForcedColorAdjust: getComputedStyle(document.querySelector('.app-shell')).forcedColorAdjust,
+          appColorScheme: getComputedStyle(document.querySelector('.app-shell')).colorScheme,
           rotorSvgMarginTop: getComputedStyle(document.querySelector('.wheel-rotor svg')).marginTop,
           rotorTransformOrigin: getComputedStyle(document.querySelector('.wheel-rotor')).transformOrigin,
           fontFacesHaveRanges: pixelFontFaces.length >= 2 && pixelFontFaces.every((text) => text.includes('unicode-range')),
@@ -515,6 +525,15 @@ async function runSmoke() {
           && pixelText.fontFacesHaveRanges
           && pixelText.fontAudit.checked > 0
           && pixelText.fontAudit.misses.length === 0
+          && pixelText.appIgnoresDarkReader
+          && pixelText.darkReaderLock
+          && pixelText.colorSchemeMeta === 'only light'
+          && pixelText.wheelLabelCount > 0
+          && pixelText.wheelLabelsIgnoreDarkReader
+          && pixelText.wheelLabelStroke !== 'none'
+          && pixelText.wheelLabelStrokeWidth !== '0px'
+          && pixelText.wheelLabelPaintOrder.includes('stroke')
+          && pixelText.appForcedColorAdjust === 'none'
           && pixelText.rotorSvgMarginTop === '0px'
           ? pass('pixel dark text and wheel center prep', pixelText)
           : fail('pixel dark text and wheel center prep', pixelText);
