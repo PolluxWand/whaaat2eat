@@ -75,9 +75,9 @@
             }
 
             .app-shell {
-                height: calc(100dvh - 40px);
-                min-height: calc(100dvh - 40px);
-                margin-block: 20px;
+                height: calc(100dvh - 16px);
+                min-height: calc(100dvh - 16px);
+                margin-block: 8px;
                 border-radius: 28px;
                 border: 1px solid rgba(255,255,255,0.08);
             }
@@ -440,8 +440,8 @@
             }
 
             .visual-pixel .wheel-frame {
-                width: min(calc(100% - 10px), 360px);
-                max-width: min(calc(100% - 10px), 360px);
+                width: min(calc(100% - 36px), 326px);
+                max-width: min(calc(100% - 36px), 326px);
             }
 
             .compact-header {
@@ -482,13 +482,18 @@
             }
 
             .compact-wheel-zone {
+                justify-content: flex-start !important;
                 padding-top: 0;
-                padding-bottom: 2px;
+                padding-bottom: 56px;
             }
 
             .compact-footer {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 4px;
                 margin-top: 0 !important;
-                padding-bottom: 12px !important;
+                padding-bottom: 0 !important;
                 gap: 0 !important;
             }
 
@@ -500,6 +505,58 @@
             .wheel-action-rail {
                 bottom: 8px;
                 padding-inline: 18px;
+            }
+        }
+
+        @media (max-height: 520px) {
+            .compact-header {
+                padding-top: 8px;
+            }
+
+            .compact-search-input {
+                padding-top: 4px;
+                padding-bottom: 4px;
+            }
+
+            .compact-nav {
+                margin-top: 4px;
+            }
+
+            .compact-nav .ios-glass {
+                padding: 3px !important;
+            }
+
+            .compact-nav-button {
+                min-width: 58px !important;
+                padding: 3px 8px !important;
+                font-size: 10px !important;
+            }
+
+            .visual-pixel .wheel-frame {
+                width: min(calc(100% - 42px), 252px);
+                max-width: min(calc(100% - 42px), 252px);
+            }
+
+            .compact-wheel-zone {
+                padding-bottom: 44px;
+            }
+
+            .compact-footer {
+                bottom: 5px;
+            }
+
+            .compact-spin-button {
+                max-width: 230px !important;
+                padding-top: 8px !important;
+                padding-bottom: 8px !important;
+                font-size: 13px !important;
+            }
+
+            .wheel-action-rail .ios-icon-button,
+            .visual-pixel .wheel-action-rail .ios-icon-button {
+                width: 38px;
+                height: 38px;
+                padding: 9px !important;
             }
         }
 
@@ -901,6 +958,7 @@
         }
 
         .dark .visual-pixel,
+        .dark .visual-pixel.app-shell,
         .dark .visual-pixel .compact-title,
         .dark .visual-pixel .compact-subtitle,
         .dark .visual-pixel .mode-chip,
@@ -908,8 +966,22 @@
         .dark .visual-pixel .slot-brand,
         .dark .visual-pixel .compact-spin-button,
         .dark .visual-pixel .compact-nav-button,
+        .dark .visual-pixel .compact-search-input,
+        .dark .visual-pixel .modal-panel,
+        .dark .visual-pixel .result-panel,
+        .dark .visual-pixel .modal-title,
+        .dark .visual-pixel .modal-field,
         .dark .visual-pixel .ios-icon-button {
             color: #102033 !important;
+        }
+
+        .dark .visual-pixel .compact-subtitle,
+        .dark .visual-pixel .result-description,
+        .dark .visual-pixel .modal-tile,
+        .dark .visual-pixel .modal-secondary,
+        .dark .visual-pixel .modal-field::placeholder,
+        .dark .visual-pixel .compact-search-input::placeholder {
+            color: #445978 !important;
         }
 
         .visual-pixel .mode-chip,
@@ -931,6 +1003,21 @@
             padding: 40px 22px 16px 18px;
             border-width: 2px;
             box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9, 5px 5px 0 rgba(31,45,68,0.38);
+        }
+
+        .dark .visual-pixel .slot-machine-frame {
+            background:
+                linear-gradient(180deg, #f5f7fb 0%, #d7dee9 52%, #aab7c7 100%) !important;
+            border-color: #1f2d42 !important;
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.92), inset -2px -2px 0 #738196, 5px 5px 0 rgba(0,0,0,0.42) !important;
+        }
+
+        .dark .visual-pixel.app-shell {
+            background:
+                linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+                linear-gradient(180deg, #20304a 0%, #18243a 48%, #11192a 100%) !important;
+            background-size: 8px 8px, 8px 8px, auto;
         }
 
         .visual-pixel .slot-machine-titlebar {
@@ -1011,6 +1098,13 @@
             position: relative;
         }
 
+        .dark .visual-pixel .slot-window {
+            background:
+                linear-gradient(180deg, #eef3fa, #bdc8d7) !important;
+            border-color: #1f2d42 !important;
+            box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #66758a, 0 2px 0 rgba(255,255,255,0.42) !important;
+        }
+
         .visual-pixel .slot-window::before {
             content: "";
             position: absolute;
@@ -1026,6 +1120,11 @@
             box-shadow: inset 2px 2px 0 #dfe8f5, inset -2px -2px 0 #536a8a;
             justify-content: space-between;
             padding-inline: 18px;
+        }
+
+        .dark .visual-pixel .slot-coin-tray {
+            background: linear-gradient(180deg, #e4ebf4, #aab7c7) !important;
+            border-color: #1f2d42 !important;
         }
 
         .visual-pixel .slot-coin-tray span {
@@ -1095,6 +1194,15 @@
             box-shadow: inset 0 -3px 0 rgba(83,106,138,0.16);
         }
 
+        .dark .visual-pixel .slot-item {
+            background:
+                linear-gradient(90deg, rgba(68,87,116,0.08) 1px, transparent 1px),
+                linear-gradient(rgba(68,87,116,0.08) 1px, transparent 1px),
+                linear-gradient(180deg, #ffffff, #edf2f8 58%, #d5deea) !important;
+            color: #102033 !important;
+            border-color: rgba(31,45,66,0.34) !important;
+        }
+
         .visual-pixel .slot-brand {
             color: #152238;
             text-shadow: 1px 1px 0 #ffffff;
@@ -1103,6 +1211,13 @@
             box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #7b8fa9;
             padding: 5px 7px;
             min-width: 108px;
+        }
+
+        .dark .visual-pixel .slot-brand {
+            background: linear-gradient(180deg, #ffffff, #d9e2ee) !important;
+            color: #102033 !important;
+            border-color: #1f2d42 !important;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.72);
         }
 
         .visual-pixel .slot-lamps {
@@ -1174,35 +1289,36 @@
             height: 42px;
         }
 
+        .visual-pixel .wheel-action-rail {
+            bottom: -2px;
+            padding-inline: 12px;
+        }
+
         .visual-pixel .wheel-frame {
-            width: min(calc(100% - 12px), 374px);
-            max-width: min(calc(100% - 12px), 374px);
-            padding: 8px;
-            background:
-                linear-gradient(180deg, #eef4fc 0%, #c7d5e7 52%, #9fb4cf 100%);
-            border: 2px solid #2d3f5f;
-            box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9, 5px 5px 0 rgba(31,45,68,0.38);
+            width: min(calc(100% - 12px), 358px);
+            max-width: min(calc(100% - 12px), 358px);
+            padding: 2px;
+            display: grid;
+            place-items: center;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
             overflow: visible;
         }
 
         .visual-pixel .wheel-frame::before {
-            content: "WHEEL.EXE";
+            content: "";
             position: absolute;
-            top: 4px;
-            left: 4px;
-            right: 4px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            padding-left: 6px;
-            background: linear-gradient(90deg, #2d5f9a, #8fb4dd);
-            border: 1px solid #1d3556;
-            color: #ffffff;
-            font-family: "Press Start 2P", "Courier New", monospace;
-            font-size: 8px;
-            text-shadow: 1px 1px 0 #1d3556;
-            box-shadow: inset 1px 1px 0 rgba(255,255,255,0.45);
-            z-index: 1;
+            inset: -5px;
+            border-radius: 50%;
+            border: 2px solid #2d3f5f;
+            background: transparent;
+            box-shadow:
+                inset 2px 2px 0 rgba(255,255,255,0.92),
+                inset -2px -2px 0 #7b8fa9,
+                3px 3px 0 rgba(31,45,68,0.34);
+            z-index: 0;
+            pointer-events: none;
         }
 
         .visual-pixel .wheel-frame > .absolute.inset-\[7\%\] {
@@ -1213,8 +1329,15 @@
             display: none;
         }
 
+        .visual-pixel .wheel-rotor {
+            grid-area: 1 / 1;
+            transform-origin: 50% 50%;
+        }
+
         .visual-pixel .wheel-rotor svg {
-            margin-top: 12px;
+            display: block;
+            margin-top: 0;
+            transform-origin: 50% 50%;
             background: transparent;
             border: 0;
             box-shadow: none;
@@ -1237,6 +1360,53 @@
             color: #152238 !important;
             border: 2px solid #2d3f5f;
             box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9;
+            max-width: 230px !important;
+            padding: 7px 10px !important;
+        }
+
+        @media (max-height: 520px) {
+            .visual-pixel .wheel-frame {
+                width: min(calc(100% - 42px), 252px);
+                max-width: min(calc(100% - 42px), 252px);
+            }
+        }
+
+        .visual-pixel .result-panel,
+        .dark .visual-pixel .result-panel {
+            color: #102033 !important;
+        }
+
+        .visual-pixel .result-panel .result-title,
+        .visual-pixel .result-panel .result-description,
+        .visual-pixel .result-panel span,
+        .visual-pixel .result-panel p,
+        .visual-pixel .result-panel button,
+        .dark .visual-pixel .result-panel .result-title,
+        .dark .visual-pixel .result-panel .result-description,
+        .dark .visual-pixel .result-panel span,
+        .dark .visual-pixel .result-panel p,
+        .dark .visual-pixel .result-panel button {
+            color: #102033 !important;
+            text-shadow: none !important;
+        }
+
+        .visual-pixel .result-panel .poster-preview,
+        .dark .visual-pixel .result-panel .poster-preview {
+            background: #ffffff;
+            color: #102033 !important;
+            border: 1px solid rgba(83,106,138,0.28);
+        }
+
+        .visual-pixel .result-panel .poster-preview *,
+        .dark .visual-pixel .result-panel .poster-preview * {
+            color: #102033 !important;
+        }
+
+        .visual-pixel .result-panel .grid button,
+        .dark .visual-pixel .result-panel .grid button {
+            background: #ffffff !important;
+            border: 2px solid #2d3f5f !important;
+            box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9, 3px 3px 0 rgba(31,45,68,0.28) !important;
         }
 
         .visual-pixel .compact-spin-button {
@@ -3731,6 +3901,7 @@ const Wheel = ({
       setHoveredItem(null);
       const winnerIndex = safeItems.findIndex(i => i.id === winner.id);
       const targetIndex = winnerIndex >= 0 ? winnerIndex : 0;
+      const totalDuration = 4000;
       const extraSpins = 360 * 6;
       const anglePerSlice = 360 / itemCount;
       const randomOffset = (Math.random() - 0.5) * (anglePerSlice * 0.8);
@@ -3741,10 +3912,11 @@ const Wheel = ({
         if (delta < 0) delta += 360;
         return prev + delta + extraSpins;
       });
+      let doneTimer;
+      let tickTimer;
       if (!isMuted) {
         AudioEngine.init();
         AudioEngine.resume();
-        const totalDuration = 4000;
         const startTime = Date.now();
         const playTick = () => {
           const elapsed = Date.now() - startTime;
@@ -3754,16 +3926,19 @@ const Wheel = ({
             const slowFactor = 300;
             const nextInterval = baseInterval + Math.pow(progress, 3) * slowFactor;
             AudioEngine.playClick();
-            setTimeout(playTick, nextInterval);
-          } else {
-            AudioEngine.playWin();
-            onSpinComplete();
+            tickTimer = setTimeout(playTick, nextInterval);
           }
         };
         playTick();
-      } else {
-        setTimeout(() => onSpinComplete(), 4000);
       }
+      doneTimer = setTimeout(() => {
+        if (!isMuted) AudioEngine.playWin();
+        onSpinComplete();
+      }, totalDuration);
+      return () => {
+        clearTimeout(doneTimer);
+        clearTimeout(tickTimer);
+      };
     }
   }, [isSpinning, winner, safeItems, isMuted]);
   const getCoordinatesForPercent = percent => [Math.cos(2 * Math.PI * percent), Math.sin(2 * Math.PI * percent)];

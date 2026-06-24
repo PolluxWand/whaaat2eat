@@ -194,16 +194,69 @@ async function runSmoke() {
 
         await click(byText(S.pixel), 'pixel');
         document.querySelector('.app-shell')?.className.includes('visual-pixel') ? pass('pixel theme switch') : fail('pixel theme switch');
+        const pixelText = {
+          searchColor: getComputedStyle(document.querySelector('.compact-search-input')).color,
+          spinColor: getComputedStyle(byText(S.spin)).color,
+          rotorSvgMarginTop: getComputedStyle(document.querySelector('.wheel-rotor svg')).marginTop,
+          rotorTransformOrigin: getComputedStyle(document.querySelector('.wheel-rotor')).transformOrigin,
+        };
+        pixelText.searchColor !== 'rgb(255, 255, 255)' && pixelText.spinColor !== 'rgb(255, 255, 255)' && pixelText.rotorSvgMarginTop === '0px'
+          ? pass('pixel dark text and wheel center prep', pixelText)
+          : fail('pixel dark text and wheel center prep', pixelText);
+
+        const pixelWheelLayout = (() => {
+          const frame = document.querySelector('.wheel-frame')?.getBoundingClientRect();
+          const rotor = document.querySelector('.wheel-rotor')?.getBoundingClientRect();
+          const nav = document.querySelector('.compact-nav')?.getBoundingClientRect();
+          const footer = document.querySelector('.compact-footer')?.getBoundingClientRect();
+          if (!frame || !rotor || !nav || !footer) return null;
+          return {
+            viewport: { width: window.innerWidth, height: window.innerHeight },
+            navGap: Math.round(frame.top - nav.bottom),
+            footerGap: Math.round(footer.top - frame.bottom),
+            frameWidth: Math.round(frame.width),
+            rotorWidth: Math.round(rotor.width),
+            frameHeight: Math.round(frame.height),
+          };
+        })();
+        pixelWheelLayout
+          && pixelWheelLayout.navGap >= 4
+          && pixelWheelLayout.footerGap >= -2
+          && pixelWheelLayout.frameWidth - pixelWheelLayout.rotorWidth <= 20
+          ? pass('pixel wheel frame not covered', pixelWheelLayout)
+          : fail('pixel wheel frame not covered', pixelWheelLayout || {});
+
         await click(byText(S.spin), 'spin');
         await wait(300);
         const frameInline = document.querySelector('.wheel-frame')?.style.transform || '';
         const frameComputed = getComputedStyle(document.querySelector('.wheel-frame')).transform;
         const rotorInline = document.querySelector('.wheel-rotor')?.style.transform || '';
-        !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline)
-          ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline })
-          : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline });
+        const rotorBox = document.querySelector('.wheel-rotor').getBoundingClientRect();
+        const svgBox = document.querySelector('.wheel-rotor svg').getBoundingClientRect();
+        const frameBox = document.querySelector('.wheel-frame').getBoundingClientRect();
+        const centerDelta = {
+          x: Math.abs((rotorBox.left + rotorBox.width / 2) - (svgBox.left + svgBox.width / 2)),
+          y: Math.abs((rotorBox.top + rotorBox.height / 2) - (svgBox.top + svgBox.height / 2)),
+        };
+        const frameCenterDelta = {
+          x: Math.abs((frameBox.left + frameBox.width / 2) - (rotorBox.left + rotorBox.width / 2)),
+          y: Math.abs((frameBox.top + frameBox.height / 2) - (rotorBox.top + rotorBox.height / 2)),
+        };
+        !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline) && centerDelta.x < 0.5 && centerDelta.y < 0.5 && frameCenterDelta.x < 0.5 && frameCenterDelta.y < 0.5
+          ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta })
+          : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta });
         await waitFor(() => document.querySelector('.result-panel'), 6500);
         document.querySelector('.result-panel') ? pass('wheel result modal') : fail('wheel result modal');
+        const resultColors = {
+          title: getComputedStyle(document.querySelector('.result-title')).color,
+          description: getComputedStyle(document.querySelector('.result-description')).color,
+          label: getComputedStyle(document.querySelector('.result-panel span')).color,
+          poster: getComputedStyle(document.querySelector('.poster-preview')).color,
+          shareButton: getComputedStyle(document.querySelector('.result-panel .grid button')).color,
+        };
+        Object.values(resultColors).every((color) => color !== 'rgb(255, 255, 255)' && color !== 'rgba(255, 255, 255, 0)')
+          ? pass('pixel result modal text contrast', resultColors)
+          : fail('pixel result modal text contrast', resultColors);
         await click(byLabel(S.black), 'black poster');
         const blackClass = document.querySelector('.poster-preview')?.className || '';
         await click(byLabel(S.red), 'red poster');
@@ -222,6 +275,27 @@ async function runSmoke() {
         slotBefore.hasSlot && !slotBefore.hasWheel && !slotBefore.hasFooterSpin
           ? pass('slot mode switch', slotBefore)
           : fail('slot mode switch', slotBefore);
+
+        const darkPixelSlotPalette = (() => {
+          const frame = document.querySelector('.slot-machine-frame');
+          const windowEl = document.querySelector('.slot-window');
+          const item = document.querySelector('.slot-item');
+          const name = document.querySelector('.slot-name');
+          if (!frame || !windowEl || !item || !name) return null;
+          return {
+            frameBg: getComputedStyle(frame).backgroundImage,
+            windowBg: getComputedStyle(windowEl).backgroundImage,
+            itemBg: getComputedStyle(item).backgroundImage,
+            nameColor: getComputedStyle(name).color,
+          };
+        })();
+        darkPixelSlotPalette
+          && darkPixelSlotPalette.frameBg.includes('245, 247, 251')
+          && darkPixelSlotPalette.windowBg.includes('238, 243, 250')
+          && darkPixelSlotPalette.nameColor !== 'rgb(255, 255, 255)'
+          ? pass('dark pixel slot palette contrast', darkPixelSlotPalette)
+          : fail('dark pixel slot palette contrast', darkPixelSlotPalette || {});
+
         await click(document.querySelector('.slot-lever'), 'slot lever');
         await wait(260);
         const slotDuring = {
