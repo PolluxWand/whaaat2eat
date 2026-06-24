@@ -6,7 +6,7 @@
     <meta name="description" content="选了么是一款帮你快速决定今天吃什么的美食转盘工具，支持口味偏好、忌口搜索、收藏和历史记录。">
     <meta name="theme-color" content="#000000">
     <meta property="og:title" content="选了么 - 今天吃什么">
-    <meta property="og:description" content="输入想吃什么或不想吃什么，让转盘帮你快速决定这一餐。">
+    <meta property="og:description" content="输入口味偏好或忌口，让转盘帮你快速决定这一餐。">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4386,7 +4386,7 @@ const SlotMachine = ({
     return -252;
   };
   const getDuration = column => reelState[column] === 'settled' ? `${0.48 + column * 0.07}s` : '0s';
-  const title = '吃什么呢';
+  const title = '吃什么喝什么';
   return React.createElement("div", {
     className: `slot-machine-frame ios-glass ${isSpinning ? 'is-spinning' : ''} ${isLeverPulled ? 'is-lever-pulled' : ''}`
   }, React.createElement("div", {
@@ -5522,7 +5522,7 @@ const App = () => {
     type: "text",
     value: fuzzySearchInput,
     onChange: e => handleFuzzySearch(e.target.value),
-    placeholder: "\u60F3\u5403\u4EC0\u4E48\uFF1F",
+    placeholder: "\u5728\u8FD9\u91CC\u8F93\u5165\u4F60\u7684\u53E3\u5473\u504F\u597D",
     className: "compact-search-input ios-glass-input w-full rounded-2xl pl-10 pr-10 py-3 text-[14px] outline-none focus:ring-2 focus:ring-white/25 focus:border-white/30 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
   }), fuzzySearchInput && React.createElement("button", {
     onClick: clearFuzzySearch,
