@@ -23,7 +23,7 @@ const transformed = babel.transform(sourceCode, {
 const babelScriptPattern = /\n\s*<script src="https:\/\/unpkg\.com\/@babel\/standalone@7\.23\.5\/babel\.min\.js"><\/script>/;
 const output = html
   .replace(babelScriptPattern, '')
-  .replace(scriptMatch[0], `<script>\n${transformed}\n</script>`);
+  .replace(scriptMatch[0], () => `<script>\n${transformed}\n</script>`);
 
 fs.writeFileSync(indexPath, output, 'utf8');
 

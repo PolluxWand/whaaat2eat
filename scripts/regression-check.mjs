@@ -210,6 +210,66 @@ const cases = [
     forbiddenTerms: ['甜', '糖水', '酸甜', '香甜', '奶茶', '甜啦啦', '7分甜', '蜜雪'],
   },
   {
+    input: '不喝酸的',
+    tabId: 'drink',
+    mustExcludeTags: ['酸'],
+    mustNotIncludeTags: ['酸'],
+    forbiddenTerms: ['酸', '酸梅汤', '柠檬', '百香果', '酸甜', '酸爽'],
+    requiredIntent: [{ type: 'avoid', label: '酸味' }],
+  },
+  {
+    input: '酸的别来',
+    tabId: 'drink',
+    mustExcludeTags: ['酸'],
+    mustNotIncludeTags: ['酸'],
+    forbiddenTerms: ['酸', '酸梅汤', '柠檬', '百香果', '酸甜', '酸爽'],
+    requiredIntent: [{ type: 'avoid', label: '酸味' }],
+  },
+  {
+    input: '柠檬就算了',
+    tabId: 'drink',
+    mustExcludeTags: ['酸'],
+    mustNotIncludeTags: ['酸'],
+    forbiddenTerms: ['酸', '酸梅汤', '柠檬', '百香果', '酸甜', '酸爽'],
+    requiredIntent: [{ type: 'avoid', label: '酸味' }],
+  },
+  {
+    input: '不吃酸的',
+    tabId: 'meal',
+    mustExcludeTags: ['酸'],
+    mustNotIncludeTags: ['酸'],
+    forbiddenTerms: ['酸辣粉', '酸菜鱼', '螺蛳粉', '凉皮', '酸'],
+    requiredIntent: [{ type: 'avoid', label: '酸味' }],
+  },
+  {
+    input: '不喝苦的',
+    tabId: 'drink',
+    mustExcludeTags: ['苦', '咖啡'],
+    mustNotIncludeTags: ['苦', '咖啡'],
+    forbiddenTerms: ['苦', '咖啡', '拿铁', '美式', '瑞幸', '星巴克', 'Manner', 'Tims'],
+    requiredIntent: [{ type: 'avoid', label: '苦味' }],
+  },
+  {
+    input: '不吃咸的',
+    tabId: 'meal',
+    mustExcludeTags: ['咸香'],
+    mustNotIncludeTags: ['咸香'],
+    forbiddenTerms: ['咸', '咸香', '酱香', '卤味', '泡面'],
+    requiredIntent: [{ type: 'avoid', label: '咸口' }],
+  },
+  {
+    input: '想喝酸的',
+    expectedTab: 'drink',
+    requiredAnyTags: ['酸'],
+    requiredIntent: [{ type: 'prefer', label: '酸味' }],
+  },
+  {
+    input: '想喝苦的',
+    expectedTab: 'drink',
+    requiredAnyTags: ['苦', '咖啡'],
+    requiredIntent: [{ type: 'prefer', label: '苦味' }],
+  },
+  {
     input: '少糖一点',
     tabId: 'drink',
     mustExcludeTags: ['甜'],
@@ -222,11 +282,34 @@ const cases = [
     forbiddenTerms: ['甜', '糖水', '酸甜', '香甜', '奶茶', '甜啦啦', '7分甜', '蜜雪'],
   },
   {
+    input: '三分糖',
+    tabId: 'drink',
+    mustExcludeTags: ['甜'],
+    forbiddenTerms: ['甜', '糖水', '酸甜', '香甜', '奶茶', '甜啦啦', '7分甜', '蜜雪'],
+    requiredIntent: [{ type: 'avoid', label: '甜口' }],
+  },
+  {
+    input: '半糖就行',
+    tabId: 'drink',
+    mustExcludeTags: ['甜'],
+    forbiddenTerms: ['甜', '糖水', '酸甜', '香甜', '奶茶', '甜啦啦', '7分甜', '蜜雪'],
+    requiredIntent: [{ type: 'avoid', label: '甜口' }],
+  },
+  {
     input: '不想喝咖啡',
     tabId: 'drink',
     mustExcludeTags: ['咖啡'],
     requiredAnyTags: ['饮品', '奶茶', '果茶'],
     forbiddenTerms: ['咖啡', '拿铁', '美式', '瑞幸', '星巴克', 'Manner', 'Tims', '幸运咖', '库迪', '挪瓦'],
+  },
+  {
+    input: '咖啡别来',
+    tabId: 'drink',
+    mustExcludeTags: ['苦', '咖啡'],
+    mustNotIncludeTags: ['苦', '咖啡'],
+    requiredAnyTags: ['饮品', '奶茶', '果茶'],
+    forbiddenTerms: ['咖啡', '拿铁', '美式', '瑞幸', '星巴克', 'Manner', 'Tims', '幸运咖', '库迪', '挪瓦'],
+    requiredIntent: [{ type: 'avoid', label: '苦味' }],
   },
   {
     input: '别喝拿铁',
@@ -247,6 +330,28 @@ const cases = [
     tabId: 'meal',
     requiredAnyTags: ['清淡'],
     forbiddenTerms: ['冒菜', '麻辣香锅', '酸辣粉', '麻辣烫', '油炸', '炸鸡'],
+  },
+  {
+    input: '辣的别来',
+    tabId: 'meal',
+    mustExcludeTags: ['辣', '重口'],
+    forbiddenTerms: ['酸辣粉', '酸菜鱼', '麻辣', '辣'],
+    requiredIntent: [{ type: 'avoid', label: '辣味' }],
+  },
+  {
+    input: '油腻就算了',
+    tabId: 'meal',
+    mustExcludeTags: ['油炸', '重口', '辣'],
+    forbiddenTerms: ['油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串', '冒菜', '麻辣香锅'],
+    requiredIntent: [{ type: 'avoid', label: '油腻' }],
+  },
+  {
+    input: '清淡免了',
+    tabId: 'meal',
+    mustExcludeTags: ['清淡'],
+    requiredAnyTags: ['辣', '重口'],
+    forbiddenTerms: ['清淡', '清汤', '汤清', '豆浆', '阳春面', '真功夫'],
+    requiredIntent: [{ type: 'avoid', label: '清淡' }],
   },
 ];
 
@@ -286,6 +391,19 @@ for (const testCase of cases) {
     }
   }
 
+  for (const tag of testCase.mustNotIncludeTags || []) {
+    if (result.tags.includeTags.includes(tag)) {
+      failures.push(`${testCase.input}: 不应正向包含标签 ${tag}`);
+    }
+  }
+
+  for (const intent of testCase.requiredIntent || []) {
+    const matched = (result.tags.intentSummary || []).some((item) => item.type === intent.type && item.label === intent.label);
+    if (!matched) {
+      failures.push(`${testCase.input}: 缺少意图 ${intent.type}:${intent.label}`);
+    }
+  }
+
   if (testCase.expectedTab && result.suggestedTabId !== testCase.expectedTab) {
     failures.push(`${testCase.input}: 预期切到 ${testCase.expectedTab}，实际 ${result.suggestedTabId || '无'}`);
   }
@@ -310,6 +428,7 @@ for (const testCase of cases) {
     includeTags: result.tags.includeTags,
     excludeTags: result.tags.excludeTags,
     excludeKeywords: result.tags.excludeKeywords,
+    intentSummary: result.tags.intentSummary,
     poolSize: result.pool.length,
     sampleNames,
   });

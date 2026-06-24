@@ -538,3 +538,70 @@ C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bi
 - `正餐` + `少油一点`：候选应偏清淡，同时排除油炸、重口、辣。
 - `饮料` + `不想喝咖啡`：不能出现咖啡、拿铁、美式、瑞幸、星巴克等。
 - `摇摇机` 切换 `正餐 / 饮料 / 宵夜`：三类候选必须随分类变化。
+
+## 22. 规则词表产品化：后置否定和低糖口语必须纳入自动测试
+
+### 现象
+
+用户输入 `不喝酸的`、`酸的别来`、`柠檬就算了`、`咖啡别来`、`三分糖`、`半糖就行`、`辣的别来`、`油腻就算了`、`清淡免了` 这类表达时，如果只靠旧的关键词映射，容易把否定理解成正向偏好，或者完全没有识别出意图。
+
+### 原因
+
+真实输入不总是“不要 + 目标词”的顺序。很多口语会把否定词放在后面，例如“酸的别来”“油腻就算了”。饮品场景里“少糖、无糖、三分糖、半糖”也不是传统否定句，但产品语义上应该接近“避开高甜候选”。
+
+### 解决办法
+
+在 `parseFuzzySearch()` 里维护统一的 `INTENT_GROUPS` 规则词表：
+
+1. 每个口味组都声明 `includeTags`、`excludeTags`、`excludeKeywords`、`positive`、`negative` 和 `blockedMapKeywords`。
+2. 先跑意图词表，再跑 `FUZZY_SEARCH_MAP`，并用 `blockedMapKeywords` 防止负向表达又被正向关键词污染。
+3. 同时支持前置否定和后置否定：`不喝酸的` 与 `酸的别来` 都应生成 `避开 酸味`。
+4. 把低糖表达单独归入甜口回避：`少糖`、`低糖`、`无糖`、`半糖`、`三分糖`、`五分糖`、`不加糖`、`去糖`。
+
+### 验证命令
+
+```powershell
+C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\build.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\regression-check.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\smoke-cdp.mjs
+```
+
+### 必测用例
+
+- `饮料` + `不喝酸的`：显示 `避开 酸味`，不能出现 `偏向 酸味` 或酸梅汤、柠檬、百香果。
+- `饮料` + `酸的别来`：同样显示 `避开 酸味`，证明后置否定生效。
+- `饮料` + `三分糖`：显示 `避开 甜口`，不能出现奶茶、蜜雪、甜啦啦、7分甜等高甜候选。
+- `饮料` + `咖啡别来`：显示 `避开 苦味`，不能出现咖啡品牌或拿铁、美式。
+- `正餐` + `辣的别来`：显示 `避开 辣味`，不能出现酸辣粉、酸菜鱼、麻辣类。
+- `正餐` + `油腻就算了`：显示 `避开 油腻`，不能出现冒菜、麻辣香锅、炸鸡、薯条、炸串。
+- `正餐` + `清淡免了`：显示 `避开 清淡`，候选应偏重口或辣。
+
+## 23. 构建脚本替换 Babel 脚本时不能直接插入含 `$` 的字符串
+
+### 现象
+
+运行 `scripts/build.mjs` 后，`index.html` 明明已经去掉了 `@babel/standalone`，但文件里仍然残留 `type="text/babel"`，页面可能变成空白或脚本异常。检查产物时可以看到源码片段被错误插入到了编译后的 JS 字符串里。
+
+### 原因
+
+`String.prototype.replace(match, replacementString)` 的第二个参数如果是字符串，会把 `$&` 解释为“插入完整匹配内容”。当源码里出现正则转义写法 `'\$&'` 或类似字符串时，构建脚本会误把整段 `<script type="text/babel">...</script>` 插进输出。
+
+### 解决办法
+
+构建脚本替换编译结果时必须使用函数式替换：
+
+```js
+.replace(scriptMatch[0], () => `<script>\n${transformed}\n</script>`)
+```
+
+不要写成：
+
+```js
+.replace(scriptMatch[0], `<script>\n${transformed}\n</script>`)
+```
+
+### 验证命令
+
+```powershell
+C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\build.mjs; node -e "const fs=require('fs');const s=fs.readFileSync('index.html','utf8');console.log({hasTypeBabel:s.includes('type=\"text/babel\"'),hasStandalone:s.includes('@babel/standalone')})"
+```
+
+期望输出里 `hasTypeBabel` 和 `hasStandalone` 都是 `false`。

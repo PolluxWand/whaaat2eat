@@ -184,6 +184,54 @@
             color: rgba(244,244,245,0.88);
         }
 
+        .intent-chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(24,24,27,0.10);
+            font-weight: 800;
+            line-height: 1.15;
+            white-space: nowrap;
+        }
+
+        .intent-chip-prefer {
+            color: #047857;
+            background: rgba(236,253,245,0.78);
+            border-color: rgba(16,185,129,0.30);
+        }
+
+        .intent-chip-avoid {
+            color: #be123c;
+            background: rgba(255,241,242,0.82);
+            border-color: rgba(244,63,94,0.30);
+        }
+
+        .intent-chip-muted {
+            color: rgba(63,63,70,0.76);
+            background: rgba(244,244,245,0.72);
+            border-color: rgba(113,113,122,0.18);
+        }
+
+        .dark .intent-chip-prefer {
+            color: #a7f3d0;
+            background: rgba(6,78,59,0.34);
+            border-color: rgba(52,211,153,0.34);
+        }
+
+        .dark .intent-chip-avoid {
+            color: #fecdd3;
+            background: rgba(136,19,55,0.34);
+            border-color: rgba(251,113,133,0.35);
+        }
+
+        .dark .intent-chip-muted {
+            color: rgba(244,244,245,0.78);
+            background: rgba(39,39,42,0.50);
+            border-color: rgba(212,212,216,0.16);
+        }
+
         .wheel-frame {
             width: min(92dvw, 402px);
             max-width: calc(100% - 12px);
@@ -988,9 +1036,33 @@
         .visual-pixel .mode-chip,
         .visual-pixel .slot-name,
         .visual-pixel .slot-brand,
-        .visual-pixel .compact-spin-button {
+        .visual-pixel .compact-spin-button,
+        .visual-pixel .intent-chip {
             font-family: "Press Start 2P", "Courier New", monospace;
             letter-spacing: 0;
+        }
+
+        .visual-pixel .intent-chip {
+            border-radius: 2px;
+            box-shadow: 2px 2px 0 rgba(16,32,51,0.18);
+        }
+
+        .visual-pixel .intent-chip-prefer {
+            color: #102033;
+            background: #d7edf4;
+            border-color: #6c879e;
+        }
+
+        .visual-pixel .intent-chip-avoid {
+            color: #102033;
+            background: #f4d7df;
+            border-color: #9e6c7b;
+        }
+
+        .visual-pixel .intent-chip-muted {
+            color: #102033;
+            background: #e8edf4;
+            border-color: #8d9caf;
         }
 
         .visual-pixel .slot-machine-frame {
@@ -1915,25 +1987,124 @@
         ];
 
         // --- 2. UTILS ---
+        const INTENT_GROUPS = [
+            {
+                id: 'sour',
+                label: '酸味',
+                includeTags: ['酸'],
+                excludeTags: ['酸'],
+                excludeKeywords: ['酸', '酸辣', '酸爽', '酸甜', '酸梅汤', '柠檬', '百香果', '酸菜鱼', '螺蛳粉', '凉皮', '酸辣粉'],
+                positive: ['酸', '酸味', '酸的', '酸口', '酸爽', '酸辣', '酸甜', '柠檬', '百香果', '酸梅汤'],
+                negative: ['酸', '酸味', '酸的', '酸口', '酸爽', '酸辣', '酸甜', '柠檬', '百香果', '酸梅汤'],
+                blockedMapKeywords: ['酸', '酸爽'],
+            },
+            {
+                id: 'bitter',
+                label: '苦味',
+                includeTags: ['苦', '咖啡'],
+                excludeTags: ['苦', '咖啡'],
+                excludeKeywords: ['苦', '咖啡', '拿铁', '美式', '冷萃', '瑞幸', '星巴克', 'Manner', 'Tims', '幸运咖', 'M Stand', 'Seesaw', 'Arabica', '库迪', '挪瓦'],
+                positive: ['苦', '苦味', '苦的', '咖啡', '拿铁', '美式', '冷萃'],
+                negative: ['苦', '苦味', '苦的', '咖啡', '拿铁', '美式', '冷萃'],
+                fallbackIncludeTags: ['饮品', '奶茶', '果茶'],
+                blockedMapKeywords: ['咖啡'],
+            },
+            {
+                id: 'salty',
+                label: '咸口',
+                includeTags: ['咸香'],
+                excludeTags: ['咸香'],
+                excludeKeywords: ['咸', '咸香', '酱香', '卤味', '烧烤', '烤串', '泡面', '鸭脖', '肉夹馍'],
+                positive: ['咸', '咸的', '咸口', '咸香', '酱香', '卤味'],
+                negative: ['咸', '咸的', '咸口', '咸香', '太咸'],
+                blockedMapKeywords: ['北方菜'],
+            },
+            {
+                id: 'sweet',
+                label: '甜口',
+                includeTags: ['甜品', '蛋糕', '冰淇淋'],
+                excludeTags: ['甜', '甜品', '蛋糕', '冰淇淋'],
+                excludeKeywords: ['蛋糕', '冰淇淋', '甜品', '甜筒', '奶油', '糖水', '酸甜', '香甜', '蜜雪', '奶茶', '甜啦啦', '7分甜'],
+                positive: ['甜', '甜的', '甜口', '甜味', '甜品', '蛋糕', '奶油', '糖水', '下午茶'],
+                negative: ['甜', '甜的', '糖', '甜品', '蛋糕', '奶油'],
+                blockedMapKeywords: ['甜', '甜品', '蛋糕', '下午茶'],
+            },
+            {
+                id: 'spicy',
+                label: '辣味',
+                includeTags: ['辣', '重口'],
+                excludeTags: ['辣', '重口'],
+                excludeKeywords: ['辣', '麻辣', '香辣', '酸辣'],
+                positive: ['麻辣', '香辣', '酸辣', '辣的', '辣一点', '辣味', '微辣', '很辣', '重口', '重口味', '川菜', '湘菜', '火锅', '麻辣烫', '冒菜', '串串'],
+                negative: ['辣', '麻辣', '香辣', '酸辣', '重口'],
+                fallbackIncludeTags: ['清淡', '咸香'],
+                positiveExcludeTags: ['饮品', '甜品', '甜', '奶茶', '冰品'],
+                blockedMapKeywords: ['微辣', '很辣', '重口', '酸爽', '酸辣', '火锅', '麻辣烫', '川菜', '湘菜', '韩餐'],
+            },
+            {
+                id: 'light',
+                label: '清淡',
+                includeTags: ['清淡'],
+                excludeTags: ['清淡'],
+                excludeKeywords: ['清淡', '清汤', '汤清', '白粥', '豆浆', '油条'],
+                positive: ['清淡', '淡一点', '清爽', '少油', '低脂', '蒸', '汤水', '粥'],
+                negative: ['清淡', '太淡', '寡淡', '淡口', '没味', '没滋味'],
+                fallbackIncludeTags: ['重口', '辣'],
+                positiveExcludeTags: ['油炸', '炸鸡', '重口', '辣'],
+                positiveExcludeKeywords: ['油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串', '冒菜', '麻辣香锅', '酸辣粉'],
+                blockedMapKeywords: ['清淡', '粤菜', '江浙菜', '粥', '蒸'],
+            },
+            {
+                id: 'cold',
+                label: '冰冷',
+                includeTags: ['冰品'],
+                excludeTags: ['冰品', '生冷', '冰淇淋'],
+                excludeKeywords: ['冰淇淋', '哈根达斯', 'DQ', '刨冰', '冰粉', '雪糕', '冷饮'],
+                positive: ['冰的', '凉的', '冷饮', '冰饮', '冰淇淋', '雪糕', '刨冰', '冰粉', '冰爽'],
+                negative: ['冰', '凉', '冷', '冰淇淋', '雪糕', '冷饮'],
+                blockedMapKeywords: ['不要冰', '不要凉', '冰的', '凉的', '冷的', '冰爽', '冰淇淋'],
+            },
+            {
+                id: 'greasy',
+                label: '油腻',
+                includeTags: [],
+                excludeTags: ['油炸', '炸鸡', '重口', '辣'],
+                excludeKeywords: ['油腻', '重油', '油乎乎', '油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串', '冒菜', '麻辣香锅', '酸辣粉'],
+                positive: ['油炸', '炸鸡', '炸串'],
+                negative: ['油腻', '腻', '油的', '油', '太油', '重油', '油乎乎', '油大', '油多', '多油', '肥腻'],
+                blockedMapKeywords: ['炸'],
+            },
+        ];
+
+        const NEGATIVE_INTENT_PREFIX = '(?:不要|不想|别|不|少|减|无|拒绝|别来|不吃|不喝|不想吃|不想喝|不要吃|不要喝|别吃|别喝|忌口|不能吃|不能喝|不爱吃|不爱喝|不爱)';
+        const NEGATIVE_INTENT_SUFFIX = '(?:别来|不要|不想要|算了|就算了|免了|不要了|别了|不行)';
+        const POSITIVE_INTENT_PREFIX = '(?:想吃|想喝|想要|来点|吃点|喝点|整点|要点|有点|偏|爱吃|爱喝|喜欢吃|喜欢喝)?';
+
+        const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        const hasIntentTerm = (input, prefixes, terms, gap = 6, suffixes = null) => {
+            return terms.some(term => {
+                const escapedTerm = escapeRegex(term);
+                const prefixMatched = new RegExp(`${prefixes}.{0,${gap}}(?:${escapedTerm})`).test(input);
+                const suffixMatched = suffixes
+                    ? new RegExp(`(?:${escapedTerm}).{0,${gap}}${suffixes}`).test(input)
+                    : false;
+                return prefixMatched || suffixMatched;
+            });
+        };
+
         // 模糊搜索：将用户输入转换为标签过滤
         const parseFuzzySearch = (input) => {
-            if (!input || input.trim() === '') return { includeTags: [], excludeTags: [], excludeKeywords: [] };
+            if (!input || input.trim() === '') return { includeTags: [], excludeTags: [], excludeKeywords: [], intentSummary: [] };
 
             const inputLower = input.toLowerCase().trim();
             const includeTags = [];
             const excludeTags = [];
             const excludeKeywords = [];
-            const hasColdNegative = /(?:不要|不想|别|不).{0,4}(?:冰|凉|冷|冰淇淋|雪糕|冷饮)/.test(inputLower);
-            const hasSpicyNegative = /(?:不要|不想|别|不).{0,4}(?:辣|麻辣|重口)/.test(inputLower);
-            const hasSweetNegative = /(?:不要|不想|别|不|少|减|无).{0,4}(?:甜|糖|甜品|蛋糕|奶油)/.test(inputLower);
-            const hasFriedNegative = /(?:不要|不想|别|不|少).{0,4}(?:炸|油炸|炸鸡|煎炸)/.test(inputLower);
-            const hasGreasyNegative = /(?:不要|不想|别|不|少|清爽点|清爽一点).{0,5}(?:油腻|腻|油的|油|太油|重油|油乎乎|油大|油多|多油|肥腻)/.test(inputLower);
+            const intentSummary = [];
+            const activeNegativeGroups = [];
+            const activePositiveGroups = [];
             const hasRawColdNegative = /(?:不要|不想|别|不).{0,4}(?:生冷|冷食|凉菜)/.test(inputLower);
-            const hasLightNegative = /(?:不要|不想|别|不|拒绝|别来).{0,6}(?:清淡|太淡|寡淡|淡口|没味|没滋味)/.test(inputLower);
-            const hasColdPositive = !hasColdNegative && /(?:想吃|想喝|想要|来点|吃点|喝点|整点|要点|有点|偏|爱吃|爱喝|喜欢吃|喜欢喝)?.{0,4}(?:冰的|凉的|冷饮|冰饮|冰淇淋|雪糕|刨冰|冰粉|冰爽)/.test(inputLower);
-            const hasSweetPositive = !hasSweetNegative && /(?:想吃|想喝|想要|来点|吃点|喝点|整点|要点|有点|偏|爱吃|爱喝|喜欢吃|喜欢喝)?.{0,4}(?:甜的|甜口|甜味|甜品|蛋糕|奶油|糖水|下午茶)/.test(inputLower);
-            const hasLightPositive = !hasLightNegative && /(?:想吃|想喝|想要|来点|吃点|喝点|整点|要点|偏|爱吃|爱喝|喜欢吃|喜欢喝)?.{0,4}(?:清淡|淡一点|清爽|少油|低脂|蒸|汤水|粥)/.test(inputLower);
-            const hasSpicyPositive = !hasSpicyNegative && /(?:想吃|想要|来点|吃点|整点|要点|有点|偏|爱吃|喜欢吃)?.{0,4}(?:麻辣|香辣|酸辣|辣的|辣一点|辣味|微辣|很辣|重口|重口味|川菜|湘菜|火锅|麻辣烫|冒菜|串串)/.test(inputLower);
             const negativeFoodPattern = '(?:不吃|不想吃|不要吃|别吃|忌口|不能吃|不爱吃|不爱|不要|不想|别)';
             const negativeDrinkPattern = '(?:不喝|不想喝|不要喝|别喝|不能喝|不爱喝|不爱|不要|不想|别)';
             const hasCoffeeNegative = new RegExp(`${negativeDrinkPattern}.{0,6}(?:咖啡|拿铁|美式|冷萃|瑞幸|星巴克|manner|tims|幸运咖|m stand|seesaw|arabica|库迪|挪瓦)`).test(inputLower);
@@ -1944,14 +2115,9 @@
             const hasLambNegative = new RegExp(`${negativeFoodPattern}.{0,5}(?:羊肉|羊)`).test(inputLower);
             const hasSpecificMeatNegative = hasBeefNegative || hasChickenNegative || hasPorkNegative || hasLambNegative;
             const hasMeatNegative = !hasSpecificMeatNegative && new RegExp(`${negativeFoodPattern}.{0,5}(?:肉|荤)`).test(inputLower);
-            const coldPositiveKeywords = ['不要冰', '不要凉', '冰的', '凉的', '冷的', '冰爽', '冰淇淋'];
-            const spicyPositiveKeywords = ['微辣', '很辣', '重口', '酸爽', '酸辣', '火锅', '麻辣烫', '川菜', '湘菜', '韩餐'];
-            const lightPositiveKeywords = ['清淡', '粤菜', '江浙菜', '粥', '蒸'];
-            const sweetPositiveKeywords = ['甜', '甜品', '蛋糕', '冰淇淋', '下午茶'];
-            const friedPositiveKeywords = ['炸'];
             const seafoodPositiveKeywords = ['鱼', '海鲜'];
             const meatPositiveKeywords = ['肉'];
-            const coffeePositiveKeywords = ['咖啡'];
+            const hasLowSugarPreference = /(?:少糖|低糖|无糖|半糖|三分糖|五分糖|不加糖|去糖)/.test(inputLower);
 
             const addExcludeTag = (tag) => {
                 if (!excludeTags.includes(tag)) excludeTags.push(tag);
@@ -1967,95 +2133,88 @@
                 if (keyword && !excludeKeywords.includes(keyword)) excludeKeywords.push(keyword);
             };
 
-            if (hasColdNegative) {
-                ['冰品', '生冷', '冰淇淋'].forEach(addExcludeTag);
-                ['冰淇淋', '哈根达斯', 'DQ', '刨冰', '冰粉', '雪糕', '冷饮'].forEach(addExcludeKeyword);
-            }
-            if (hasColdPositive) {
-                ['冰品'].forEach(addIncludeTag);
-            }
-            if (hasSpicyNegative) {
-                ['辣', '重口'].forEach(addExcludeTag);
-                ['辣', '麻辣', '香辣'].forEach(addExcludeKeyword);
-                ['清淡', '咸香'].forEach(addIncludeTag);
-            }
-            if (hasLightNegative) {
-                ['清淡'].forEach(addExcludeTag);
-                ['清淡', '清汤', '汤清', '白粥', '豆浆', '油条'].forEach(addExcludeKeyword);
-                ['重口', '辣'].forEach(addIncludeTag);
-            }
-            if (hasSpicyPositive) {
-                ['辣', '重口'].forEach(addIncludeTag);
-                ['饮品', '甜品', '甜', '奶茶', '冰品'].forEach(addExcludeTag);
-            }
-            if (hasLightPositive) {
-                ['清淡'].forEach(addIncludeTag);
-                ['油炸', '炸鸡', '重口', '辣'].forEach(addExcludeTag);
-                ['油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串', '冒菜', '麻辣香锅', '酸辣粉'].forEach(addExcludeKeyword);
-            }
-            if (hasSweetNegative) {
+            INTENT_GROUPS.forEach(group => {
+                const isNegative = hasIntentTerm(inputLower, NEGATIVE_INTENT_PREFIX, group.negative || group.positive, 6, NEGATIVE_INTENT_SUFFIX);
+                const isPositive = !isNegative && hasIntentTerm(inputLower, POSITIVE_INTENT_PREFIX, group.positive, 5);
+                if (isNegative) {
+                    activeNegativeGroups.push(group);
+                    group.excludeTags.forEach(addExcludeTag);
+                    (group.excludeKeywords || []).forEach(addExcludeKeyword);
+                    (group.fallbackIncludeTags || []).forEach(addIncludeTag);
+                    intentSummary.push({ type: 'avoid', label: group.label });
+                } else if (isPositive) {
+                    activePositiveGroups.push(group);
+                    group.includeTags.forEach(addIncludeTag);
+                    (group.positiveExcludeTags || []).forEach(addExcludeTag);
+                    (group.positiveExcludeKeywords || []).forEach(addExcludeKeyword);
+                    intentSummary.push({ type: 'prefer', label: group.label });
+                }
+            });
+
+            if (hasLowSugarPreference) {
                 ['甜', '甜品', '蛋糕', '冰淇淋'].forEach(addExcludeTag);
                 ['蛋糕', '冰淇淋', '甜品', '甜筒', '奶油', '糖水', '酸甜', '香甜', '蜜雪', '奶茶', '甜啦啦', '7分甜'].forEach(addExcludeKeyword);
+                if (!intentSummary.some(item => item.type === 'avoid' && item.label === '甜口')) {
+                    intentSummary.push({ type: 'avoid', label: '甜口' });
+                }
             }
-            if (hasSweetPositive) {
-                ['甜品', '蛋糕', '冰淇淋'].forEach(addIncludeTag);
-            }
-            if (hasFriedNegative) {
-                ['油炸', '炸鸡'].forEach(addExcludeTag);
-                ['炸', '油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串'].forEach(addExcludeKeyword);
-            }
-            if (hasGreasyNegative) {
-                ['油炸', '炸鸡', '重口', '辣'].forEach(addExcludeTag);
-                ['油腻', '重油', '油乎乎', '油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串', '冒菜', '麻辣香锅', '酸辣粉'].forEach(addExcludeKeyword);
-            }
+
             if (hasRawColdNegative) {
                 ['生冷', '冰品'].forEach(addExcludeTag);
                 ['冰淇淋', '哈根达斯', 'DQ', '刨冰', '冰粉', '雪糕', '冷饮', '凉菜'].forEach(addExcludeKeyword);
+                if (!intentSummary.some(item => item.type === 'avoid' && item.label === '冰冷')) {
+                    intentSummary.push({ type: 'avoid', label: '生冷' });
+                }
             }
             if (hasCoffeeNegative) {
                 ['咖啡'].forEach(addExcludeTag);
                 ['咖啡', '拿铁', '美式', '冷萃', '瑞幸', '星巴克', 'Manner', 'Tims', '幸运咖', 'M Stand', 'Seesaw', 'Arabica', '库迪', '挪瓦'].forEach(addExcludeKeyword);
                 ['饮品', '奶茶', '果茶'].forEach(addIncludeTag);
+                if (!intentSummary.some(item => item.type === 'avoid' && item.label === '苦味')) {
+                    intentSummary.push({ type: 'avoid', label: '咖啡' });
+                }
             }
             if (hasSeafoodNegative) {
                 ['海鲜', '鱼', '虾', '蟹'].forEach(addExcludeTag);
                 ['鱼', '虾', '蟹', '海鲜', '生蚝', '鱿鱼', '寿司'].forEach(addExcludeKeyword);
+                intentSummary.push({ type: 'avoid', label: '鱼虾海鲜' });
             }
             if (hasMeatNegative) {
                 ['肉食', '猪肉', '牛肉', '鸡肉', '羊肉', '牛肉饭'].forEach(addExcludeTag);
                 ['肉', '牛', '羊', '猪', '鸡', '鸭', '排', '汉堡'].forEach(addExcludeKeyword);
+                intentSummary.push({ type: 'avoid', label: '肉类' });
             }
             if (hasBeefNegative) {
                 ['牛肉', '牛肉饭'].forEach(addExcludeTag);
                 ['牛', '牛排'].forEach(addExcludeKeyword);
+                intentSummary.push({ type: 'avoid', label: '牛肉' });
             }
             if (hasChickenNegative) {
                 ['鸡肉', '鸡汤', '炸鸡', '脆皮鸡'].forEach(addExcludeTag);
                 ['鸡'].forEach(addExcludeKeyword);
+                intentSummary.push({ type: 'avoid', label: '鸡肉' });
             }
             if (hasPorkNegative) {
                 ['猪肉'].forEach(addExcludeTag);
                 ['猪', '猪脚', '猪肚', '红烧肉', '肉夹馍'].forEach(addExcludeKeyword);
+                intentSummary.push({ type: 'avoid', label: '猪肉' });
             }
             if (hasLambNegative) {
                 ['羊肉'].forEach(addExcludeTag);
                 ['羊'].forEach(addExcludeKeyword);
+                intentSummary.push({ type: 'avoid', label: '羊肉' });
             }
 
             // 遍历映射表匹配关键词
+            const blockedMapKeywords = new Set([
+                ...activeNegativeGroups.flatMap(group => group.blockedMapKeywords || []),
+                ...activePositiveGroups.flatMap(group => group.blockedMapKeywords || []),
+                ...(hasCoffeeNegative ? ['咖啡'] : []),
+                ...((hasSeafoodNegative) ? seafoodPositiveKeywords : []),
+                ...((hasMeatNegative || hasBeefNegative || hasChickenNegative || hasPorkNegative || hasLambNegative) ? meatPositiveKeywords : []),
+            ]);
             Object.keys(FUZZY_SEARCH_MAP).forEach(keyword => {
-                if (hasColdNegative && coldPositiveKeywords.includes(keyword)) return;
-                if (hasColdPositive && coldPositiveKeywords.includes(keyword)) return;
-                if (hasSpicyNegative && spicyPositiveKeywords.includes(keyword)) return;
-                if (hasSpicyPositive && keyword === '不辣') return;
-                if (hasSpicyPositive && keyword === '重口') return;
-                if (hasLightNegative && lightPositiveKeywords.includes(keyword)) return;
-                if (hasSweetNegative && sweetPositiveKeywords.includes(keyword)) return;
-                if (hasFriedNegative && friedPositiveKeywords.includes(keyword)) return;
-                if (hasGreasyNegative && [...spicyPositiveKeywords, ...friedPositiveKeywords].includes(keyword)) return;
-                if (hasCoffeeNegative && coffeePositiveKeywords.includes(keyword)) return;
-                if (hasSeafoodNegative && seafoodPositiveKeywords.includes(keyword)) return;
-                if ((hasMeatNegative || hasBeefNegative || hasChickenNegative || hasPorkNegative || hasLambNegative) && meatPositiveKeywords.includes(keyword)) return;
+                if (blockedMapKeywords.has(keyword)) return;
 
                 if (inputLower.includes(keyword)) {
                     const tags = FUZZY_SEARCH_MAP[keyword];
@@ -2071,7 +2230,7 @@
                 }
             });
 
-            return { includeTags, excludeTags, excludeKeywords };
+            return { includeTags, excludeTags, excludeKeywords, intentSummary };
         };
 
         const inferSearchTabId = (input, tags) => {
@@ -3050,7 +3209,7 @@
             const [isMuted, setIsMuted] = useState(false);
             const [greeting, setGreeting] = useState('今天吃什么');
             const [fuzzySearchInput, setFuzzySearchInput] = useState('');
-            const [fuzzySearchTags, setFuzzySearchTags] = useState({ includeTags: [], excludeTags: [], excludeKeywords: [] });
+            const [fuzzySearchTags, setFuzzySearchTags] = useState({ includeTags: [], excludeTags: [], excludeKeywords: [], intentSummary: [] });
             const [showTopMenu, setShowTopMenu] = useState(false);
             const [decisionMode, setDecisionMode] = useState('wheel');
             const [visualStyle, setVisualStyle] = useState('glass');
@@ -3199,6 +3358,8 @@
                 return (fuzzySearchTags.excludeKeywords || []).filter(keyword => keyword && !excludedTagSet.has(keyword));
             }, [fuzzySearchTags]);
 
+            const hasParsedIntent = fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || visibleExcludeKeywords.length > 0 || (fuzzySearchTags.intentSummary || []).length > 0;
+
             useEffect(() => {
                 if(!isSpinning) {
                     setItems(generatePool());
@@ -3219,7 +3380,7 @@
             // 清除搜索
             const clearFuzzySearch = () => {
                 setFuzzySearchInput('');
-                setFuzzySearchTags({ includeTags: [], excludeTags: [], excludeKeywords: [] });
+                setFuzzySearchTags({ includeTags: [], excludeTags: [], excludeKeywords: [], intentSummary: [] });
             };
 
             const handleSpin = () => { 
@@ -3320,25 +3481,44 @@
                         </div>
                      </header>
 
-                     {/* Fuzzy Search Bar */}
-                     <div className="px-6 z-10">
-                        {(fuzzySearchTags.includeTags.length > 0 || fuzzySearchTags.excludeTags.length > 0 || visibleExcludeKeywords.length > 0) && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {fuzzySearchTags.includeTags.map(tag => (
-                                    <span key={tag} className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold rounded-full border border-emerald-200 dark:border-emerald-800/70">
-                                        + {tag}
-                                    </span>
-                                ))}
-                                {fuzzySearchTags.excludeTags.map(tag => (
-                                    <span key={tag} className="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold rounded-full border border-rose-200 dark:border-rose-800/70">
-                                        - {tag}
-                                    </span>
-                                ))}
-                                {visibleExcludeKeywords.map(keyword => (
-                                    <span key={`keyword-${keyword}`} className="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold rounded-full border border-rose-200 dark:border-rose-800/70">
-                                        - {keyword}
-                                    </span>
-                                ))}
+                      {/* Fuzzy Search Bar */}
+                      <div className="px-6 z-10">
+                        {hasParsedIntent && (
+                            <div className="ios-glass-soft mt-2 rounded-2xl px-3 py-2 text-[11px]">
+                                <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 font-semibold mb-1.5">
+                                    <Icons.Search className="w-3 h-3"/>
+                                    <span>已理解</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {(fuzzySearchTags.intentSummary || []).map((intent, index) => (
+                                        <span key={`${intent.type}-${intent.label}-${index}`} className={`intent-chip ${intent.type === 'avoid' ? 'intent-chip-avoid' : 'intent-chip-prefer'}`}>
+                                            {intent.type === 'avoid' ? '避开' : '偏向'} {intent.label}
+                                        </span>
+                                    ))}
+                                    {fuzzySearchTags.includeTags
+                                        .filter(tag => !(fuzzySearchTags.intentSummary || []).some(intent => intent.type === 'prefer' && intent.label.includes(tag)))
+                                        .map(tag => (
+                                            <span key={tag} className="intent-chip intent-chip-prefer">
+                                                偏向 {tag}
+                                            </span>
+                                        ))}
+                                    {fuzzySearchTags.excludeTags
+                                        .filter(tag => !(fuzzySearchTags.intentSummary || []).some(intent => intent.type === 'avoid' && intent.label.includes(tag)))
+                                        .slice(0, 6)
+                                        .map(tag => (
+                                            <span key={tag} className="intent-chip intent-chip-avoid">
+                                                避开 {tag}
+                                            </span>
+                                        ))}
+                                    {visibleExcludeKeywords.slice(0, 8).map(keyword => (
+                                        <span key={`keyword-${keyword}`} className="intent-chip intent-chip-muted">
+                                            筛掉 {keyword}
+                                        </span>
+                                    ))}
+                                    {visibleExcludeKeywords.length > 8 && (
+                                        <span className="intent-chip intent-chip-muted">还有 {visibleExcludeKeywords.length - 8} 个排除词</span>
+                                    )}
+                                </div>
                             </div>
                         )}
                       </div>

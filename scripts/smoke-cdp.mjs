@@ -274,9 +274,9 @@ async function runSmoke() {
       };
       const visibleWheelFoodNames = () => [...document.querySelectorAll('[data-food-name]')].map((node) => node.getAttribute('data-food-name') || '');
       const visibleSlotNames = () => [...document.querySelectorAll('.slot-name')].map((node) => node.textContent.trim()).filter(Boolean);
-      const visibleIntentChips = () => [...document.querySelectorAll('span')]
+      const visibleIntentChips = () => [...document.querySelectorAll('.intent-chip, span')]
         .map((node) => node.textContent.replace(/\\s+/g, ' ').trim())
-        .filter((text) => text.startsWith('+ ') || text.startsWith('- '));
+        .filter((text) => text.startsWith('+ ') || text.startsWith('- ') || text.startsWith('\\u504f\\u5411 ') || text.startsWith('\\u907f\\u5f00 ') || text.startsWith('\\u7b5b\\u6389 '));
       const hasAnyTerm = (names, terms) => names.some((name) => terms.some((term) => name.includes(term)));
       const closeModal = async () => {
         const close = document.querySelector('.modal-panel .modal-close') || byLabel(S.close);
@@ -305,12 +305,53 @@ async function runSmoke() {
           chips: visibleIntentChips(),
           wheelNames: visibleWheelFoodNames(),
         };
-        coffeeIntent.chips.includes('- \\u5496\\u5561')
-          && !coffeeIntent.chips.includes('+ \\u5496\\u5561')
+        coffeeIntent.chips.some((text) => text === '- \\u5496\\u5561' || text === '\\u907f\\u5f00 \\u5496\\u5561' || text === '\\u907f\\u5f00 \\u82e6\\u5473')
+          && !coffeeIntent.chips.some((text) => text === '+ \\u5496\\u5561' || text === '\\u504f\\u5411 \\u5496\\u5561')
           && coffeeIntent.wheelNames.length > 0
           && !hasAnyTerm(coffeeIntent.wheelNames, ['\\u5496\\u5561', '\\u745e\\u5e78', '\\u661f\\u5df4\\u514b', 'Manner', 'Tims'])
           ? pass('drink negative coffee intent', coffeeIntent)
           : fail('drink negative coffee intent', coffeeIntent);
+
+        await clearSearch();
+        await click(byText(S.drink), 'drink tab for sour exclusion');
+        await typeSearch('\\u4e0d\\u559d\\u9178\\u7684');
+        const sourIntent = {
+          chips: visibleIntentChips(),
+          wheelNames: visibleWheelFoodNames(),
+        };
+        sourIntent.chips.includes('\\u907f\\u5f00 \\u9178\\u5473')
+          && !sourIntent.chips.some((text) => text === '+ \\u9178' || text === '\\u504f\\u5411 \\u9178' || text === '\\u504f\\u5411 \\u9178\\u5473')
+          && sourIntent.wheelNames.length > 0
+          && !hasAnyTerm(sourIntent.wheelNames, ['\\u9178\\u6885\\u6c64', '\\u67e0\\u6aac', '\\u767e\\u9999\\u679c'])
+          ? pass('drink negative sour intent', sourIntent)
+          : fail('drink negative sour intent', sourIntent);
+
+        await clearSearch();
+        await click(byText(S.drink), 'drink tab for suffix sour exclusion');
+        await typeSearch('\\u9178\\u7684\\u522b\\u6765');
+        const suffixSourIntent = {
+          chips: visibleIntentChips(),
+          wheelNames: visibleWheelFoodNames(),
+        };
+        suffixSourIntent.chips.includes('\\u907f\\u5f00 \\u9178\\u5473')
+          && !suffixSourIntent.chips.some((text) => text === '+ \\u9178' || text === '\\u504f\\u5411 \\u9178' || text === '\\u504f\\u5411 \\u9178\\u5473')
+          && suffixSourIntent.wheelNames.length > 0
+          && !hasAnyTerm(suffixSourIntent.wheelNames, ['\\u9178\\u6885\\u6c64', '\\u67e0\\u6aac', '\\u767e\\u9999\\u679c'])
+          ? pass('drink suffix negative sour intent', suffixSourIntent)
+          : fail('drink suffix negative sour intent', suffixSourIntent);
+
+        await clearSearch();
+        await click(byText(S.drink), 'drink tab for low sugar');
+        await typeSearch('\\u4e09\\u5206\\u7cd6');
+        const lowSugarIntent = {
+          chips: visibleIntentChips(),
+          wheelNames: visibleWheelFoodNames(),
+        };
+        lowSugarIntent.chips.includes('\\u907f\\u5f00 \\u751c\\u53e3')
+          && lowSugarIntent.wheelNames.length > 0
+          && !hasAnyTerm(lowSugarIntent.wheelNames, ['\\u871c\\u96ea', '\\u751c\\u5566\\u5566', '7\\u5206\\u751c', '\\u5976\\u8336'])
+          ? pass('drink low sugar intent', lowSugarIntent)
+          : fail('drink low sugar intent', lowSugarIntent);
         await clearSearch();
         await click(byText(S.night), 'night tab after coffee exclusion');
         await wait(160);
@@ -326,8 +367,8 @@ async function runSmoke() {
           chips: visibleIntentChips(),
           wheelNames: visibleWheelFoodNames(),
         };
-        dessertColdIntent.chips.includes('- \\u51b0\\u54c1')
-          && dessertColdIntent.chips.includes('- \\u51b0\\u6dc7\\u6dcb')
+        dessertColdIntent.chips.some((text) => text === '- \\u51b0\\u54c1' || text === '\\u907f\\u5f00 \\u51b0\\u51b7')
+          && dessertColdIntent.chips.some((text) => text === '- \\u51b0\\u6dc7\\u6dcb' || text === '\\u907f\\u5f00 \\u51b0\\u6dc7\\u6dcb' || text === '\\u7b5b\\u6389 \\u51b0\\u6dc7\\u6dcb')
           && dessertColdIntent.wheelNames.length > 0
           && !hasAnyTerm(dessertColdIntent.wheelNames, ['\\u51b0\\u6dc7\\u6dcb', '\\u54c8\\u6839\\u8fbe\\u65af', 'DQ', '\\u5208\\u51b0', '\\u51b0\\u7c89', '\\u96ea\\u7cd5'])
           ? pass('dessert negative cold intent', dessertColdIntent)
@@ -340,7 +381,7 @@ async function runSmoke() {
           chips: visibleIntentChips(),
           wheelNames: visibleWheelFoodNames(),
         };
-        mealOilyIntent.chips.includes('- \\u6cb9\\u70b8')
+        mealOilyIntent.chips.some((text) => text === '- \\u6cb9\\u70b8' || text === '\\u907f\\u5f00 \\u6cb9\\u817b')
           && mealOilyIntent.wheelNames.length > 0
           && !hasAnyTerm(mealOilyIntent.wheelNames, ['\\u5192\\u83dc', '\\u9ebb\\u8fa3\\u9999\\u9505', '\\u9178\\u8fa3\\u7c89', '\\u70b8\\u9e21', '\\u9e21\\u6392', '\\u85af\\u6761', '\\u6cb9\\u6761', '\\u70b8\\u4e32'])
           ? pass('meal negative oily intent', mealOilyIntent)
