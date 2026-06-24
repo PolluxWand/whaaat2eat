@@ -253,6 +253,8 @@ async function runSmoke() {
         motionSamples.push(readWheelMotion());
         await wait(900);
         motionSamples.push(readWheelMotion());
+        await wait(1700);
+        motionSamples.push(readWheelMotion());
         const frameInline = document.querySelector('.wheel-frame')?.style.transform || '';
         const frameComputed = getComputedStyle(document.querySelector('.wheel-frame')).transform;
         const rotorInline = document.querySelector('.wheel-rotor')?.style.transform || '';
@@ -270,17 +272,25 @@ async function runSmoke() {
         const motionDeltas = [
           motionSamples[1].angle - motionSamples[0].angle,
           motionSamples[2].angle - motionSamples[1].angle,
+          motionSamples[3].angle - motionSamples[2].angle,
+        ];
+        const motionRates = [
+          motionDeltas[0] / 300,
+          motionDeltas[1] / 900,
+          motionDeltas[2] / 1700,
         ];
         !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline) && centerDelta.x < 0.5 && centerDelta.y < 0.5 && frameCenterDelta.x < 0.5 && frameCenterDelta.y < 0.5
           ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta })
           : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta });
         motionDeltas[0] > 20
           && motionDeltas[1] > 20
-          && motionDeltas[0] < 420
-          && motionDeltas[1] < 900
+          && motionDeltas[2] > 10
+          && motionDeltas[0] < 520
+          && motionDeltas[1] < 980
+          && motionRates[2] < motionRates[1]
           && motionSamples.every((sample) => !sample.resultVisible)
-          ? pass('wheel keeps rotating before result', { motionSamples, motionDeltas })
-          : fail('wheel keeps rotating before result', { motionSamples, motionDeltas });
+          ? pass('wheel keeps rotating before result', { motionSamples, motionDeltas, motionRates })
+          : fail('wheel keeps rotating before result', { motionSamples, motionDeltas, motionRates });
         await waitFor(() => document.querySelector('.result-panel'), 6500);
         document.querySelector('.result-panel') ? pass('wheel result modal') : fail('wheel result modal');
         const resultColors = {
