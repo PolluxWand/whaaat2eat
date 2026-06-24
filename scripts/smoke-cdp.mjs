@@ -451,6 +451,52 @@ async function runSmoke() {
         document.querySelector('.app-shell')?.className.includes('visual-pixel') && stylePersisted === 'pixel'
           ? pass('pixel theme switch in settings', { stylePersisted })
           : fail('pixel theme switch in settings', { stylePersisted, appClass: document.querySelector('.app-shell')?.className || '' });
+        const auditPixelFonts = () => {
+          const isVisible = (el) => {
+            const style = getComputedStyle(el);
+            const rect = el.getBoundingClientRect();
+            return style.display !== 'none'
+              && style.visibility !== 'hidden'
+              && Number(style.opacity) > 0.01
+              && rect.width > 0
+              && rect.height > 0;
+          };
+          const ownText = (el) => [...el.childNodes]
+            .filter((node) => node.nodeType === 3)
+            .map((node) => node.textContent.replace(/\\s+/g, ' ').trim())
+            .filter(Boolean)
+            .join(' ');
+          const visibleTextNodes = [...document.querySelectorAll('body *')]
+            .filter(isVisible)
+            .map((el) => {
+              const text = ownText(el)
+                || (el.tagName === 'INPUT' ? el.placeholder : '')
+                || (el.tagName === 'TEXT' ? el.textContent.trim() : '');
+              if (!text || /^[\\p{Emoji_Presentation}\\p{Extended_Pictographic}\\s]+$/u.test(text)) return null;
+              const style = getComputedStyle(el);
+              const rect = el.getBoundingClientRect();
+              return {
+                tag: el.tagName.toLowerCase(),
+                cls: typeof el.className === 'string' ? el.className : '',
+                text: text.slice(0, 36),
+                font: style.fontFamily,
+                x: Math.round(rect.left),
+                y: Math.round(rect.top),
+              };
+            })
+            .filter(Boolean);
+          return {
+            checked: visibleTextNodes.length,
+            misses: visibleTextNodes.filter((node) => !node.font.includes('Ark Pixel')).slice(0, 12),
+            fonts: [...new Set(visibleTextNodes.map((node) => node.font))],
+          };
+        };
+        const pixelFontFaces = [...document.styleSheets]
+          .flatMap((sheet) => {
+            try { return [...sheet.cssRules]; } catch { return []; }
+          })
+          .filter((rule) => rule.constructor?.name === 'CSSFontFaceRule' && rule.cssText.includes('Ark Pixel'))
+          .map((rule) => rule.cssText);
         const pixelText = {
           searchColor: getComputedStyle(document.querySelector('.compact-search-input')).color,
           spinColor: getComputedStyle(byText(S.spin)).color,
@@ -460,10 +506,15 @@ async function runSmoke() {
           modeFont: getComputedStyle(byText(S.wheel)).fontFamily,
           rotorSvgMarginTop: getComputedStyle(document.querySelector('.wheel-rotor svg')).marginTop,
           rotorTransformOrigin: getComputedStyle(document.querySelector('.wheel-rotor')).transformOrigin,
+          fontFacesHaveRanges: pixelFontFaces.length >= 2 && pixelFontFaces.every((text) => text.includes('unicode-range')),
+          fontAudit: auditPixelFonts(),
         };
         pixelText.searchColor !== 'rgb(255, 255, 255)'
           && pixelText.spinColor !== 'rgb(255, 255, 255)'
           && [pixelText.titleFont, pixelText.searchFont, pixelText.navFont, pixelText.modeFont].every((font) => font.includes('Ark Pixel'))
+          && pixelText.fontFacesHaveRanges
+          && pixelText.fontAudit.checked > 0
+          && pixelText.fontAudit.misses.length === 0
           && pixelText.rotorSvgMarginTop === '0px'
           ? pass('pixel dark text and wheel center prep', pixelText)
           : fail('pixel dark text and wheel center prep', pixelText);
