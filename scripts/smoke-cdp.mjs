@@ -227,7 +227,32 @@ async function runSmoke() {
           : fail('pixel wheel frame not covered', pixelWheelLayout || {});
 
         await click(byText(S.spin), 'spin');
+        const readWheelMotion = () => {
+          const el = document.querySelector('.wheel-rotor');
+          const style = getComputedStyle(el);
+          const inline = el?.style.transform || '';
+          const inlineMatch = inline.match(/rotate\\(([-0-9.]+)deg\\)/);
+          let angle = inlineMatch ? Number(inlineMatch[1]) : 0;
+          if (!inlineMatch) {
+            const matrixMatch = style.transform.match(/matrix\\(([^)]+)\\)/);
+            if (matrixMatch) {
+              const parts = matrixMatch[1].split(',').map(Number);
+              angle = Math.atan2(parts[1], parts[0]) * 180 / Math.PI;
+            }
+          }
+          return {
+            angle,
+            inline,
+            computed: style.transform,
+            transitionDuration: style.transitionDuration,
+            resultVisible: !!document.querySelector('.result-panel'),
+          };
+        };
+        const motionSamples = [readWheelMotion()];
         await wait(300);
+        motionSamples.push(readWheelMotion());
+        await wait(900);
+        motionSamples.push(readWheelMotion());
         const frameInline = document.querySelector('.wheel-frame')?.style.transform || '';
         const frameComputed = getComputedStyle(document.querySelector('.wheel-frame')).transform;
         const rotorInline = document.querySelector('.wheel-rotor')?.style.transform || '';
@@ -242,9 +267,16 @@ async function runSmoke() {
           x: Math.abs((frameBox.left + frameBox.width / 2) - (rotorBox.left + rotorBox.width / 2)),
           y: Math.abs((frameBox.top + frameBox.height / 2) - (rotorBox.top + rotorBox.height / 2)),
         };
+        const motionDeltas = [
+          Math.abs(motionSamples[1].angle - motionSamples[0].angle),
+          Math.abs(motionSamples[2].angle - motionSamples[1].angle),
+        ];
         !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline) && centerDelta.x < 0.5 && centerDelta.y < 0.5 && frameCenterDelta.x < 0.5 && frameCenterDelta.y < 0.5
           ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta })
           : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta });
+        motionDeltas[0] > 20 && motionDeltas[1] > 20 && motionSamples.every((sample) => !sample.resultVisible)
+          ? pass('wheel keeps rotating before result', { motionSamples, motionDeltas })
+          : fail('wheel keeps rotating before result', { motionSamples, motionDeltas });
         await waitFor(() => document.querySelector('.result-panel'), 6500);
         document.querySelector('.result-panel') ? pass('wheel result modal') : fail('wheel result modal');
         const resultColors = {

@@ -3846,6 +3846,7 @@ const Wheel = ({
 }) => {
   const [currentRotation, setCurrentRotation] = useState(0);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const currentRotationRef = useRef(0);
   const SIZE = 400;
   const CENTER = SIZE / 2;
   const RADIUS = SIZE / 2 - 10;
@@ -3906,20 +3907,35 @@ const Wheel = ({
       const anglePerSlice = 360 / itemCount;
       const randomOffset = (Math.random() - 0.5) * (anglePerSlice * 0.8);
       const baseTargetRotation = 360 - targetIndex * anglePerSlice - anglePerSlice / 2 + randomOffset;
-      setCurrentRotation(prev => {
-        const currentMod = prev % 360;
-        let delta = baseTargetRotation - currentMod;
-        if (delta < 0) delta += 360;
-        return prev + delta + extraSpins;
-      });
       let doneTimer;
       let tickTimer;
+      let animationFrame;
+      const startRotation = currentRotationRef.current;
+      const currentMod = startRotation % 360;
+      let delta = baseTargetRotation - currentMod;
+      if (delta < 0) delta += 360;
+      const targetRotation = startRotation + delta + extraSpins;
+      const startTime = performance.now();
+      const easeOut = t => 1 - Math.pow(1 - t, 4);
+      const animateWheel = now => {
+        const progress = Math.min(1, (now - startTime) / totalDuration);
+        const nextRotation = startRotation + (targetRotation - startRotation) * easeOut(progress);
+        currentRotationRef.current = nextRotation;
+        setCurrentRotation(nextRotation);
+        if (progress < 1) {
+          animationFrame = requestAnimationFrame(animateWheel);
+        } else {
+          currentRotationRef.current = targetRotation;
+          setCurrentRotation(targetRotation);
+        }
+      };
+      animationFrame = requestAnimationFrame(animateWheel);
       if (!isMuted) {
         AudioEngine.init();
         AudioEngine.resume();
-        const startTime = Date.now();
+        const audioStartTime = Date.now();
         const playTick = () => {
-          const elapsed = Date.now() - startTime;
+          const elapsed = Date.now() - audioStartTime;
           const progress = elapsed / totalDuration;
           if (progress < 1) {
             const baseInterval = 50;
@@ -3936,6 +3952,7 @@ const Wheel = ({
         onSpinComplete();
       }, totalDuration);
       return () => {
+        cancelAnimationFrame(animationFrame);
         clearTimeout(doneTimer);
         clearTimeout(tickTimer);
       };
@@ -4018,7 +4035,7 @@ const Wheel = ({
     className: "wheel-rotor w-full h-full relative z-10",
     style: {
       transform: `rotate(${currentRotation}deg)`,
-      transition: isSpinning ? 'transform 4s cubic-bezier(0.2, 0, 0.1, 1)' : 'none'
+      transition: 'none'
     }
   }, React.createElement("svg", {
     viewBox: `0 0 ${SIZE} ${SIZE}`,
