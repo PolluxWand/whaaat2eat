@@ -271,8 +271,8 @@ async function runSmoke() {
         shuffle: '\\u6362\\u4e00\\u6279\\u5019\\u9009',
         history: '\\u5386\\u53f2\\u8bb0\\u5f55',
         spin: '\\u5f00\\u59cb\\u65cb\\u8f6c',
-        black: '\\u6697\\u591c\\u9ed1',
-        red: '\\u9526\\u9ca4\\u7ea2',
+        black: '\\u94a2\\u84dd\\u7070',
+        red: '\\u8393\\u679c\\u7ea2',
         close: '\\u5173\\u95ed',
         add: '\\u6dfb\\u52a0\\u7f8e\\u98df',
         addTitle: '\\u6dfb\\u52a0\\u7f8e\\u98df',
@@ -749,14 +749,38 @@ async function runSmoke() {
           Object.defineProperty(navigator, 'share', { configurable: true, value: originalShare });
         } catch {}
         const exportBackgrounds = new Set(exportPosterStyles.map((item) => (item.backgroundImage || '') + '|' + (item.backgroundColor || '') + '|' + (item.color || '')));
+        const parseRgb = (value) => {
+          if (!value) return null;
+          const hex = value.trim().match(/^#([0-9a-f]{6})$/i);
+          if (hex) {
+            const raw = hex[1];
+            return [
+              parseInt(raw.slice(0, 2), 16),
+              parseInt(raw.slice(2, 4), 16),
+              parseInt(raw.slice(4, 6), 16),
+            ];
+          }
+          const rgb = value.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+          return rgb ? [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])] : null;
+        };
+        const luminance = (value) => {
+          const rgb = parseRgb(value);
+          return rgb ? (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) : null;
+        };
+        const exportPaletteReadable = exportPosterStyles.every((item) => {
+          const bgLightness = luminance(item.backgroundColorOption);
+          const textLightness = luminance(item.color);
+          return bgLightness !== null && textLightness !== null && bgLightness > 185 && textLightness < 95;
+        });
         exportPosterStyles.length === 2
           && exportPosterStyles.every((item) => item.ignoresDarkReader)
           && exportPosterStyles[0].theme === 'red'
           && exportPosterStyles[1].theme === 'black'
           && exportBackgrounds.size === 2
           && exportPosterStyles[0].color !== exportPosterStyles[1].color
+          && exportPaletteReadable
           ? pass('poster export follows selected theme', { exportPosterStyles })
-          : fail('poster export follows selected theme', { exportPosterStyles, exportBackgrounds: [...exportBackgrounds] });
+          : fail('poster export follows selected theme', { exportPosterStyles, exportBackgrounds: [...exportBackgrounds], exportPaletteReadable });
         await click(byLabel(S.close), 'close result');
 
         await click(byText(S.slot), 'slot');

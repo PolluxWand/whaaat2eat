@@ -1921,11 +1921,11 @@
         .visual-pixel .result-panel .poster-preview-white,
         .dark .visual-pixel .result-panel .poster-preview-white {
             --poster-preview-background:
-                linear-gradient(90deg, rgba(83,106,138,0.08) 1px, transparent 1px),
-                linear-gradient(rgba(83,106,138,0.07) 1px, transparent 1px),
-                #ffffff;
-            --poster-preview-text: #102033;
-            --poster-preview-border: #2d3f5f;
+                linear-gradient(90deg, rgba(88,111,140,0.08) 1px, transparent 1px),
+                linear-gradient(rgba(88,111,140,0.07) 1px, transparent 1px),
+                linear-gradient(180deg, #f7f9fc 0%, #e8eef6 100%);
+            --poster-preview-text: #17253a;
+            --poster-preview-border: #405877;
             background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
             color: var(--poster-preview-text) !important;
@@ -1934,29 +1934,29 @@
         .visual-pixel .result-panel .poster-preview-black,
         .dark .visual-pixel .result-panel .poster-preview-black {
             --poster-preview-background:
-                linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px),
-                linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-                linear-gradient(180deg, #20304a 0%, #152238 100%);
-            --poster-preview-text: #f5f7fb;
-            --poster-preview-border: #8da1bd;
+                linear-gradient(90deg, rgba(53,73,102,0.10) 1px, transparent 1px),
+                linear-gradient(rgba(53,73,102,0.08) 1px, transparent 1px),
+                linear-gradient(180deg, #eef3f9 0%, #c9d5e4 58%, #aebed2 100%);
+            --poster-preview-text: #132238;
+            --poster-preview-border: #314766;
             background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
             color: var(--poster-preview-text) !important;
             border-color: var(--poster-preview-border) !important;
             box-shadow:
-                inset 2px 2px 0 rgba(255,255,255,0.16),
-                inset -2px -2px 0 rgba(0,0,0,0.36),
+                inset 2px 2px 0 rgba(255,255,255,0.82),
+                inset -2px -2px 0 rgba(70,93,122,0.42),
                 3px 3px 0 rgba(31,45,68,0.22) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-red,
         .dark .visual-pixel .result-panel .poster-preview-red {
             --poster-preview-background:
-                linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px),
-                linear-gradient(rgba(136,56,72,0.10) 1px, transparent 1px),
-                linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%);
-            --poster-preview-text: #2d1721;
-            --poster-preview-border: #8f3f55;
+                linear-gradient(90deg, rgba(143,73,91,0.10) 1px, transparent 1px),
+                linear-gradient(rgba(143,73,91,0.08) 1px, transparent 1px),
+                linear-gradient(180deg, #fff7f8 0%, #efd8df 60%, #d9b6c4 100%);
+            --poster-preview-text: #351c29;
+            --poster-preview-border: #80556a;
             background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
             color: var(--poster-preview-text) !important;
@@ -1965,17 +1965,17 @@
 
         .visual-pixel .result-panel .poster-preview-white *,
         .dark .visual-pixel .result-panel .poster-preview-white * {
-            color: var(--poster-preview-text, #102033) !important;
+            color: var(--poster-preview-text, #17253a) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-black *,
         .dark .visual-pixel .result-panel .poster-preview-black * {
-            color: var(--poster-preview-text, #f5f7fb) !important;
+            color: var(--poster-preview-text, #132238) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-red *,
         .dark .visual-pixel .result-panel .poster-preview-red * {
-            color: var(--poster-preview-text, #2d1721) !important;
+            color: var(--poster-preview-text, #351c29) !important;
         }
 
         .visual-pixel .result-theme-dot,
@@ -5023,63 +5023,63 @@ const ResultCard = ({
   };
   const posterThemeLabels = {
     white: '极简白',
-    black: '暗夜黑',
-    red: '锦鲤红'
+    black: '钢蓝灰',
+    red: '莓果红'
   };
   const posterPreviewStyles = {
     white: {
-      '--poster-preview-background': 'linear-gradient(90deg, rgba(83,106,138,0.08) 1px, transparent 1px), linear-gradient(rgba(83,106,138,0.07) 1px, transparent 1px), #ffffff',
-      '--poster-preview-text': '#102033',
-      '--poster-preview-border': '#2d3f5f',
-      '--poster-dot-background': '#ffffff',
-      background: 'linear-gradient(90deg, rgba(83,106,138,0.08) 1px, transparent 1px), linear-gradient(rgba(83,106,138,0.07) 1px, transparent 1px), #ffffff',
-      color: '#102033',
-      borderColor: '#2d3f5f',
-      canvasBackground: '#ffffff',
+      '--poster-preview-background': 'linear-gradient(90deg, rgba(88,111,140,0.08) 1px, transparent 1px), linear-gradient(rgba(88,111,140,0.07) 1px, transparent 1px), linear-gradient(180deg, #f7f9fc 0%, #e8eef6 100%)',
+      '--poster-preview-text': '#17253a',
+      '--poster-preview-border': '#405877',
+      '--poster-dot-background': 'linear-gradient(180deg, #f7f9fc 0%, #e8eef6 100%)',
+      background: 'linear-gradient(90deg, rgba(88,111,140,0.08) 1px, transparent 1px), linear-gradient(rgba(88,111,140,0.07) 1px, transparent 1px), linear-gradient(180deg, #f7f9fc 0%, #e8eef6 100%)',
+      color: '#17253a',
+      borderColor: '#405877',
+      canvasBackground: '#f7f9fc',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     },
     black: {
-      '--poster-preview-background': 'linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(180deg, #20304a 0%, #152238 100%)',
-      '--poster-preview-text': '#f5f7fb',
-      '--poster-preview-border': '#8da1bd',
-      '--poster-dot-background': 'linear-gradient(180deg, #20304a 0%, #152238 100%)',
-      background: 'linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(180deg, #20304a 0%, #152238 100%)',
-      color: '#f5f7fb',
-      borderColor: '#8da1bd',
-      canvasBackground: '#152238',
+      '--poster-preview-background': 'linear-gradient(90deg, rgba(53,73,102,0.10) 1px, transparent 1px), linear-gradient(rgba(53,73,102,0.08) 1px, transparent 1px), linear-gradient(180deg, #eef3f9 0%, #c9d5e4 58%, #aebed2 100%)',
+      '--poster-preview-text': '#132238',
+      '--poster-preview-border': '#314766',
+      '--poster-dot-background': 'linear-gradient(180deg, #eef3f9 0%, #aebed2 100%)',
+      background: 'linear-gradient(90deg, rgba(53,73,102,0.10) 1px, transparent 1px), linear-gradient(rgba(53,73,102,0.08) 1px, transparent 1px), linear-gradient(180deg, #eef3f9 0%, #c9d5e4 58%, #aebed2 100%)',
+      color: '#132238',
+      borderColor: '#314766',
+      canvasBackground: '#eef3f9',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     },
     red: {
-      '--poster-preview-background': 'linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px), linear-gradient(rgba(136,56,72,0.10) 1px, transparent 1px), linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%)',
-      '--poster-preview-text': '#2d1721',
-      '--poster-preview-border': '#8f3f55',
-      '--poster-dot-background': 'linear-gradient(180deg, #fff4f5 0%, #d96c79 100%)',
-      background: 'linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px), linear-gradient(rgba(136,56,72,0.10) 1px, transparent 1px), linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%)',
-      color: '#2d1721',
-      borderColor: '#8f3f55',
-      canvasBackground: '#fff4f5',
+      '--poster-preview-background': 'linear-gradient(90deg, rgba(143,73,91,0.10) 1px, transparent 1px), linear-gradient(rgba(143,73,91,0.08) 1px, transparent 1px), linear-gradient(180deg, #fff7f8 0%, #efd8df 60%, #d9b6c4 100%)',
+      '--poster-preview-text': '#351c29',
+      '--poster-preview-border': '#80556a',
+      '--poster-dot-background': 'linear-gradient(180deg, #fff7f8 0%, #d9b6c4 100%)',
+      background: 'linear-gradient(90deg, rgba(143,73,91,0.10) 1px, transparent 1px), linear-gradient(rgba(143,73,91,0.08) 1px, transparent 1px), linear-gradient(180deg, #fff7f8 0%, #efd8df 60%, #d9b6c4 100%)',
+      color: '#351c29',
+      borderColor: '#80556a',
+      canvasBackground: '#fff7f8',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     }
   };
   const posterDotStyles = {
     white: {
-      '--poster-dot-background': '#ffffff',
-      background: '#ffffff',
+      '--poster-dot-background': 'linear-gradient(180deg, #f7f9fc 0%, #e8eef6 100%)',
+      background: 'linear-gradient(180deg, #f7f9fc 0%, #e8eef6 100%)',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     },
     black: {
-      '--poster-dot-background': 'linear-gradient(180deg, #20304a 0%, #152238 100%)',
-      background: 'linear-gradient(180deg, #20304a 0%, #152238 100%)',
+      '--poster-dot-background': 'linear-gradient(180deg, #eef3f9 0%, #aebed2 100%)',
+      background: 'linear-gradient(180deg, #eef3f9 0%, #aebed2 100%)',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     },
     red: {
-      '--poster-dot-background': 'linear-gradient(180deg, #fff4f5 0%, #d96c79 100%)',
-      background: 'linear-gradient(180deg, #fff4f5 0%, #d96c79 100%)',
+      '--poster-dot-background': 'linear-gradient(180deg, #fff7f8 0%, #d9b6c4 100%)',
+      background: 'linear-gradient(180deg, #fff7f8 0%, #d9b6c4 100%)',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     }
@@ -5135,7 +5135,7 @@ const ResultCard = ({
     const posterFont = visualStyle === 'pixel' ? '"Microsoft YaHei UI","PingFang SC","Noto Sans SC","Source Han Sans SC",sans-serif' : '-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei UI",sans-serif';
     const texture = `background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");`;
     const pixelFrame = isPixelPoster ? `border:4px solid ${border};box-shadow:inset 4px 4px 0 rgba(255,255,255,0.72),inset -4px -4px 0 rgba(83,106,138,0.48);` : '';
-    const pixelTitlebar = isPixelPoster ? `<div style="position:absolute;top:12px;left:12px;right:12px;height:28px;background:linear-gradient(90deg,#1f4f86 0%,#2d6da8 48%,#9fc1e3 100%);border:1px solid #1d3556;box-shadow:inset 1px 1px 0 rgba(255,255,255,0.45);color:#fff;font-family:'Courier New',monospace;font-size:10px;font-weight:700;line-height:28px;text-align:left;padding-left:10px;text-shadow:1px 1px 0 #102033;box-sizing:border-box;">CHOICE.EXE</div>` : '';
+    const pixelTitlebar = isPixelPoster ? `<div style="position:absolute;top:12px;left:12px;right:12px;height:28px;background:linear-gradient(90deg,#355d91 0%,#6f93bd 54%,#d7e4f2 100%);border:1px solid #314766;box-shadow:inset 1px 1px 0 rgba(255,255,255,0.62);color:#ffffff;font-family:'Courier New',monospace;font-size:10px;font-weight:700;line-height:28px;text-align:left;padding-left:10px;text-shadow:1px 1px 0 #223653;box-sizing:border-box;">CHOICE.EXE</div>` : '';
     poster.setAttribute('data-darkreader-ignore', '');
     poster.setAttribute('data-poster-export-theme', posterTheme);
     poster.style.cssText = `position:fixed;top:0;left:0;width:375px;height:600px;padding:${isPixelPoster ? '58px 24px 34px' : '36px 22px'};text-align:center;z-index:-1;font-family:${posterFont};display:flex;flex-direction:column;justify-content:space-between;background:${bg} !important;color:${text} !important;box-sizing:border-box;color-scheme:only light;forced-color-adjust:none;${pixelFrame}`;
@@ -5143,7 +5143,7 @@ const ResultCard = ({
                     <div data-darkreader-ignore style="position:absolute;inset:0;${isPixelPoster ? '' : texture}pointer-events:none;"></div>
                     ${pixelTitlebar}
                     <div data-darkreader-ignore style="position:relative;z-index:1;color:${text} !important;">
-                        <div style="font-size:11px;opacity:0.58;letter-spacing:${isPixelPoster ? '0' : '3px'};text-align:center;text-transform:uppercase;font-weight:800;color:${text} !important;">Today's Choice</div>
+                        <div style="font-size:11px;opacity:${isPixelPoster ? '0.72' : '0.58'};letter-spacing:${isPixelPoster ? '0' : '3px'};text-align:center;text-transform:uppercase;font-weight:800;color:${text} !important;">Today's Choice</div>
                         <div style="font-size:96px;margin:24px auto 18px auto;text-align:center;display:block;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.18));">${escapeHtml(winner.icon)}</div>
                         <h1 style="font-size:42px;font-weight:900;margin:0;color:${text} !important;text-align:center;line-height:1.08;letter-spacing:0;">${escapeHtml(winner.name)}</h1>
                         <div style="font-size:13px;font-weight:800;opacity:0.78;margin:24px auto 0 auto;border-top:${isPixelPoster ? '2px' : '1px'} solid ${border};border-bottom:${isPixelPoster ? '2px' : '1px'} solid ${border};padding:8px 0;width:100%;letter-spacing:${isPixelPoster ? '0' : '2px'};color:${text} !important;">
@@ -5260,8 +5260,8 @@ const ResultCard = ({
     "aria-pressed": posterTheme === 'black',
     className: "result-theme-dot bg-zinc-950",
     style: posterDotStyles.black,
-    title: "\u6697\u591C\u9ED1",
-    "aria-label": "\u6697\u591C\u9ED1"
+    title: "\u94A2\u84DD\u7070",
+    "aria-label": "\u94A2\u84DD\u7070"
   }), React.createElement("button", {
     type: "button",
     onPointerUp: event => choosePosterTheme('red', event),
@@ -5269,8 +5269,8 @@ const ResultCard = ({
     "aria-pressed": posterTheme === 'red',
     className: "result-theme-dot bg-gradient-to-br from-red-500 to-red-700",
     style: posterDotStyles.red,
-    title: "\u9526\u9CA4\u7EA2",
-    "aria-label": "\u9526\u9CA4\u7EA2"
+    title: "\u8393\u679C\u7EA2",
+    "aria-label": "\u8393\u679C\u7EA2"
   }))), React.createElement("div", {
     className: "grid grid-cols-2 gap-3 mb-3"
   }, React.createElement("button", {
