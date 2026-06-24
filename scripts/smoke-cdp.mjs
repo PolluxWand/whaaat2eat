@@ -729,9 +729,31 @@ async function runSmoke() {
           : fail('poster theme switch', { blackClass, redClass, whitePreview, blackPreview, redPreview, previewBackgrounds: [...previewBackgrounds] });
         const exportPosterStyles = [];
         const originalHtml2Canvas = window.html2canvas;
+        const originalToBlob = HTMLCanvasElement.prototype.toBlob;
         const originalCreateObjectURL = URL.createObjectURL;
         const originalCanShare = navigator.canShare;
         const originalShare = navigator.share;
+        HTMLCanvasElement.prototype.toBlob = function(callback, type, quality) {
+          const isPosterCanvas = this.getAttribute('data-poster-renderer') === 'canvas';
+          if (isPosterCanvas) {
+            const pixel = [...this.getContext('2d').getImageData(60 * 2, 120 * 2, 1, 1).data];
+            exportPosterStyles.push({
+              theme: this.getAttribute('data-poster-export-theme'),
+              renderer: this.getAttribute('data-poster-renderer'),
+              ignoresDarkReader: true,
+              inlineBackground: '',
+              inlineColor: this.getAttribute('data-poster-text'),
+              backgroundImage: 'canvas',
+              backgroundColor: this.getAttribute('data-poster-bg'),
+              color: this.getAttribute('data-poster-text'),
+              borderColor: this.getAttribute('data-poster-border'),
+              titlebarBackground: this.getAttribute('data-poster-titlebar') || '',
+              backgroundColorOption: this.getAttribute('data-poster-bg'),
+              pixel,
+            });
+          }
+          return originalToBlob.call(this, callback, type, quality);
+        };
         window.html2canvas = async (node, options) => {
           const style = getComputedStyle(node);
           const realCanvas = originalHtml2Canvas
@@ -775,6 +797,7 @@ async function runSmoke() {
         await click(byLabel(S.red), 'red poster for export');
         await click(shareButton, 'share red poster export');
         await waitFor(() => exportPosterStyles.length >= 3, 1200);
+        HTMLCanvasElement.prototype.toBlob = originalToBlob;
         window.html2canvas = originalHtml2Canvas;
         URL.createObjectURL = originalCreateObjectURL;
         try {
@@ -831,7 +854,7 @@ async function runSmoke() {
           && exportPosterStyles[2].theme === 'red'
           && exportBackgrounds.size === 3
           && roundedPixelKeys.size === 3
-          && exportPosterStyles.every((item) => item.backgroundImage === 'none')
+          && exportPosterStyles.every((item) => item.renderer === 'canvas')
           && exportPaletteReadable
           && redExportFresh
           ? pass('poster export follows selected theme', { exportPosterStyles, roundedPixelKeys: [...roundedPixelKeys] })

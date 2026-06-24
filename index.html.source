@@ -3291,9 +3291,9 @@
                     solidBackground: '#fcfdff',
                     color: '#111827',
                     borderColor: '#718199',
-                    titlebarBackground: 'linear-gradient(90deg,#6f7f96 0%,#aeb9c8 55%,#eef3f8 100%)',
+                    titlebarBackground: 'linear-gradient(90deg,#9aa0a9 0%,#cfd3d9 55%,#fbfcfe 100%)',
                     titlebarBorder: '#718199',
-                    titlebarShadow: '#354154',
+                    titlebarShadow: '#4b515b',
                     canvasBackground: '#fcfdff',
                     colorScheme: 'only light',
                     forcedColorAdjust: 'none'
@@ -3369,6 +3369,177 @@
                 "'": '&#39;'
             }[char]));
 
+            const drawWrappedText = (ctx, textValue, x, y, maxWidth, lineHeight, maxLines) => {
+                const chars = [...String(textValue || '')];
+                const lines = [];
+                let current = '';
+                chars.forEach((char) => {
+                    const next = current + char;
+                    if (ctx.measureText(next).width > maxWidth && current) {
+                        lines.push(current);
+                        current = char;
+                    } else {
+                        current = next;
+                    }
+                });
+                if (current) lines.push(current);
+                const visibleLines = lines.slice(0, maxLines);
+                visibleLines.forEach((line, index) => {
+                    const output = index === maxLines - 1 && lines.length > maxLines
+                        ? line.replace(/.{1,2}$/, '...')
+                        : line;
+                    ctx.fillText(output, x, y + index * lineHeight);
+                });
+                return visibleLines.length * lineHeight;
+            };
+
+            const createPixelPosterCanvas = () => {
+                const pixelThemes = {
+                    white: {
+                        bg: '#fcfdff',
+                        grid: 'rgba(83,105,132,0.07)',
+                        text: '#111827',
+                        border: '#718199',
+                        titlebar: ['#9aa0a9', '#cfd3d9', '#fbfcfe'],
+                        titleShadow: '#4b515b'
+                    },
+                    black: {
+                        bg: '#f1f0ec',
+                        grid: 'rgba(82,82,76,0.08)',
+                        text: '#1c1f24',
+                        border: '#8f8d86',
+                        titlebar: ['#77766e', '#b8b6ad', '#eeede8'],
+                        titleShadow: '#424039'
+                    },
+                    red: {
+                        bg: '#fff8fa',
+                        grid: 'rgba(194,85,119,0.07)',
+                        text: '#4a1430',
+                        border: '#c46d88',
+                        titlebar: ['#b35a78', '#e2a1b5', '#ffe4ec'],
+                        titleShadow: '#6c2942'
+                    }
+                };
+                const style = pixelThemes[posterTheme] || pixelThemes.white;
+                const canvas = document.createElement('canvas');
+                const scale = 2;
+                canvas.width = 375 * scale;
+                canvas.height = 600 * scale;
+                canvas.setAttribute('data-poster-export-theme', posterTheme);
+                canvas.setAttribute('data-poster-renderer', 'canvas');
+                canvas.setAttribute('data-poster-bg', style.bg);
+                canvas.setAttribute('data-poster-text', style.text);
+                canvas.setAttribute('data-poster-border', style.border);
+                canvas.setAttribute('data-poster-titlebar', style.titlebar.join('|'));
+                const ctx = canvas.getContext('2d');
+                ctx.scale(scale, scale);
+                ctx.fillStyle = style.bg;
+                ctx.fillRect(0, 0, 375, 600);
+
+                ctx.strokeStyle = style.grid;
+                ctx.lineWidth = 1;
+                for (let pos = 0; pos <= 600; pos += 7) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, pos + 0.5);
+                    ctx.lineTo(375, pos + 0.5);
+                    ctx.stroke();
+                }
+                for (let pos = 0; pos <= 375; pos += 7) {
+                    ctx.beginPath();
+                    ctx.moveTo(pos + 0.5, 0);
+                    ctx.lineTo(pos + 0.5, 600);
+                    ctx.stroke();
+                }
+
+                ctx.strokeStyle = style.border;
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, 371, 596);
+                ctx.strokeStyle = 'rgba(255,255,255,0.72)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(6, 6);
+                ctx.lineTo(369, 6);
+                ctx.moveTo(6, 6);
+                ctx.lineTo(6, 594);
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(80,80,80,0.22)';
+                ctx.beginPath();
+                ctx.moveTo(369, 6);
+                ctx.lineTo(369, 594);
+                ctx.moveTo(6, 594);
+                ctx.lineTo(369, 594);
+                ctx.stroke();
+
+                const titlebarGradient = ctx.createLinearGradient(12, 0, 363, 0);
+                titlebarGradient.addColorStop(0, style.titlebar[0]);
+                titlebarGradient.addColorStop(0.56, style.titlebar[1]);
+                titlebarGradient.addColorStop(1, style.titlebar[2]);
+                ctx.fillStyle = titlebarGradient;
+                ctx.fillRect(12, 12, 351, 28);
+                ctx.strokeStyle = style.border;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(12.5, 12.5, 350, 27);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '700 10px "Courier New", monospace';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = style.titleShadow;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                ctx.fillText('CHOICE.EXE', 22, 26);
+                ctx.shadowColor = 'transparent';
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+
+                ctx.fillStyle = style.text;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.globalAlpha = 0.72;
+                ctx.font = '800 11px "Microsoft YaHei UI","PingFang SC",sans-serif';
+                ctx.fillText("TODAY'S CHOICE", 187.5, 78);
+                ctx.globalAlpha = 1;
+
+                ctx.font = '96px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+                ctx.fillText(winner.icon, 187.5, 178);
+
+                ctx.fillStyle = style.text;
+                ctx.font = '900 42px "Microsoft YaHei UI","PingFang SC","Noto Sans SC",sans-serif';
+                ctx.textBaseline = 'top';
+                drawWrappedText(ctx, winner.name, 187.5, 252, 310, 48, 2);
+
+                ctx.strokeStyle = style.border;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.82;
+                ctx.beginPath();
+                ctx.moveTo(28, 345);
+                ctx.lineTo(347, 345);
+                ctx.moveTo(28, 382);
+                ctx.lineTo(347, 382);
+                ctx.stroke();
+                ctx.globalAlpha = 0.78;
+                ctx.font = '800 13px "Microsoft YaHei UI","PingFang SC",sans-serif';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(displayLabel, 187.5, 363.5);
+
+                ctx.globalAlpha = 0.88;
+                ctx.font = '500 15px "Microsoft YaHei UI","PingFang SC","Noto Sans SC",sans-serif';
+                ctx.textBaseline = 'top';
+                drawWrappedText(ctx, winner.description, 187.5, 424, 292, 26, 3);
+
+                ctx.globalAlpha = 0.45;
+                ctx.strokeStyle = style.border;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(28, 528);
+                ctx.lineTo(347, 528);
+                ctx.stroke();
+                ctx.font = '500 10px "Microsoft YaHei UI","PingFang SC",sans-serif';
+                ctx.textBaseline = 'top';
+                ctx.fillText('选了么 · 今天吃什么', 187.5, 558);
+                ctx.globalAlpha = 1;
+                return canvas;
+            };
+
             const handleShare = async () => {
                 if (isGenerating) return;
                 setIsGenerating(true);
@@ -3380,12 +3551,36 @@
                     a.click();
                 };
 
-                // Generate High-Res Poster for Export
-                const poster = document.createElement('div');
-                
                 // Theme logic for export (same as preview)
                 const activePosterStyle = posterPreviewStyles[posterTheme] || posterPreviewStyles.white;
                 const isPixelPoster = visualStyle === 'pixel';
+
+                if (isPixelPoster) {
+                    try {
+                        const canvas = createPixelPosterCanvas();
+                        const blob = await new Promise(r => canvas.toBlob(r));
+                        const file = new File([blob], "share.png", { type: "image/png" });
+
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({ files: [file] });
+                            } catch (shareError) {
+                                console.warn('系统分享不可用，已改为下载海报', shareError);
+                                downloadPoster(canvas);
+                            }
+                        } else {
+                            downloadPoster(canvas);
+                        }
+                    } catch (e) {
+                        console.error('海报生成失败:', e);
+                        alert('海报生成失败，请稍后重试');
+                    }
+                    setIsGenerating(false);
+                    return;
+                }
+
+                // Generate High-Res Poster for Export
+                const poster = document.createElement('div');
                 let bg = posterTheme === 'black' ? '#09090b' : 'white';
                 let bgImage = posterTheme === 'red'
                     ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)'
@@ -3394,14 +3589,6 @@
                 let border = posterTheme === 'black' ? '#27272a' : (posterTheme === 'red' ? '#fecaca' : '#e5e5e5');
                 let canvasBackground = posterTheme === 'black' ? '#09090b' : (posterTheme === 'red' ? '#ef4444' : 'white');
                 let exportTexture = '';
-                if (isPixelPoster) {
-                    bg = activePosterStyle.solidBackground || activePosterStyle.canvasBackground;
-                    bgImage = 'none';
-                    text = activePosterStyle.color;
-                    border = activePosterStyle.borderColor;
-                    canvasBackground = activePosterStyle.canvasBackground;
-                    exportTexture = activePosterStyle.texture || '';
-                }
                 const posterFont = visualStyle === 'pixel'
                     ? '"Microsoft YaHei UI","PingFang SC","Noto Sans SC","Source Han Sans SC",sans-serif'
                     : '-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei UI",sans-serif';
