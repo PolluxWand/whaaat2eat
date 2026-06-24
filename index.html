@@ -1905,34 +1905,44 @@
 
         .visual-pixel .result-panel .poster-preview,
         .dark .visual-pixel .result-panel .poster-preview {
+            background: var(--poster-preview-background, #ffffff) !important;
+            border-color: var(--poster-preview-border, #2d3f5f) !important;
             border-radius: 0 !important;
             border: 2px solid #2d3f5f !important;
             box-shadow:
                 inset 2px 2px 0 rgba(255,255,255,0.82),
                 inset -2px -2px 0 rgba(83,106,138,0.54),
                 3px 3px 0 rgba(31,45,68,0.22) !important;
-            color: #102033 !important;
+            color: var(--poster-preview-text, #102033) !important;
+            color-scheme: only light;
+            forced-color-adjust: none;
         }
 
         .visual-pixel .result-panel .poster-preview-white,
         .dark .visual-pixel .result-panel .poster-preview-white {
-            background:
+            --poster-preview-background:
                 linear-gradient(90deg, rgba(83,106,138,0.08) 1px, transparent 1px),
                 linear-gradient(rgba(83,106,138,0.07) 1px, transparent 1px),
-                #ffffff !important;
+                #ffffff;
+            --poster-preview-text: #102033;
+            --poster-preview-border: #2d3f5f;
+            background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
-            color: #102033 !important;
+            color: var(--poster-preview-text) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-black,
         .dark .visual-pixel .result-panel .poster-preview-black {
-            background:
+            --poster-preview-background:
                 linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px),
                 linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-                linear-gradient(180deg, #20304a 0%, #152238 100%) !important;
+                linear-gradient(180deg, #20304a 0%, #152238 100%);
+            --poster-preview-text: #f5f7fb;
+            --poster-preview-border: #8da1bd;
+            background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
-            color: #f5f7fb !important;
-            border-color: #8da1bd !important;
+            color: var(--poster-preview-text) !important;
+            border-color: var(--poster-preview-border) !important;
             box-shadow:
                 inset 2px 2px 0 rgba(255,255,255,0.16),
                 inset -2px -2px 0 rgba(0,0,0,0.36),
@@ -1941,37 +1951,55 @@
 
         .visual-pixel .result-panel .poster-preview-red,
         .dark .visual-pixel .result-panel .poster-preview-red {
-            background:
+            --poster-preview-background:
                 linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px),
                 linear-gradient(rgba(136,56,72,0.10) 1px, transparent 1px),
-                linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%) !important;
+                linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%);
+            --poster-preview-text: #2d1721;
+            --poster-preview-border: #8f3f55;
+            background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
-            color: #2d1721 !important;
-            border-color: #8f3f55 !important;
+            color: var(--poster-preview-text) !important;
+            border-color: var(--poster-preview-border) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-white *,
         .dark .visual-pixel .result-panel .poster-preview-white * {
-            color: #102033 !important;
+            color: var(--poster-preview-text, #102033) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-black *,
         .dark .visual-pixel .result-panel .poster-preview-black * {
-            color: #f5f7fb !important;
+            color: var(--poster-preview-text, #f5f7fb) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-red *,
         .dark .visual-pixel .result-panel .poster-preview-red * {
-            color: #2d1721 !important;
+            color: var(--poster-preview-text, #2d1721) !important;
         }
 
         .visual-pixel .result-theme-dot,
         .dark .visual-pixel .result-theme-dot {
-            width: 22px;
-            height: 22px;
+            background: var(--poster-dot-background, currentColor) !important;
+            width: 28px;
+            height: 28px;
             border-radius: 0 !important;
             border: 2px solid #2d3f5f !important;
             box-shadow: inset 1px 1px 0 rgba(255,255,255,0.72), inset -1px -1px 0 rgba(83,106,138,0.46), 2px 2px 0 rgba(31,45,68,0.24) !important;
+            color-scheme: only light;
+            forced-color-adjust: none;
+            touch-action: manipulation;
+        }
+
+        .visual-pixel .result-theme-dot[aria-pressed="true"],
+        .dark .visual-pixel .result-theme-dot[aria-pressed="true"] {
+            outline: 3px solid #ffffff !important;
+            outline-offset: 2px !important;
+            box-shadow:
+                inset 1px 1px 0 rgba(255,255,255,0.72),
+                inset -1px -1px 0 rgba(83,106,138,0.46),
+                0 0 0 2px #2d3f5f,
+                3px 3px 0 rgba(31,45,68,0.28) !important;
         }
 
         .visual-pixel .result-panel .grid button,
@@ -4998,6 +5026,68 @@ const ResultCard = ({
     black: '暗夜黑',
     red: '锦鲤红'
   };
+  const posterPreviewStyles = {
+    white: {
+      '--poster-preview-background': 'linear-gradient(90deg, rgba(83,106,138,0.08) 1px, transparent 1px), linear-gradient(rgba(83,106,138,0.07) 1px, transparent 1px), #ffffff',
+      '--poster-preview-text': '#102033',
+      '--poster-preview-border': '#2d3f5f',
+      '--poster-dot-background': '#ffffff',
+      background: 'linear-gradient(90deg, rgba(83,106,138,0.08) 1px, transparent 1px), linear-gradient(rgba(83,106,138,0.07) 1px, transparent 1px), #ffffff',
+      color: '#102033',
+      borderColor: '#2d3f5f',
+      colorScheme: 'only light',
+      forcedColorAdjust: 'none'
+    },
+    black: {
+      '--poster-preview-background': 'linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(180deg, #20304a 0%, #152238 100%)',
+      '--poster-preview-text': '#f5f7fb',
+      '--poster-preview-border': '#8da1bd',
+      '--poster-dot-background': 'linear-gradient(180deg, #20304a 0%, #152238 100%)',
+      background: 'linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(180deg, #20304a 0%, #152238 100%)',
+      color: '#f5f7fb',
+      borderColor: '#8da1bd',
+      colorScheme: 'only light',
+      forcedColorAdjust: 'none'
+    },
+    red: {
+      '--poster-preview-background': 'linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px), linear-gradient(rgba(136,56,72,0.10) 1px, transparent 1px), linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%)',
+      '--poster-preview-text': '#2d1721',
+      '--poster-preview-border': '#8f3f55',
+      '--poster-dot-background': 'linear-gradient(180deg, #fff4f5 0%, #d96c79 100%)',
+      background: 'linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px), linear-gradient(rgba(136,56,72,0.10) 1px, transparent 1px), linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%)',
+      color: '#2d1721',
+      borderColor: '#8f3f55',
+      colorScheme: 'only light',
+      forcedColorAdjust: 'none'
+    }
+  };
+  const posterDotStyles = {
+    white: {
+      '--poster-dot-background': '#ffffff',
+      background: '#ffffff',
+      colorScheme: 'only light',
+      forcedColorAdjust: 'none'
+    },
+    black: {
+      '--poster-dot-background': 'linear-gradient(180deg, #20304a 0%, #152238 100%)',
+      background: 'linear-gradient(180deg, #20304a 0%, #152238 100%)',
+      colorScheme: 'only light',
+      forcedColorAdjust: 'none'
+    },
+    red: {
+      '--poster-dot-background': 'linear-gradient(180deg, #fff4f5 0%, #d96c79 100%)',
+      background: 'linear-gradient(180deg, #fff4f5 0%, #d96c79 100%)',
+      colorScheme: 'only light',
+      forcedColorAdjust: 'none'
+    }
+  };
+  const choosePosterTheme = (nextTheme, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    setPosterTheme(nextTheme);
+  };
   const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({
     '&': '&amp;',
     '<': '&lt;',
@@ -5137,7 +5227,9 @@ const ResultCard = ({
   }, displayLabel)), React.createElement("p", {
     className: "result-description text-sm mb-5 px-2 leading-relaxed font-medium min-h-[2.6rem] text-zinc-600 dark:text-zinc-300"
   }, winner.description), React.createElement("div", {
-    className: `poster-preview poster-preview-${posterTheme} mb-4 px-4 py-3 text-left`
+    "data-darkreader-ignore": true,
+    className: `poster-preview poster-preview-${posterTheme} mb-4 px-4 py-3 text-left`,
+    style: posterPreviewStyles[posterTheme]
   }, React.createElement("div", {
     className: "flex items-center justify-between gap-3"
   }, React.createElement("div", null, React.createElement("div", {
@@ -5156,21 +5248,30 @@ const ResultCard = ({
     className: "flex justify-center gap-3",
     "aria-label": "\u6D77\u62A5\u4E3B\u9898"
   }, React.createElement("button", {
-    onClick: () => setPosterTheme('white'),
+    type: "button",
+    onPointerUp: event => choosePosterTheme('white', event),
+    onClick: event => choosePosterTheme('white', event),
     "aria-pressed": posterTheme === 'white',
     className: "result-theme-dot bg-white",
+    style: posterDotStyles.white,
     title: "\u6781\u7B80\u767D",
     "aria-label": "\u6781\u7B80\u767D"
   }), React.createElement("button", {
-    onClick: () => setPosterTheme('black'),
+    type: "button",
+    onPointerUp: event => choosePosterTheme('black', event),
+    onClick: event => choosePosterTheme('black', event),
     "aria-pressed": posterTheme === 'black',
     className: "result-theme-dot bg-zinc-950",
+    style: posterDotStyles.black,
     title: "\u6697\u591C\u9ED1",
     "aria-label": "\u6697\u591C\u9ED1"
   }), React.createElement("button", {
-    onClick: () => setPosterTheme('red'),
+    type: "button",
+    onPointerUp: event => choosePosterTheme('red', event),
+    onClick: event => choosePosterTheme('red', event),
     "aria-pressed": posterTheme === 'red',
     className: "result-theme-dot bg-gradient-to-br from-red-500 to-red-700",
+    style: posterDotStyles.red,
     title: "\u9526\u9CA4\u7EA2",
     "aria-label": "\u9526\u9CA4\u7EA2"
   }))), React.createElement("div", {
