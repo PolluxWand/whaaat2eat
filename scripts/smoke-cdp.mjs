@@ -290,6 +290,7 @@ async function runSmoke() {
         shuffle: '\\u6362\\u4e00\\u6279\\u5019\\u9009',
         history: '\\u5386\\u53f2\\u8bb0\\u5f55',
         spin: '\\u5f00\\u59cb\\u65cb\\u8f6c',
+        white: '\\u6781\\u7b80\\u767d',
         black: '\\u94a2\\u84dd\\u7070',
         red: '\\u8393\\u679c\\u7ea2',
         close: '\\u5173\\u95ed',
@@ -733,18 +734,25 @@ async function runSmoke() {
         const originalShare = navigator.share;
         window.html2canvas = async (node, options) => {
           const style = getComputedStyle(node);
+          const realCanvas = originalHtml2Canvas
+            ? await originalHtml2Canvas(node, options)
+            : null;
+          const pixel = realCanvas
+            ? [...realCanvas.getContext('2d').getImageData(60, 120, 1, 1).data]
+            : [];
           exportPosterStyles.push({
             theme: node.getAttribute('data-poster-export-theme'),
             ignoresDarkReader: node.hasAttribute('data-darkreader-ignore'),
             inlineBackground: node.style.background,
             inlineColor: node.style.color,
-          backgroundImage: style.backgroundImage,
-          backgroundColor: style.backgroundColor,
-          color: style.color,
-          borderColor: style.borderColor,
-          titlebarBackground: [...node.querySelectorAll('div')]
-            .find((element) => element.textContent.trim() === 'CHOICE.EXE')?.style.background || '',
-          backgroundColorOption: options?.backgroundColor,
+            backgroundImage: style.backgroundImage,
+            backgroundColor: style.backgroundColor,
+            color: style.color,
+            borderColor: style.borderColor,
+            titlebarBackground: [...node.querySelectorAll('div')]
+              .find((element) => element.textContent.trim() === 'CHOICE.EXE')?.style.background || '',
+            backgroundColorOption: options?.backgroundColor,
+            pixel,
           });
           return {
             toBlob: (callback) => callback(new Blob(['poster'], { type: 'image/png' })),
@@ -758,11 +766,15 @@ async function runSmoke() {
         } catch {}
         const shareButton = [...document.querySelectorAll('.result-panel .grid button')]
           .find((button) => button.textContent.includes('\\u5206\\u4eab'));
-        await click(shareButton, 'share red poster export');
+        await click(byLabel(S.white), 'white poster for export');
+        await click(shareButton, 'share white poster export');
         await waitFor(() => exportPosterStyles.length >= 1, 1200);
         await click(byLabel(S.black), 'black poster for export');
         await click(shareButton, 'share black poster export');
         await waitFor(() => exportPosterStyles.length >= 2, 1200);
+        await click(byLabel(S.red), 'red poster for export');
+        await click(shareButton, 'share red poster export');
+        await waitFor(() => exportPosterStyles.length >= 3, 1200);
         window.html2canvas = originalHtml2Canvas;
         URL.createObjectURL = originalCreateObjectURL;
         try {
@@ -788,27 +800,42 @@ async function runSmoke() {
           const rgb = parseRgb(value);
           return rgb ? (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) : null;
         };
+        const pixelLuminance = (pixel) => Array.isArray(pixel) && pixel.length >= 3
+          ? (0.2126 * pixel[0] + 0.7152 * pixel[1] + 0.0722 * pixel[2])
+          : null;
         const exportPaletteReadable = exportPosterStyles.every((item) => {
           const bgLightness = luminance(item.backgroundColorOption);
           const textLightness = luminance(item.color);
-          return bgLightness !== null && textLightness !== null && bgLightness > 185 && textLightness < 95;
+          const renderedLightness = pixelLuminance(item.pixel);
+          return bgLightness !== null
+            && textLightness !== null
+            && renderedLightness !== null
+            && bgLightness > 225
+            && renderedLightness > 205
+            && textLightness < 95;
         });
+        const roundedPixelKeys = new Set(exportPosterStyles.map((item) => (
+          item.pixel || []
+        ).slice(0, 3).map((value) => Math.round(value / 8) * 8).join(',')));
         const redExport = exportPosterStyles.find((item) => item.theme === 'red');
         const redExportFresh = redExport
           && luminance(redExport.backgroundColorOption) > 240
+          && pixelLuminance(redExport.pixel) > 215
           && luminance(redExport.color) < 60
           && !redExport.titlebarBackground.includes('53, 93, 145')
           && !redExport.titlebarBackground.includes('#355d91');
-        exportPosterStyles.length === 2
+        exportPosterStyles.length === 3
           && exportPosterStyles.every((item) => item.ignoresDarkReader)
-          && exportPosterStyles[0].theme === 'red'
+          && exportPosterStyles[0].theme === 'white'
           && exportPosterStyles[1].theme === 'black'
-          && exportBackgrounds.size === 2
-          && exportPosterStyles[0].color !== exportPosterStyles[1].color
+          && exportPosterStyles[2].theme === 'red'
+          && exportBackgrounds.size === 3
+          && roundedPixelKeys.size === 3
+          && exportPosterStyles.every((item) => item.backgroundImage === 'none')
           && exportPaletteReadable
           && redExportFresh
-          ? pass('poster export follows selected theme', { exportPosterStyles })
-          : fail('poster export follows selected theme', { exportPosterStyles, exportBackgrounds: [...exportBackgrounds], exportPaletteReadable, redExportFresh });
+          ? pass('poster export follows selected theme', { exportPosterStyles, roundedPixelKeys: [...roundedPixelKeys] })
+          : fail('poster export follows selected theme', { exportPosterStyles, exportBackgrounds: [...exportBackgrounds], roundedPixelKeys: [...roundedPixelKeys], exportPaletteReadable, redExportFresh });
         await click(byLabel(S.close), 'close result');
 
         await click(byText(S.slot), 'slot');
