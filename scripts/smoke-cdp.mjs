@@ -200,7 +200,9 @@ async function runSmoke() {
         const railCenterDelta = railButtons.length >= 3
           ? Math.max(...railButtons.map((button) => Math.abs(button.centerY - railButtons[1].centerY)))
           : null;
-        const minNavGap = window.innerHeight <= 680 ? 16 : 42;
+        const minNavGap = ${JSON.stringify(spec.style)} === 'glass' && ${JSON.stringify(spec.mode)} === 'wheel' && window.innerHeight > 700
+          ? 96
+          : (window.innerHeight <= 680 ? 16 : 42);
         return {
           viewport: { width: window.innerWidth, height: window.innerHeight },
           scrollWidth: root.scrollWidth,
@@ -736,11 +738,13 @@ async function runSmoke() {
             ignoresDarkReader: node.hasAttribute('data-darkreader-ignore'),
             inlineBackground: node.style.background,
             inlineColor: node.style.color,
-            backgroundImage: style.backgroundImage,
-            backgroundColor: style.backgroundColor,
-            color: style.color,
-            borderColor: style.borderColor,
-            backgroundColorOption: options?.backgroundColor,
+          backgroundImage: style.backgroundImage,
+          backgroundColor: style.backgroundColor,
+          color: style.color,
+          borderColor: style.borderColor,
+          titlebarBackground: [...node.querySelectorAll('div')]
+            .find((element) => element.textContent.trim() === 'CHOICE.EXE')?.style.background || '',
+          backgroundColorOption: options?.backgroundColor,
           });
           return {
             toBlob: (callback) => callback(new Blob(['poster'], { type: 'image/png' })),
@@ -789,6 +793,12 @@ async function runSmoke() {
           const textLightness = luminance(item.color);
           return bgLightness !== null && textLightness !== null && bgLightness > 185 && textLightness < 95;
         });
+        const redExport = exportPosterStyles.find((item) => item.theme === 'red');
+        const redExportFresh = redExport
+          && luminance(redExport.backgroundColorOption) > 240
+          && luminance(redExport.color) < 60
+          && !redExport.titlebarBackground.includes('53, 93, 145')
+          && !redExport.titlebarBackground.includes('#355d91');
         exportPosterStyles.length === 2
           && exportPosterStyles.every((item) => item.ignoresDarkReader)
           && exportPosterStyles[0].theme === 'red'
@@ -796,8 +806,9 @@ async function runSmoke() {
           && exportBackgrounds.size === 2
           && exportPosterStyles[0].color !== exportPosterStyles[1].color
           && exportPaletteReadable
+          && redExportFresh
           ? pass('poster export follows selected theme', { exportPosterStyles })
-          : fail('poster export follows selected theme', { exportPosterStyles, exportBackgrounds: [...exportBackgrounds], exportPaletteReadable });
+          : fail('poster export follows selected theme', { exportPosterStyles, exportBackgrounds: [...exportBackgrounds], exportPaletteReadable, redExportFresh });
         await click(byLabel(S.close), 'close result');
 
         await click(byText(S.slot), 'slot');

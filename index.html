@@ -575,7 +575,7 @@
 
             .compact-wheel-zone {
                 justify-content: center !important;
-                padding-top: 26px !important;
+                padding-top: 34px !important;
                 padding-bottom: 76px;
             }
 
@@ -818,11 +818,15 @@
 
             .compact-wheel-zone {
                 justify-content: center !important;
-                padding-top: 12px !important;
+                padding-top: 18px !important;
                 padding-bottom: 76px !important;
             }
 
             .stage-anchor {
+                transform: translateY(12px);
+            }
+
+            .visual-pixel .stage-anchor {
                 transform: translateY(2px);
             }
 
@@ -1968,11 +1972,11 @@
         .visual-pixel .result-panel .poster-preview-red,
         .dark .visual-pixel .result-panel .poster-preview-red {
             --poster-preview-background:
-                linear-gradient(90deg, rgba(143,73,91,0.10) 1px, transparent 1px),
-                linear-gradient(rgba(143,73,91,0.08) 1px, transparent 1px),
-                linear-gradient(180deg, #fff7f8 0%, #efd8df 60%, #d9b6c4 100%);
-            --poster-preview-text: #351c29;
-            --poster-preview-border: #80556a;
+                linear-gradient(90deg, rgba(154,63,91,0.075) 1px, transparent 1px),
+                linear-gradient(rgba(154,63,91,0.055) 1px, transparent 1px),
+                linear-gradient(180deg, #fffafb 0%, #f8e8ed 58%, #ecd0da 100%);
+            --poster-preview-text: #3b1022;
+            --poster-preview-border: #9a536d;
             background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
             color: var(--poster-preview-text) !important;
@@ -1991,7 +1995,7 @@
 
         .visual-pixel .result-panel .poster-preview-red *,
         .dark .visual-pixel .result-panel .poster-preview-red * {
-            color: var(--poster-preview-text, #351c29) !important;
+            color: var(--poster-preview-text, #3b1022) !important;
         }
 
         .visual-pixel .result-theme-dot,
@@ -5068,14 +5072,17 @@ const ResultCard = ({
       forcedColorAdjust: 'none'
     },
     red: {
-      '--poster-preview-background': 'linear-gradient(90deg, rgba(143,73,91,0.10) 1px, transparent 1px), linear-gradient(rgba(143,73,91,0.08) 1px, transparent 1px), linear-gradient(180deg, #fff7f8 0%, #efd8df 60%, #d9b6c4 100%)',
-      '--poster-preview-text': '#351c29',
-      '--poster-preview-border': '#80556a',
-      '--poster-dot-background': 'linear-gradient(180deg, #fff7f8 0%, #d9b6c4 100%)',
-      background: 'linear-gradient(90deg, rgba(143,73,91,0.10) 1px, transparent 1px), linear-gradient(rgba(143,73,91,0.08) 1px, transparent 1px), linear-gradient(180deg, #fff7f8 0%, #efd8df 60%, #d9b6c4 100%)',
-      color: '#351c29',
-      borderColor: '#80556a',
-      canvasBackground: '#fff7f8',
+      '--poster-preview-background': 'linear-gradient(90deg, rgba(154,63,91,0.075) 1px, transparent 1px), linear-gradient(rgba(154,63,91,0.055) 1px, transparent 1px), linear-gradient(180deg, #fffafb 0%, #f8e8ed 58%, #ecd0da 100%)',
+      '--poster-preview-text': '#3b1022',
+      '--poster-preview-border': '#9a536d',
+      '--poster-dot-background': 'linear-gradient(180deg, #fffafb 0%, #ecd0da 100%)',
+      titlebarBackground: 'linear-gradient(90deg,#8f4f66 0%,#c38496 56%,#f7dde5 100%)',
+      titlebarBorder: '#8a4d62',
+      titlebarShadow: '#4a1c2e',
+      background: 'linear-gradient(90deg, rgba(154,63,91,0.075) 1px, transparent 1px), linear-gradient(rgba(154,63,91,0.055) 1px, transparent 1px), linear-gradient(180deg, #fffafb 0%, #f8e8ed 58%, #ecd0da 100%)',
+      color: '#3b1022',
+      borderColor: '#9a536d',
+      canvasBackground: '#fffafb',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     }
@@ -5094,8 +5101,8 @@ const ResultCard = ({
       forcedColorAdjust: 'none'
     },
     red: {
-      '--poster-dot-background': 'linear-gradient(180deg, #fff7f8 0%, #d9b6c4 100%)',
-      background: 'linear-gradient(180deg, #fff7f8 0%, #d9b6c4 100%)',
+      '--poster-dot-background': 'linear-gradient(180deg, #fffafb 0%, #ecd0da 100%)',
+      background: 'linear-gradient(180deg, #fffafb 0%, #ecd0da 100%)',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     }
@@ -5151,7 +5158,10 @@ const ResultCard = ({
     const posterFont = visualStyle === 'pixel' ? '"Microsoft YaHei UI","PingFang SC","Noto Sans SC","Source Han Sans SC",sans-serif' : '-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei UI",sans-serif';
     const texture = `background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");`;
     const pixelFrame = isPixelPoster ? `border:4px solid ${border};box-shadow:inset 4px 4px 0 rgba(255,255,255,0.72),inset -4px -4px 0 rgba(83,106,138,0.48);` : '';
-    const pixelTitlebar = isPixelPoster ? `<div style="position:absolute;top:12px;left:12px;right:12px;height:28px;background:linear-gradient(90deg,#355d91 0%,#6f93bd 54%,#d7e4f2 100%);border:1px solid #314766;box-shadow:inset 1px 1px 0 rgba(255,255,255,0.62);color:#ffffff;font-family:'Courier New',monospace;font-size:10px;font-weight:700;line-height:28px;text-align:left;padding-left:10px;text-shadow:1px 1px 0 #223653;box-sizing:border-box;">CHOICE.EXE</div>` : '';
+    const pixelTitlebarBackground = activePosterStyle.titlebarBackground || 'linear-gradient(90deg,#355d91 0%,#6f93bd 54%,#d7e4f2 100%)';
+    const pixelTitlebarBorder = activePosterStyle.titlebarBorder || '#314766';
+    const pixelTitlebarShadow = activePosterStyle.titlebarShadow || '#223653';
+    const pixelTitlebar = isPixelPoster ? `<div style="position:absolute;top:12px;left:12px;right:12px;height:28px;background:${pixelTitlebarBackground};border:1px solid ${pixelTitlebarBorder};box-shadow:inset 1px 1px 0 rgba(255,255,255,0.62);color:#ffffff;font-family:'Courier New',monospace;font-size:10px;font-weight:700;line-height:28px;text-align:left;padding-left:10px;text-shadow:1px 1px 0 ${pixelTitlebarShadow};box-sizing:border-box;">CHOICE.EXE</div>` : '';
     poster.setAttribute('data-darkreader-ignore', '');
     poster.setAttribute('data-poster-export-theme', posterTheme);
     poster.style.cssText = `position:fixed;top:0;left:0;width:375px;height:600px;padding:${isPixelPoster ? '58px 24px 34px' : '36px 22px'};text-align:center;z-index:-1;font-family:${posterFont};display:flex;flex-direction:column;justify-content:space-between;background:${bg} !important;color:${text} !important;box-sizing:border-box;color-scheme:only light;forced-color-adjust:none;${pixelFrame}`;
