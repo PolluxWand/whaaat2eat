@@ -492,3 +492,49 @@ C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bi
 ```powershell
 C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\build.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\regression-check.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\smoke-cdp.mjs
 ```
+
+## 21. 口语化忌口词没有被自然语言规则覆盖
+
+### 现象
+
+用户输入 `不吃冷的`、`不吃冰淇淋`、`不要雪糕` 后，甜品候选里仍可能出现冰淇淋、DQ、哈根达斯、刨冰、雪糕等冰品。
+
+用户输入 `不吃油的`、`少油一点`、`想吃不油腻的` 后，正餐或宵夜候选里仍可能出现冒菜、麻辣香锅、酸辣粉、炸鸡、鸡排、薯条、油条、炸串等偏油或重口项目。
+
+### 原因
+
+旧规则只覆盖了比较标准的表达，例如 `不要冰的`、`不要油腻的`。但真实输入更口语化，会出现：
+
+- `冷的`、`雪糕`、`冷饮`、`冰淇淋`
+- `油的`、`少油`、`别太油腻`、`想吃不油腻的`
+- `少糖`、`无糖`
+- `没味的`、`别太清淡`
+
+如果只靠关键词包含匹配，否定词和正向词还可能互相打架，例如 `不吃冰淇淋` 被误解成“不要所有甜品”，导致甜品候选池为空。
+
+### 解决办法
+
+在 `parseFuzzySearch()` 里把口语化表达分成三类处理：
+
+1. 否定意图：优先转成 `excludeTags` 和 `excludeKeywords`。
+2. 肯定意图：只在没有对应否定词时加入 `includeTags`。
+3. 分类推断：饮品相关词优先进入 `饮料`，甜品相关词进入 `甜品`，避免 `想喝冰的` 被误切到甜品。
+
+同时加入分类缓存版本 `eat_tabs_schema_version`。默认分类更新后，页面会自动校正本地旧缓存，避免旧的 `eat_tabs` 把新版分类规则覆盖掉。
+
+### 验证命令
+
+```powershell
+C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\build.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\regression-check.mjs; C:\Users\POLLUX\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe scripts\smoke-cdp.mjs
+```
+
+### 必测用例
+
+- `甜品` + `不吃冷的`：不能出现冰淇淋、DQ、哈根达斯、刨冰、冰粉、雪糕。
+- `甜品` + `不吃冰淇淋`：不能把整个甜品候选池清空。
+- `饮料` + `不想喝冰的`：不能出现冰品或冷饮。
+- `饮料` + `想喝冰的`：候选必须带 `冰品`，不能混入普通热饮。
+- `正餐` + `不吃油的`：不能出现冒菜、麻辣香锅、炸鸡、鸡排、薯条、油条、炸串。
+- `正餐` + `少油一点`：候选应偏清淡，同时排除油炸、重口、辣。
+- `饮料` + `不想喝咖啡`：不能出现咖啡、拿铁、美式、瑞幸、星巴克等。
+- `摇摇机` 切换 `正餐 / 饮料 / 宵夜`：三类候选必须随分类变化。

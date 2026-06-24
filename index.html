@@ -2352,6 +2352,7 @@ const DEFAULT_NAV_TABS = [{
   iconName: 'Moon',
   filterTags: ['宵夜', '烧烤', '冷串', '卤味']
 }];
+const NAV_TABS_SCHEMA_VERSION = '2026-06-24-category-intent-v2';
 const FOOD_DATABASE = [{
   id: '1',
   name: '麦当劳',
@@ -3623,13 +3624,16 @@ const parseFuzzySearch = input => {
   const includeTags = [];
   const excludeTags = [];
   const excludeKeywords = [];
-  const hasColdNegative = /(?:不要|不想|别|不).{0,3}(?:冰|凉)/.test(inputLower);
+  const hasColdNegative = /(?:不要|不想|别|不).{0,4}(?:冰|凉|冷|冰淇淋|雪糕|冷饮)/.test(inputLower);
   const hasSpicyNegative = /(?:不要|不想|别|不).{0,4}(?:辣|麻辣|重口)/.test(inputLower);
-  const hasSweetNegative = /(?:不要|不想|别|不).{0,4}(?:甜|甜品|蛋糕|冰淇淋)/.test(inputLower);
-  const hasFriedNegative = /(?:不要|不想|别|不).{0,4}(?:炸|油炸|炸鸡)/.test(inputLower);
-  const hasGreasyNegative = /(?:不要|不想|别|不).{0,5}(?:油腻|腻|太油|重油|油乎乎)/.test(inputLower);
+  const hasSweetNegative = /(?:不要|不想|别|不|少|减|无).{0,4}(?:甜|糖|甜品|蛋糕|奶油)/.test(inputLower);
+  const hasFriedNegative = /(?:不要|不想|别|不|少).{0,4}(?:炸|油炸|炸鸡|煎炸)/.test(inputLower);
+  const hasGreasyNegative = /(?:不要|不想|别|不|少|清爽点|清爽一点).{0,5}(?:油腻|腻|油的|油|太油|重油|油乎乎|油大|油多|多油|肥腻)/.test(inputLower);
   const hasRawColdNegative = /(?:不要|不想|别|不).{0,4}(?:生冷|冷食|凉菜)/.test(inputLower);
-  const hasLightNegative = /(?:不要|不想|别|不).{0,6}(?:清淡|太淡|寡淡|淡口)/.test(inputLower);
+  const hasLightNegative = /(?:不要|不想|别|不|拒绝|别来).{0,6}(?:清淡|太淡|寡淡|淡口|没味|没滋味)/.test(inputLower);
+  const hasColdPositive = !hasColdNegative && /(?:想吃|想喝|想要|来点|吃点|喝点|整点|要点|有点|偏|爱吃|爱喝|喜欢吃|喜欢喝)?.{0,4}(?:冰的|凉的|冷饮|冰饮|冰淇淋|雪糕|刨冰|冰粉|冰爽)/.test(inputLower);
+  const hasSweetPositive = !hasSweetNegative && /(?:想吃|想喝|想要|来点|吃点|喝点|整点|要点|有点|偏|爱吃|爱喝|喜欢吃|喜欢喝)?.{0,4}(?:甜的|甜口|甜味|甜品|蛋糕|奶油|糖水|下午茶)/.test(inputLower);
+  const hasLightPositive = !hasLightNegative && /(?:想吃|想喝|想要|来点|吃点|喝点|整点|要点|偏|爱吃|爱喝|喜欢吃|喜欢喝)?.{0,4}(?:清淡|淡一点|清爽|少油|低脂|蒸|汤水|粥)/.test(inputLower);
   const hasSpicyPositive = !hasSpicyNegative && /(?:想吃|想要|来点|吃点|整点|要点|有点|偏|爱吃|喜欢吃)?.{0,4}(?:麻辣|香辣|酸辣|辣的|辣一点|辣味|微辣|很辣|重口|重口味|川菜|湘菜|火锅|麻辣烫|冒菜|串串)/.test(inputLower);
   const negativeFoodPattern = '(?:不吃|不想吃|不要吃|别吃|忌口|不能吃|不爱吃|不爱|不要|不想|别)';
   const negativeDrinkPattern = '(?:不喝|不想喝|不要喝|别喝|不能喝|不爱喝|不爱|不要|不想|别)';
@@ -3641,7 +3645,7 @@ const parseFuzzySearch = input => {
   const hasLambNegative = new RegExp(`${negativeFoodPattern}.{0,5}(?:羊肉|羊)`).test(inputLower);
   const hasSpecificMeatNegative = hasBeefNegative || hasChickenNegative || hasPorkNegative || hasLambNegative;
   const hasMeatNegative = !hasSpecificMeatNegative && new RegExp(`${negativeFoodPattern}.{0,5}(?:肉|荤)`).test(inputLower);
-  const coldPositiveKeywords = ['冰的', '凉的', '冰爽', '冰淇淋'];
+  const coldPositiveKeywords = ['不要冰', '不要凉', '冰的', '凉的', '冷的', '冰爽', '冰淇淋'];
   const spicyPositiveKeywords = ['微辣', '很辣', '重口', '酸爽', '酸辣', '火锅', '麻辣烫', '川菜', '湘菜', '韩餐'];
   const lightPositiveKeywords = ['清淡', '粤菜', '江浙菜', '粥', '蒸'];
   const sweetPositiveKeywords = ['甜', '甜品', '蛋糕', '冰淇淋', '下午茶'];
@@ -3661,8 +3665,11 @@ const parseFuzzySearch = input => {
     if (keyword && !excludeKeywords.includes(keyword)) excludeKeywords.push(keyword);
   };
   if (hasColdNegative) {
-    ['冰品', '生冷'].forEach(addExcludeTag);
-    ['热饮', '汤水', '汤面', '汤饭'].forEach(addIncludeTag);
+    ['冰品', '生冷', '冰淇淋'].forEach(addExcludeTag);
+    ['冰淇淋', '哈根达斯', 'DQ', '刨冰', '冰粉', '雪糕', '冷饮'].forEach(addExcludeKeyword);
+  }
+  if (hasColdPositive) {
+    ['冰品'].forEach(addIncludeTag);
   }
   if (hasSpicyNegative) {
     ['辣', '重口'].forEach(addExcludeTag);
@@ -3678,21 +3685,29 @@ const parseFuzzySearch = input => {
     ['辣', '重口'].forEach(addIncludeTag);
     ['饮品', '甜品', '甜', '奶茶', '冰品'].forEach(addExcludeTag);
   }
+  if (hasLightPositive) {
+    ['清淡'].forEach(addIncludeTag);
+    ['油炸', '炸鸡', '重口', '辣'].forEach(addExcludeTag);
+    ['油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串', '冒菜', '麻辣香锅', '酸辣粉'].forEach(addExcludeKeyword);
+  }
   if (hasSweetNegative) {
     ['甜', '甜品', '蛋糕', '冰淇淋'].forEach(addExcludeTag);
-    ['咸香', '清淡', '主食'].forEach(addIncludeTag);
+    ['蛋糕', '冰淇淋', '甜品', '甜筒', '奶油', '糖水', '酸甜', '香甜', '蜜雪', '奶茶', '甜啦啦', '7分甜'].forEach(addExcludeKeyword);
+  }
+  if (hasSweetPositive) {
+    ['甜品', '蛋糕', '冰淇淋'].forEach(addIncludeTag);
   }
   if (hasFriedNegative) {
     ['油炸', '炸鸡'].forEach(addExcludeTag);
-    ['清淡', '蒸菜', '汤水'].forEach(addIncludeTag);
+    ['炸', '油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串'].forEach(addExcludeKeyword);
   }
   if (hasGreasyNegative) {
     ['油炸', '炸鸡', '重口', '辣'].forEach(addExcludeTag);
-    ['清淡', '蒸菜', '汤水'].forEach(addIncludeTag);
+    ['油腻', '重油', '油乎乎', '油炸', '炸鸡', '鸡排', '薯条', '油条', '炸串', '冒菜', '麻辣香锅', '酸辣粉'].forEach(addExcludeKeyword);
   }
   if (hasRawColdNegative) {
     ['生冷', '冰品'].forEach(addExcludeTag);
-    ['热饮', '汤水', '热食'].forEach(addIncludeTag);
+    ['冰淇淋', '哈根达斯', 'DQ', '刨冰', '冰粉', '雪糕', '冷饮', '凉菜'].forEach(addExcludeKeyword);
   }
   if (hasCoffeeNegative) {
     ['咖啡'].forEach(addExcludeTag);
@@ -3725,6 +3740,7 @@ const parseFuzzySearch = input => {
   }
   Object.keys(FUZZY_SEARCH_MAP).forEach(keyword => {
     if (hasColdNegative && coldPositiveKeywords.includes(keyword)) return;
+    if (hasColdPositive && coldPositiveKeywords.includes(keyword)) return;
     if (hasSpicyNegative && spicyPositiveKeywords.includes(keyword)) return;
     if (hasSpicyPositive && keyword === '不辣') return;
     if (hasSpicyPositive && keyword === '重口') return;
@@ -3763,11 +3779,11 @@ const inferSearchTabId = (input, tags) => {
     }
     return null;
   }
-  if (/下午茶|甜|甜品|蛋糕|冰淇淋|点心|糕/.test(inputText) || hasTag(['甜品', '蛋糕', '冰淇淋', '烘焙', '糕点'])) {
-    return 'dessert';
-  }
   if (/喝|饮|奶茶|咖啡|果茶|热饮|豆浆|茶/.test(inputText) || hasTag(['饮品', '奶茶', '咖啡', '果茶', '热饮'])) {
     return 'drink';
+  }
+  if (/下午茶|甜|甜品|蛋糕|冰淇淋|点心|糕/.test(inputText) || hasTag(['甜品', '蛋糕', '冰淇淋', '烘焙', '糕点'])) {
+    return 'dessert';
   }
   if (/夜宵|宵夜|烧烤|烤串|串串|卤味|冷串/.test(inputText) || hasTag(['宵夜', '烧烤', '冷串', '卤味'])) {
     return 'night';
@@ -5143,7 +5159,18 @@ const App = () => {
     }
     try {
       const lt = localStorage.getItem('eat_tabs');
-      if (lt) setNavTabs(JSON.parse(lt));
+      const savedTabVersion = localStorage.getItem('eat_tabs_schema_version');
+      if (lt && savedTabVersion === NAV_TABS_SCHEMA_VERSION) {
+        setNavTabs(JSON.parse(lt));
+      } else if (lt) {
+        const savedTabs = JSON.parse(lt);
+        const defaultIds = new Set(DEFAULT_NAV_TABS.map(tab => tab.id));
+        const customTabs = Array.isArray(savedTabs) ? savedTabs.filter(tab => tab && tab.id && !defaultIds.has(tab.id)) : [];
+        setNavTabs([...DEFAULT_NAV_TABS, ...customTabs]);
+        localStorage.setItem('eat_tabs_schema_version', NAV_TABS_SCHEMA_VERSION);
+      } else {
+        localStorage.setItem('eat_tabs_schema_version', NAV_TABS_SCHEMA_VERSION);
+      }
     } catch (e) {
       console.error('读取分类标签失败:', e);
     }
@@ -5181,6 +5208,11 @@ const App = () => {
       localStorage.setItem('eat_tabs', JSON.stringify(navTabs));
     } catch (e) {
       console.error('保存分类标签失败:', e);
+    }
+    try {
+      localStorage.setItem('eat_tabs_schema_version', NAV_TABS_SCHEMA_VERSION);
+    } catch (e) {
+      console.error('保存分类版本失败:', e);
     }
   }, [navTabs]);
   const allItems = useMemo(() => {

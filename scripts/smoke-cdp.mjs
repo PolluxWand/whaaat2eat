@@ -318,6 +318,35 @@ async function runSmoke() {
         nightWheelNames.length > 0 && !hasAnyTerm(nightWheelNames, ['\\u5496\\u5561', '\\u5976\\u8336', '\\u679c\\u8336', '\\u559c\\u8336', '\\u5948\\u96ea'])
           ? pass('night tab excludes drinks', { nightWheelNames })
           : fail('night tab excludes drinks', { nightWheelNames });
+
+        await clearSearch();
+        await click(byText(S.dessert), 'dessert tab for cold exclusion');
+        await typeSearch('\\u4e0d\\u5403\\u51b7\\u7684');
+        const dessertColdIntent = {
+          chips: visibleIntentChips(),
+          wheelNames: visibleWheelFoodNames(),
+        };
+        dessertColdIntent.chips.includes('- \\u51b0\\u54c1')
+          && dessertColdIntent.chips.includes('- \\u51b0\\u6dc7\\u6dcb')
+          && dessertColdIntent.wheelNames.length > 0
+          && !hasAnyTerm(dessertColdIntent.wheelNames, ['\\u51b0\\u6dc7\\u6dcb', '\\u54c8\\u6839\\u8fbe\\u65af', 'DQ', '\\u5208\\u51b0', '\\u51b0\\u7c89', '\\u96ea\\u7cd5'])
+          ? pass('dessert negative cold intent', dessertColdIntent)
+          : fail('dessert negative cold intent', dessertColdIntent);
+
+        await clearSearch();
+        await click(byText(S.meal), 'meal tab for oily exclusion');
+        await typeSearch('\\u4e0d\\u5403\\u6cb9\\u7684');
+        const mealOilyIntent = {
+          chips: visibleIntentChips(),
+          wheelNames: visibleWheelFoodNames(),
+        };
+        mealOilyIntent.chips.includes('- \\u6cb9\\u70b8')
+          && mealOilyIntent.wheelNames.length > 0
+          && !hasAnyTerm(mealOilyIntent.wheelNames, ['\\u5192\\u83dc', '\\u9ebb\\u8fa3\\u9999\\u9505', '\\u9178\\u8fa3\\u7c89', '\\u70b8\\u9e21', '\\u9e21\\u6392', '\\u85af\\u6761', '\\u6cb9\\u6761', '\\u70b8\\u4e32'])
+          ? pass('meal negative oily intent', mealOilyIntent)
+          : fail('meal negative oily intent', mealOilyIntent);
+
+        await clearSearch();
         await click(byText(S.all), 'all tab after category checks');
 
         const firstLabels = [...document.querySelectorAll('.wheel-rotor text')].slice(0, 6).map((node) => node.textContent).join('|');
