@@ -507,6 +507,10 @@ async function runSmoke() {
           searchFont: getComputedStyle(document.querySelector('.compact-search-input')).fontFamily,
           navFont: getComputedStyle(document.querySelector('.compact-nav-button')).fontFamily,
           modeFont: getComputedStyle(byText(S.wheel)).fontFamily,
+          titleWeight: getComputedStyle(document.querySelector('.compact-title')).fontWeight,
+          modeWeight: getComputedStyle(byText(S.wheel)).fontWeight,
+          navTextShadow: getComputedStyle(document.querySelector('.compact-nav-button')).textShadow,
+          modeTextShadow: getComputedStyle(byText(S.wheel)).textShadow,
           wheelLabelCount: document.querySelectorAll('.wheel-label-text').length,
           wheelLabelsIgnoreDarkReader: [...document.querySelectorAll('.wheel-label-text')].every((node) => node.hasAttribute('data-darkreader-ignore')),
           wheelLabelStroke: getComputedStyle(document.querySelector('.wheel-label-text')).stroke,
@@ -522,6 +526,10 @@ async function runSmoke() {
         pixelText.searchColor !== 'rgb(255, 255, 255)'
           && pixelText.spinColor !== 'rgb(255, 255, 255)'
           && [pixelText.titleFont, pixelText.searchFont, pixelText.navFont, pixelText.modeFont].every((font) => font.includes('Ark Pixel'))
+          && pixelText.titleWeight === '400'
+          && pixelText.modeWeight === '400'
+          && pixelText.navTextShadow === 'none'
+          && pixelText.modeTextShadow === 'none'
           && pixelText.fontFacesHaveRanges
           && pixelText.fontAudit.checked > 0
           && pixelText.fontAudit.misses.length === 0
