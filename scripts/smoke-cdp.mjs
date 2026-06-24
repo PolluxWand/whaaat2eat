@@ -268,13 +268,17 @@ async function runSmoke() {
           y: Math.abs((frameBox.top + frameBox.height / 2) - (rotorBox.top + rotorBox.height / 2)),
         };
         const motionDeltas = [
-          Math.abs(motionSamples[1].angle - motionSamples[0].angle),
-          Math.abs(motionSamples[2].angle - motionSamples[1].angle),
+          motionSamples[1].angle - motionSamples[0].angle,
+          motionSamples[2].angle - motionSamples[1].angle,
         ];
         !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline) && centerDelta.x < 0.5 && centerDelta.y < 0.5 && frameCenterDelta.x < 0.5 && frameCenterDelta.y < 0.5
           ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta })
           : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta });
-        motionDeltas[0] > 20 && motionDeltas[1] > 20 && motionSamples.every((sample) => !sample.resultVisible)
+        motionDeltas[0] > 20
+          && motionDeltas[1] > 20
+          && motionDeltas[0] < 420
+          && motionDeltas[1] < 900
+          && motionSamples.every((sample) => !sample.resultVisible)
           ? pass('wheel keeps rotating before result', { motionSamples, motionDeltas })
           : fail('wheel keeps rotating before result', { motionSamples, motionDeltas });
         await waitFor(() => document.querySelector('.result-panel'), 6500);
