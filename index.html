@@ -53,15 +53,6 @@
             unicode-range: U+0000-00FF, U+0100-024F, U+2000-206F, U+20A0-20CF;
         }
 
-        @font-face {
-            font-family: "Ark Pixel";
-            src: url("./assets/fonts/ark-pixel-16px-proportional-zh_cn.woff2") format("woff2");
-            font-weight: 400 900;
-            font-style: normal;
-            font-display: swap;
-            unicode-range: U+2E80-2EFF, U+3000-303F, U+31C0-31EF, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF;
-        }
-
         /* Base Styles */
         body {
             background-color: #f5f5f5;
@@ -1238,19 +1229,26 @@
         .visual-pixel .result-description,
         .visual-pixel .result-panel button,
         .visual-pixel .poster-preview {
-            font-family: "Ark Pixel", "Courier New", monospace;
+            font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", "Source Han Sans SC", sans-serif;
             letter-spacing: 0;
         }
 
         .visual-pixel,
         .visual-pixel * {
-            font-family: "Ark Pixel", "Courier New", monospace !important;
+            font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", "Source Han Sans SC", sans-serif !important;
             font-synthesis: none;
-            font-weight: 400 !important;
+            font-weight: 500 !important;
             letter-spacing: 0;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        .visual-pixel .pixel-latin,
+        .visual-pixel .slot-machine-titlebar,
+        .visual-pixel .slot-machine-titlebar * {
+            font-family: "Ark Pixel", "Courier New", monospace !important;
             -webkit-font-smoothing: none;
             font-smooth: never;
-            text-rendering: geometricPrecision;
         }
 
         .visual-pixel.app-shell {
@@ -1259,14 +1257,16 @@
         }
 
         .visual-pixel .wheel-label-text {
+            font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", "Source Han Sans SC", sans-serif !important;
             paint-order: stroke fill;
             stroke: #0a1726 !important;
-            stroke-width: 3.8px;
+            stroke-width: 2.6px;
             stroke-linejoin: round;
             stroke-linecap: round;
             fill: #fffdf4 !important;
             text-shadow: none;
             vector-effect: non-scaling-stroke;
+            font-weight: 600 !important;
         }
 
         .visual-pixel .slot-name,
@@ -4603,7 +4603,7 @@ const Wheel = ({
       strokeLinejoin: "round",
       paintOrder: "stroke fill",
       fontSize: label.length > 4 ? "13" : "14",
-      fontWeight: "850",
+      fontWeight: "600",
       dy: "4"
     }, label)));
   }))), React.createElement("div", {
@@ -4701,7 +4701,9 @@ const SlotMachine = ({
   }, React.createElement("div", {
     className: "slot-machine-titlebar",
     "aria-hidden": "true"
-  }, React.createElement("span", null, "WHAT2EAT.EXE"), React.createElement("i", null), React.createElement("i", null), React.createElement("i", null)), React.createElement("button", {
+  }, React.createElement("span", {
+    className: "pixel-latin"
+  }, "WHAT2EAT.EXE"), React.createElement("i", null), React.createElement("i", null), React.createElement("i", null)), React.createElement("button", {
     className: "slot-lever",
     onClick: onSpin,
     disabled: isSpinning,

@@ -183,7 +183,7 @@ async function runSmoke() {
           && !(title.right <= searchBox.left || searchBox.right <= title.left || title.bottom <= searchBox.top || searchBox.bottom <= title.top);
         const pixelFontOk = ${JSON.stringify(spec.style)} !== 'pixel' || ['.compact-title', '.compact-search-input', '.compact-nav-button', '.mode-chip'].every((selector) => {
           const el = document.querySelector(selector);
-          return el && getComputedStyle(el).fontFamily.includes('Ark Pixel');
+          return el && !getComputedStyle(el).fontFamily.includes('Ark Pixel');
         });
         const spinSideGap = spin && railButtons.length >= 2
           ? Math.min(Math.round(spin.left - railButtons[0].right), Math.round(railButtons[1].left - spin.right))
@@ -487,7 +487,12 @@ async function runSmoke() {
             .filter(Boolean);
           return {
             checked: visibleTextNodes.length,
-            misses: visibleTextNodes.filter((node) => !node.font.includes('Ark Pixel')).slice(0, 12),
+            latinPixelMisses: visibleTextNodes
+              .filter((node) => /^[A-Z0-9.% _-]+$/.test(node.text) && node.text.includes('WHAT2EAT') && !node.font.includes('Ark Pixel'))
+              .slice(0, 12),
+            chineseArkMisses: visibleTextNodes
+              .filter((node) => /[\\u4e00-\\u9fff]/.test(node.text) && node.font.includes('Ark Pixel'))
+              .slice(0, 12),
             fonts: [...new Set(visibleTextNodes.map((node) => node.font))],
           };
         };
@@ -507,6 +512,8 @@ async function runSmoke() {
           searchFont: getComputedStyle(document.querySelector('.compact-search-input')).fontFamily,
           navFont: getComputedStyle(document.querySelector('.compact-nav-button')).fontFamily,
           modeFont: getComputedStyle(byText(S.wheel)).fontFamily,
+          latinTitleFont: document.querySelector('.pixel-latin') ? getComputedStyle(document.querySelector('.pixel-latin')).fontFamily : '',
+          wheelLabelFont: getComputedStyle(document.querySelector('.wheel-label-text')).fontFamily,
           titleWeight: getComputedStyle(document.querySelector('.compact-title')).fontWeight,
           modeWeight: getComputedStyle(byText(S.wheel)).fontWeight,
           navTextShadow: getComputedStyle(document.querySelector('.compact-nav-button')).textShadow,
@@ -520,19 +527,21 @@ async function runSmoke() {
           appColorScheme: getComputedStyle(document.querySelector('.app-shell')).colorScheme,
           rotorSvgMarginTop: getComputedStyle(document.querySelector('.wheel-rotor svg')).marginTop,
           rotorTransformOrigin: getComputedStyle(document.querySelector('.wheel-rotor')).transformOrigin,
-          fontFacesHaveRanges: pixelFontFaces.length >= 2 && pixelFontFaces.every((text) => text.includes('unicode-range')),
+          fontFacesHaveRanges: pixelFontFaces.length >= 1 && pixelFontFaces.every((text) => text.includes('unicode-range')) && pixelFontFaces.every((text) => !text.includes('U+4E00')),
           fontAudit: auditPixelFonts(),
         };
         pixelText.searchColor !== 'rgb(255, 255, 255)'
           && pixelText.spinColor !== 'rgb(255, 255, 255)'
-          && [pixelText.titleFont, pixelText.searchFont, pixelText.navFont, pixelText.modeFont].every((font) => font.includes('Ark Pixel'))
-          && pixelText.titleWeight === '400'
-          && pixelText.modeWeight === '400'
+          && [pixelText.titleFont, pixelText.searchFont, pixelText.navFont, pixelText.modeFont, pixelText.wheelLabelFont].every((font) => !font.includes('Ark Pixel'))
+          && (pixelText.latinTitleFont === '' || pixelText.latinTitleFont.includes('Ark Pixel'))
+          && pixelText.titleWeight === '500'
+          && pixelText.modeWeight === '500'
           && pixelText.navTextShadow === 'none'
           && pixelText.modeTextShadow === 'none'
           && pixelText.fontFacesHaveRanges
           && pixelText.fontAudit.checked > 0
-          && pixelText.fontAudit.misses.length === 0
+          && pixelText.fontAudit.latinPixelMisses.length === 0
+          && pixelText.fontAudit.chineseArkMisses.length === 0
           && pixelText.appIgnoresDarkReader
           && pixelText.darkReaderLock
           && pixelText.colorSchemeMeta === 'only light'
