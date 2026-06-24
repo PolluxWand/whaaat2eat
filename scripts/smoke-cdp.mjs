@@ -707,6 +707,56 @@ async function runSmoke() {
           && blackPreview.color !== redPreview.color
           ? pass('poster theme switch', { whitePreview, blackPreview, redPreview })
           : fail('poster theme switch', { blackClass, redClass, whitePreview, blackPreview, redPreview, previewBackgrounds: [...previewBackgrounds] });
+        const exportPosterStyles = [];
+        const originalHtml2Canvas = window.html2canvas;
+        const originalCreateObjectURL = URL.createObjectURL;
+        const originalCanShare = navigator.canShare;
+        const originalShare = navigator.share;
+        window.html2canvas = async (node, options) => {
+          const style = getComputedStyle(node);
+          exportPosterStyles.push({
+            theme: node.getAttribute('data-poster-export-theme'),
+            ignoresDarkReader: node.hasAttribute('data-darkreader-ignore'),
+            inlineBackground: node.style.background,
+            inlineColor: node.style.color,
+            backgroundImage: style.backgroundImage,
+            backgroundColor: style.backgroundColor,
+            color: style.color,
+            borderColor: style.borderColor,
+            backgroundColorOption: options?.backgroundColor,
+          });
+          return {
+            toBlob: (callback) => callback(new Blob(['poster'], { type: 'image/png' })),
+            toDataURL: () => 'data:image/png;base64,cG9zdGVy',
+          };
+        };
+        URL.createObjectURL = () => 'blob:poster-test';
+        try {
+          Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false });
+          Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+        } catch {}
+        const shareButton = [...document.querySelectorAll('.result-panel .grid button')]
+          .find((button) => button.textContent.includes('\\u5206\\u4eab'));
+        await click(shareButton, 'share red poster export');
+        await waitFor(() => exportPosterStyles.length >= 1, 1200);
+        await click(byLabel(S.black), 'black poster for export');
+        await click(shareButton, 'share black poster export');
+        await waitFor(() => exportPosterStyles.length >= 2, 1200);
+        window.html2canvas = originalHtml2Canvas;
+        URL.createObjectURL = originalCreateObjectURL;
+        try {
+          Object.defineProperty(navigator, 'canShare', { configurable: true, value: originalCanShare });
+          Object.defineProperty(navigator, 'share', { configurable: true, value: originalShare });
+        } catch {}
+        const exportBackgrounds = new Set(exportPosterStyles.map((item) => (item.backgroundImage || '') + '|' + (item.backgroundColor || '') + '|' + (item.color || '')));
+        exportPosterStyles.length === 2
+          && exportPosterStyles.every((item) => item.ignoresDarkReader)
+          && exportPosterStyles[0].theme === 'red'
+          && exportPosterStyles[1].theme === 'black'
+          && exportBackgrounds.size === 2
+          && exportPosterStyles[0].color !== exportPosterStyles[1].color
+          ? pass('poster export follows selected theme', { exportPosterStyles })
+          : fail('poster export follows selected theme', { exportPosterStyles, exportBackgrounds: [...exportBackgrounds] });
         await click(byLabel(S.close), 'close result');
 
         await click(byText(S.slot), 'slot');

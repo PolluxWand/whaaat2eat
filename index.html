@@ -5035,6 +5035,7 @@ const ResultCard = ({
       background: 'linear-gradient(90deg, rgba(83,106,138,0.08) 1px, transparent 1px), linear-gradient(rgba(83,106,138,0.07) 1px, transparent 1px), #ffffff',
       color: '#102033',
       borderColor: '#2d3f5f',
+      canvasBackground: '#ffffff',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     },
@@ -5046,6 +5047,7 @@ const ResultCard = ({
       background: 'linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(180deg, #20304a 0%, #152238 100%)',
       color: '#f5f7fb',
       borderColor: '#8da1bd',
+      canvasBackground: '#152238',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     },
@@ -5057,6 +5059,7 @@ const ResultCard = ({
       background: 'linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px), linear-gradient(rgba(136,56,72,0.10) 1px, transparent 1px), linear-gradient(180deg, #fff4f5 0%, #f4d7df 100%)',
       color: '#2d1721',
       borderColor: '#8f3f55',
+      canvasBackground: '#fff4f5',
       colorScheme: 'only light',
       forcedColorAdjust: 'none'
     }
@@ -5105,56 +5108,50 @@ const ResultCard = ({
       a.click();
     };
     const poster = document.createElement('div');
+    const activePosterStyle = posterPreviewStyles[posterTheme] || posterPreviewStyles.white;
+    const isPixelPoster = visualStyle === 'pixel';
     let bg = 'white';
     let text = 'black';
     let border = '#e5e5e5';
+    let canvasBackground = 'white';
     if (posterTheme === 'black') {
       bg = '#09090b';
       text = 'white';
       border = '#27272a';
+      canvasBackground = '#09090b';
     }
     if (posterTheme === 'red') {
       bg = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
       text = '#fffbeb';
       border = '#fecaca';
+      canvasBackground = '#ef4444';
     }
-    const isPixelPoster = visualStyle === 'pixel';
     if (isPixelPoster) {
-      if (posterTheme === 'white') {
-        bg = '#f8fbff';
-        text = '#102033';
-        border = '#2d3f5f';
-      }
-      if (posterTheme === 'black') {
-        bg = '#152238';
-        text = '#f5f7fb';
-        border = '#8da1bd';
-      }
-      if (posterTheme === 'red') {
-        bg = '#fff4f5';
-        text = '#2d1721';
-        border = '#8f3f55';
-      }
+      bg = activePosterStyle.background;
+      text = activePosterStyle.color;
+      border = activePosterStyle.borderColor;
+      canvasBackground = activePosterStyle.canvasBackground;
     }
     const posterFont = visualStyle === 'pixel' ? '"Microsoft YaHei UI","PingFang SC","Noto Sans SC","Source Han Sans SC",sans-serif' : '-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei UI",sans-serif';
     const texture = `background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");`;
-    const pixelGrid = `background-image:linear-gradient(90deg, rgba(83,106,138,0.12) 1px, transparent 1px),linear-gradient(rgba(83,106,138,0.10) 1px, transparent 1px);background-size:10px 10px,10px 10px;`;
     const pixelFrame = isPixelPoster ? `border:4px solid ${border};box-shadow:inset 4px 4px 0 rgba(255,255,255,0.72),inset -4px -4px 0 rgba(83,106,138,0.48);` : '';
     const pixelTitlebar = isPixelPoster ? `<div style="position:absolute;top:12px;left:12px;right:12px;height:28px;background:linear-gradient(90deg,#1f4f86 0%,#2d6da8 48%,#9fc1e3 100%);border:1px solid #1d3556;box-shadow:inset 1px 1px 0 rgba(255,255,255,0.45);color:#fff;font-family:'Courier New',monospace;font-size:10px;font-weight:700;line-height:28px;text-align:left;padding-left:10px;text-shadow:1px 1px 0 #102033;box-sizing:border-box;">CHOICE.EXE</div>` : '';
-    poster.style.cssText = `position:fixed;top:0;left:0;width:375px;height:600px;padding:${isPixelPoster ? '58px 24px 34px' : '36px 22px'};text-align:center;z-index:-1;font-family:${posterFont};display:flex;flex-direction:column;justify-content:space-between;background:${bg};color:${text};box-sizing:border-box;${pixelFrame}`;
+    poster.setAttribute('data-darkreader-ignore', '');
+    poster.setAttribute('data-poster-export-theme', posterTheme);
+    poster.style.cssText = `position:fixed;top:0;left:0;width:375px;height:600px;padding:${isPixelPoster ? '58px 24px 34px' : '36px 22px'};text-align:center;z-index:-1;font-family:${posterFont};display:flex;flex-direction:column;justify-content:space-between;background:${bg} !important;color:${text} !important;box-sizing:border-box;color-scheme:only light;forced-color-adjust:none;${pixelFrame}`;
     poster.innerHTML = `
-                    <div style="position:absolute;inset:0;${isPixelPoster ? pixelGrid : texture}pointer-events:none;"></div>
+                    <div data-darkreader-ignore style="position:absolute;inset:0;${isPixelPoster ? '' : texture}pointer-events:none;"></div>
                     ${pixelTitlebar}
-                    <div style="position:relative;z-index:1;">
-                        <div style="font-size:11px;opacity:0.58;letter-spacing:${isPixelPoster ? '0' : '3px'};text-align:center;text-transform:uppercase;font-weight:800;">Today's Choice</div>
+                    <div data-darkreader-ignore style="position:relative;z-index:1;color:${text} !important;">
+                        <div style="font-size:11px;opacity:0.58;letter-spacing:${isPixelPoster ? '0' : '3px'};text-align:center;text-transform:uppercase;font-weight:800;color:${text} !important;">Today's Choice</div>
                         <div style="font-size:96px;margin:24px auto 18px auto;text-align:center;display:block;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.18));">${escapeHtml(winner.icon)}</div>
-                        <h1 style="font-size:42px;font-weight:900;margin:0;color:${text};text-align:center;line-height:1.08;letter-spacing:0;">${escapeHtml(winner.name)}</h1>
-                        <div style="font-size:13px;font-weight:800;opacity:0.78;margin:24px auto 0 auto;border-top:${isPixelPoster ? '2px' : '1px'} solid ${border};border-bottom:${isPixelPoster ? '2px' : '1px'} solid ${border};padding:8px 0;width:100%;letter-spacing:${isPixelPoster ? '0' : '2px'};">
+                        <h1 style="font-size:42px;font-weight:900;margin:0;color:${text} !important;text-align:center;line-height:1.08;letter-spacing:0;">${escapeHtml(winner.name)}</h1>
+                        <div style="font-size:13px;font-weight:800;opacity:0.78;margin:24px auto 0 auto;border-top:${isPixelPoster ? '2px' : '1px'} solid ${border};border-bottom:${isPixelPoster ? '2px' : '1px'} solid ${border};padding:8px 0;width:100%;letter-spacing:${isPixelPoster ? '0' : '2px'};color:${text} !important;">
                             ${escapeHtml(displayLabel)}
                         </div>
-                        <p style="font-size:15px;opacity:0.88;margin:28px auto 0 auto;max-width:86%;line-height:1.72;text-align:center;font-weight:500;">${escapeHtml(winner.description)}</p>
+                        <p style="font-size:15px;opacity:0.88;margin:28px auto 0 auto;max-width:86%;line-height:1.72;text-align:center;font-weight:500;color:${text} !important;">${escapeHtml(winner.description)}</p>
                     </div>
-                    <div style="position:relative;z-index:1;border-top:1px solid ${border};padding-top:20px;font-size:10px;opacity:0.5;text-align:center;letter-spacing:1px;">选了么 · 今天吃什么</div>
+                    <div data-darkreader-ignore style="position:relative;z-index:1;border-top:1px solid ${border};padding-top:20px;font-size:10px;opacity:0.5;text-align:center;letter-spacing:1px;color:${text} !important;">选了么 · 今天吃什么</div>
                 `;
     document.body.appendChild(poster);
     try {
@@ -5162,7 +5159,7 @@ const ResultCard = ({
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: bg.includes('gradient') ? '#ef4444' : bg
+        backgroundColor: canvasBackground
       });
       document.body.removeChild(poster);
       const blob = await new Promise(r => canvas.toBlob(r));
