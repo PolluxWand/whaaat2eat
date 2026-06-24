@@ -19,6 +19,7 @@ const dataAndUtils = [
     globalThis.FOOD_DATABASE = FOOD_DATABASE;
     globalThis.parseFuzzySearch = parseFuzzySearch;
     globalThis.inferSearchTabId = inferSearchTabId;
+    globalThis.getCandidatePool = getCandidatePool;
     globalThis.getRandomBatch = getRandomBatch;
   `,
 ].join('\n');
@@ -40,22 +41,16 @@ function searchAll(input) {
   const tags = context.parseFuzzySearch(input);
   const suggestedTabId = context.inferSearchTabId(input, tags);
   const tab = context.DEFAULT_NAV_TABS.find((item) => item.id === (suggestedTabId || 'all')) || context.DEFAULT_NAV_TABS[0];
-  const hasFuzzy = tags.includeTags.length > 0 || tags.excludeTags.length > 0 || tags.excludeKeywords.length > 0;
-  const base = hasFuzzy
-    ? [...context.FOOD_DATABASE]
-    : context.FOOD_DATABASE.filter((item) => !tab.filterTags.length || tab.filterTags.some((tag) => item.tags.includes(tag)));
-
-  const pool = base.filter((item) => {
-    if (tags.includeTags.length > 0 && !tags.includeTags.some((tag) => item.tags.includes(tag))) return false;
-    if (tags.excludeTags.length > 0 && tags.excludeTags.some((tag) => item.tags.includes(tag))) return false;
-    const searchableText = `${item.name} ${item.description || ''} ${item.tags.join(' ')}`;
-    if (tags.excludeKeywords.some((keyword) => searchableText.includes(keyword))) return false;
-    if (defaultPrefs.excludedCategories.includes(item.category)) return false;
-    if (item.tags.some((tag) => defaultPrefs.excludedTags.includes(tag))) return false;
-    return true;
-  });
+  const pool = context.getCandidatePool(defaultPrefs, tab, context.FOOD_DATABASE, tags);
 
   return { input, tags, suggestedTabId, pool };
+}
+
+function searchInTab(input, tabId) {
+  const tags = context.parseFuzzySearch(input);
+  const tab = context.DEFAULT_NAV_TABS.find((item) => item.id === tabId) || context.DEFAULT_NAV_TABS[0];
+  const pool = context.getCandidatePool(defaultPrefs, tab, context.FOOD_DATABASE, tags);
+  return { input, tags, tabId, pool };
 }
 
 function itemHasAny(item, terms) {
@@ -135,6 +130,13 @@ const cases = [
     mustExcludeTags: ['冰品', '生冷'],
     forbiddenTerms: ['冰淇淋', '刨冰', '冰品'],
   },
+  {
+    input: '不想喝咖啡',
+    tabId: 'drink',
+    mustExcludeTags: ['咖啡'],
+    requiredAnyTags: ['饮品', '奶茶', '果茶'],
+    forbiddenTerms: ['咖啡', '拿铁', '美式', '瑞幸', '星巴克', 'Manner', 'Tims', '幸运咖', '库迪', '挪瓦'],
+  },
 ];
 
 const failures = [];
@@ -160,7 +162,7 @@ for (const check of staticChecks) {
 }
 
 for (const testCase of cases) {
-  const result = searchAll(testCase.input);
+  const result = testCase.tabId ? searchInTab(testCase.input, testCase.tabId) : searchAll(testCase.input);
   const sampleNames = result.pool.slice(0, 12).map((item) => item.name);
 
   if (result.pool.length === 0) {
@@ -193,12 +195,46 @@ for (const testCase of cases) {
 
   summaries.push({
     input: testCase.input,
-    tab: result.suggestedTabId || 'all',
+    tab: testCase.tabId || result.suggestedTabId || 'all',
     includeTags: result.tags.includeTags,
     excludeTags: result.tags.excludeTags,
     excludeKeywords: result.tags.excludeKeywords,
     poolSize: result.pool.length,
     sampleNames,
+  });
+}
+
+const categoryCases = [
+  { tabId: 'meal', requiredAnyTags: ['正餐', '快餐', '面食', '火锅菜'] },
+  { tabId: 'drink', requiredAnyTags: ['饮品', '奶茶', '咖啡', '果茶'] },
+  { tabId: 'night', requiredAnyTags: ['宵夜', '烧烤', '冷串', '卤味'], forbiddenTerms: ['奶茶', '咖啡', '果茶', '饮品'] },
+];
+
+for (const testCase of categoryCases) {
+  const tab = context.DEFAULT_NAV_TABS.find((item) => item.id === testCase.tabId);
+  const pool = context.getCandidatePool(defaultPrefs, tab, context.FOOD_DATABASE, null);
+  if (pool.length === 0) {
+    failures.push(`${testCase.tabId}: 分类候选池为空`);
+    continue;
+  }
+  const wrongItems = pool.filter((item) => !testCase.requiredAnyTags.some((tag) => item.tags.includes(tag)));
+  if (wrongItems.length > 0) {
+    failures.push(`${testCase.tabId}: 出现跨分类候选 ${wrongItems.slice(0, 8).map((item) => item.name).join('、')}`);
+  }
+  if (testCase.forbiddenTerms) {
+    const blocked = pool.filter((item) => itemHasAny(item, testCase.forbiddenTerms));
+    if (blocked.length > 0) {
+      failures.push(`${testCase.tabId}: 出现不该属于该分类的候选 ${blocked.slice(0, 8).map((item) => item.name).join('、')}`);
+    }
+  }
+  summaries.push({
+    input: `分类:${testCase.tabId}`,
+    tab: testCase.tabId,
+    includeTags: [],
+    excludeTags: [],
+    excludeKeywords: [],
+    poolSize: pool.length,
+    sampleNames: pool.slice(0, 12).map((item) => item.name),
   });
 }
 

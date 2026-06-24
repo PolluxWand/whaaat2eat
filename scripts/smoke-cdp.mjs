@@ -237,6 +237,7 @@ async function runSmoke() {
       };
       const byText = (text) => [...document.querySelectorAll('button')].find((button) => button.innerText.trim() === text);
       const byLabel = (label) => [...document.querySelectorAll('button')].find((button) => button.getAttribute('aria-label') === label);
+      const byPlaceholder = (text) => [...document.querySelectorAll('input')].find((input) => input.getAttribute('placeholder') === text);
       const h2 = (text) => [...document.querySelectorAll('h2')].some((heading) => heading.innerText.trim() === text);
       const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       const waitFor = async (fn, ms = 6000) => {
@@ -253,6 +254,30 @@ async function runSmoke() {
         element.click();
         await wait(100);
       };
+      const typeSearch = async (value) => {
+        const input = byPlaceholder('\\u4e0d\\u559d\\u5496\\u5561') || document.querySelector('.compact-search-input');
+        if (!input) throw new Error('missing search input');
+        input.focus();
+        const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+        valueSetter.call(input, value);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        await wait(180);
+      };
+      const clearSearch = async () => {
+        const input = document.querySelector('.compact-search-input');
+        if (!input) return;
+        input.focus();
+        const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+        valueSetter.call(input, '');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        await wait(160);
+      };
+      const visibleWheelFoodNames = () => [...document.querySelectorAll('[data-food-name]')].map((node) => node.getAttribute('data-food-name') || '');
+      const visibleSlotNames = () => [...document.querySelectorAll('.slot-name')].map((node) => node.textContent.trim()).filter(Boolean);
+      const visibleIntentChips = () => [...document.querySelectorAll('span')]
+        .map((node) => node.textContent.replace(/\\s+/g, ' ').trim())
+        .filter((text) => text.startsWith('+ ') || text.startsWith('- '));
+      const hasAnyTerm = (names, terms) => names.some((name) => terms.some((term) => name.includes(term)));
       const closeModal = async () => {
         const close = document.querySelector('.modal-panel .modal-close') || byLabel(S.close);
         if (close) close.click();
@@ -273,6 +298,27 @@ async function runSmoke() {
         const nightClass = byText(S.night)?.className || '';
         await click(byText(S.all), 'all tab');
         pass('category nav clickable', { drinkClass, nightClass });
+
+        await click(byText(S.drink), 'drink tab for coffee exclusion');
+        await typeSearch('\\u4e0d\\u60f3\\u559d\\u5496\\u5561');
+        const coffeeIntent = {
+          chips: visibleIntentChips(),
+          wheelNames: visibleWheelFoodNames(),
+        };
+        coffeeIntent.chips.includes('- \\u5496\\u5561')
+          && !coffeeIntent.chips.includes('+ \\u5496\\u5561')
+          && coffeeIntent.wheelNames.length > 0
+          && !hasAnyTerm(coffeeIntent.wheelNames, ['\\u5496\\u5561', '\\u745e\\u5e78', '\\u661f\\u5df4\\u514b', 'Manner', 'Tims'])
+          ? pass('drink negative coffee intent', coffeeIntent)
+          : fail('drink negative coffee intent', coffeeIntent);
+        await clearSearch();
+        await click(byText(S.night), 'night tab after coffee exclusion');
+        await wait(160);
+        const nightWheelNames = visibleWheelFoodNames();
+        nightWheelNames.length > 0 && !hasAnyTerm(nightWheelNames, ['\\u5496\\u5561', '\\u5976\\u8336', '\\u679c\\u8336', '\\u559c\\u8336', '\\u5948\\u96ea'])
+          ? pass('night tab excludes drinks', { nightWheelNames })
+          : fail('night tab excludes drinks', { nightWheelNames });
+        await click(byText(S.all), 'all tab after category checks');
 
         const firstLabels = [...document.querySelectorAll('.wheel-rotor text')].slice(0, 6).map((node) => node.textContent).join('|');
         await click(byLabel(S.shuffle), 'shuffle');
@@ -431,6 +477,25 @@ async function runSmoke() {
         slotBefore.hasSlot && !slotBefore.hasWheel && !slotBefore.hasFooterSpin
           ? pass('slot mode switch', slotBefore)
           : fail('slot mode switch', slotBefore);
+
+        await click(byText(S.drink), 'slot drink tab');
+        await wait(180);
+        const slotDrinkNames = visibleSlotNames();
+        await click(byText(S.meal), 'slot meal tab');
+        await wait(220);
+        const slotMealNames = visibleSlotNames();
+        await click(byText(S.night), 'slot night tab');
+        await wait(220);
+        const slotNightNames = visibleSlotNames();
+        const slotCategoryState = { slotDrinkNames, slotMealNames, slotNightNames };
+        slotDrinkNames.length > 0
+          && slotMealNames.length > 0
+          && slotNightNames.length > 0
+          && hasAnyTerm(slotDrinkNames, ['\\u5496\\u5561', '\\u5976\\u8336', '\\u8336', '\\u679c'])
+          && !hasAnyTerm(slotMealNames, ['\\u5496\\u5561', '\\u5976\\u8336', '\\u679c\\u8336', '\\u559c\\u8336', '\\u5948\\u96ea'])
+          && !hasAnyTerm(slotNightNames, ['\\u5496\\u5561', '\\u5976\\u8336', '\\u679c\\u8336', '\\u559c\\u8336', '\\u5948\\u96ea'])
+          ? pass('slot category display updates', slotCategoryState)
+          : fail('slot category display updates', slotCategoryState);
 
         const darkPixelSlotPalette = (() => {
           const frame = document.querySelector('.slot-machine-frame');

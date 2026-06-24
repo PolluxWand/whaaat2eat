@@ -1931,6 +1931,8 @@
             const hasLightNegative = /(?:不要|不想|别|不).{0,6}(?:清淡|太淡|寡淡|淡口)/.test(inputLower);
             const hasSpicyPositive = !hasSpicyNegative && /(?:想吃|想要|来点|吃点|整点|要点|有点|偏|爱吃|喜欢吃)?.{0,4}(?:麻辣|香辣|酸辣|辣的|辣一点|辣味|微辣|很辣|重口|重口味|川菜|湘菜|火锅|麻辣烫|冒菜|串串)/.test(inputLower);
             const negativeFoodPattern = '(?:不吃|不想吃|不要吃|别吃|忌口|不能吃|不爱吃|不爱|不要|不想|别)';
+            const negativeDrinkPattern = '(?:不喝|不想喝|不要喝|别喝|不能喝|不爱喝|不爱|不要|不想|别)';
+            const hasCoffeeNegative = new RegExp(`${negativeDrinkPattern}.{0,6}(?:咖啡|拿铁|美式|冷萃|瑞幸|星巴克|manner|tims|幸运咖|m stand|seesaw|arabica|库迪|挪瓦)`).test(inputLower);
             const hasSeafoodNegative = new RegExp(`${negativeFoodPattern}.{0,5}(?:鱼|海鲜|虾|蟹|贝|生蚝|鱿鱼)`).test(inputLower);
             const hasBeefNegative = new RegExp(`${negativeFoodPattern}.{0,5}(?:牛肉|牛排|牛)`).test(inputLower);
             const hasChickenNegative = new RegExp(`${negativeFoodPattern}.{0,5}(?:鸡肉|炸鸡|鸡)`).test(inputLower);
@@ -1945,6 +1947,7 @@
             const friedPositiveKeywords = ['炸'];
             const seafoodPositiveKeywords = ['鱼', '海鲜'];
             const meatPositiveKeywords = ['肉'];
+            const coffeePositiveKeywords = ['咖啡'];
 
             const addExcludeTag = (tag) => {
                 if (!excludeTags.includes(tag)) excludeTags.push(tag);
@@ -1994,6 +1997,11 @@
                 ['生冷', '冰品'].forEach(addExcludeTag);
                 ['热饮', '汤水', '热食'].forEach(addIncludeTag);
             }
+            if (hasCoffeeNegative) {
+                ['咖啡'].forEach(addExcludeTag);
+                ['咖啡', '拿铁', '美式', '冷萃', '瑞幸', '星巴克', 'Manner', 'Tims', '幸运咖', 'M Stand', 'Seesaw', 'Arabica', '库迪', '挪瓦'].forEach(addExcludeKeyword);
+                ['饮品', '奶茶', '果茶'].forEach(addIncludeTag);
+            }
             if (hasSeafoodNegative) {
                 ['海鲜', '鱼', '虾', '蟹'].forEach(addExcludeTag);
                 ['鱼', '虾', '蟹', '海鲜', '生蚝', '鱿鱼', '寿司'].forEach(addExcludeKeyword);
@@ -2029,6 +2037,7 @@
                 if (hasSweetNegative && sweetPositiveKeywords.includes(keyword)) return;
                 if (hasFriedNegative && friedPositiveKeywords.includes(keyword)) return;
                 if (hasGreasyNegative && [...spicyPositiveKeywords, ...friedPositiveKeywords].includes(keyword)) return;
+                if (hasCoffeeNegative && coffeePositiveKeywords.includes(keyword)) return;
                 if (hasSeafoodNegative && seafoodPositiveKeywords.includes(keyword)) return;
                 if ((hasMeatNegative || hasBeefNegative || hasChickenNegative || hasPorkNegative || hasLambNegative) && meatPositiveKeywords.includes(keyword)) return;
 
@@ -2084,7 +2093,7 @@
 
         const getCandidatePool = (preferences, currentTab, sourceData, fuzzySearch = null) => {
             const hasFuzzySearch = fuzzySearch && (fuzzySearch.includeTags.length > 0 || fuzzySearch.excludeTags.length > 0 || (fuzzySearch.excludeKeywords && fuzzySearch.excludeKeywords.length > 0));
-            let filteredPool = hasFuzzySearch ? [...sourceData] : sourceData.filter(item => {
+            let filteredPool = sourceData.filter(item => {
                 if (!currentTab.filterTags || currentTab.filterTags.length === 0) return true;
                 return currentTab.filterTags.some(tag => item.tags.includes(tag));
             });
@@ -2434,6 +2443,13 @@
                     };
                 }
             }, [isSpinning, winner?.id, items, isMuted]);
+
+            useEffect(() => {
+                if (!isSpinning) {
+                    setReelState(['idle', 'idle', 'idle']);
+                    setStrips([makeStrip(), makeStrip(), makeStrip()]);
+                }
+            }, [items, isSpinning]);
 
             useEffect(() => {
                 if (!isSpinning && winner && reelState.every(state => state !== 'spin')) {
