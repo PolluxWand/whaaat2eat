@@ -17,9 +17,6 @@
     <title>选了么 - 今天吃什么</title>
     
     <!-- Tailwind CSS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -46,6 +43,22 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <style>
+        @font-face {
+            font-family: "Ark Pixel";
+            src: url("./assets/fonts/ark-pixel-16px-proportional-latin.woff2") format("woff2");
+            font-weight: 400 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "Ark Pixel";
+            src: url("./assets/fonts/ark-pixel-16px-proportional-zh_cn.woff2") format("woff2");
+            font-weight: 400 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
         /* Base Styles */
         body {
             background-color: #f5f5f5;
@@ -146,21 +159,27 @@
         }
 
         .ios-glass-input {
-            background: linear-gradient(135deg, rgba(255,255,255,0.70), rgba(255,255,255,0.38));
-            border: 1px solid rgba(24,24,27,0.14);
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,255,255,0.34)),
+                radial-gradient(circle at 12% 0%, rgba(255,255,255,0.44), transparent 46%);
+            border: 1px solid rgba(255,255,255,0.34);
             box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.55),
-                0 16px 44px rgba(0,0,0,0.15);
-            -webkit-backdrop-filter: blur(24px) saturate(1.45);
-            backdrop-filter: blur(24px) saturate(1.45);
+                inset 0 1px 0 rgba(255,255,255,0.58),
+                inset 0 -1px 0 rgba(24,24,27,0.06),
+                0 8px 22px rgba(0,0,0,0.10);
+            -webkit-backdrop-filter: blur(20px) saturate(1.35);
+            backdrop-filter: blur(20px) saturate(1.35);
         }
 
         .dark .ios-glass-input {
-            background: linear-gradient(135deg, rgba(18,18,24,0.66), rgba(0,0,0,0.42));
-            border-color: rgba(255,255,255,0.28);
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.07)),
+                radial-gradient(circle at 12% 0%, rgba(255,255,255,0.12), transparent 46%);
+            border-color: rgba(255,255,255,0.22);
             box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.10),
-                0 18px 58px rgba(0,0,0,0.46);
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                inset 0 -1px 0 rgba(255,255,255,0.05),
+                0 10px 28px rgba(0,0,0,0.32);
         }
 
         .ios-nav-active {
@@ -710,30 +729,50 @@
             }
 
             .app-header-grid {
-                grid-template-columns: 76px minmax(0, 1fr) 36px;
-                column-gap: 5px;
+                grid-template-columns: minmax(0, 1fr) 38px;
+                grid-template-areas:
+                    "brand menu"
+                    "search search";
+                row-gap: 8px;
+                column-gap: 10px;
             }
 
             .compact-header {
-                padding-left: 14px !important;
-                padding-right: 14px !important;
+                padding-left: 18px !important;
+                padding-right: 18px !important;
                 padding-top: 12px !important;
             }
 
+            .compact-header > .shrink-0 {
+                grid-area: brand;
+                min-width: 0;
+            }
+
+            .compact-header > .compact-search {
+                grid-area: search;
+                width: 100%;
+                min-width: 0;
+            }
+
+            .compact-header > .relative.shrink-0 {
+                grid-area: menu;
+                justify-self: end;
+            }
+
             .compact-title {
-                font-size: clamp(21px, 6vw, 25px);
+                font-size: clamp(25px, 8.5vw, 34px);
             }
 
             .compact-search-input {
+                height: 42px;
                 padding-left: 1.95rem !important;
-                padding-right: 1.2rem !important;
-                font-size: 12px !important;
+                padding-right: 2.1rem !important;
+                font-size: 14px !important;
+                border-radius: 16px !important;
             }
 
             .compact-search-icon {
-                left: 0.66rem !important;
-                width: 0.82rem !important;
-                height: 0.82rem !important;
+                left: 0.82rem !important;
             }
 
             .mode-row {
@@ -771,30 +810,30 @@
 
             .compact-wheel-zone {
                 justify-content: center !important;
-                padding-top: 20px !important;
-                padding-bottom: 84px !important;
+                padding-top: 12px !important;
+                padding-bottom: 76px !important;
             }
 
             .stage-anchor {
-                transform: translateY(6px);
+                transform: translateY(2px);
             }
 
             .wheel-frame {
-                width: min(calc(100dvw - 30px), 380px);
-                max-width: min(calc(100% - 18px), 380px);
+                width: min(calc(100dvw - 40px), 366px);
+                max-width: min(calc(100% - 22px), 366px);
             }
 
             .slot-machine-frame {
-                width: min(calc(100dvw - 54px), 350px);
-                max-width: min(calc(100% - 42px), 350px);
-                min-height: min(calc(100dvw - 54px), 350px);
+                width: min(calc(100dvw - 58px), 344px);
+                max-width: min(calc(100% - 44px), 344px);
+                min-height: min(calc(100dvw - 58px), 344px);
                 transform: translateX(6px);
             }
 
             .visual-pixel .slot-machine-frame {
-                width: min(calc(100dvw - 58px), 330px);
-                max-width: min(calc(100% - 44px), 330px);
-                min-height: 350px;
+                width: min(calc(100dvw - 64px), 324px);
+                max-width: min(calc(100% - 48px), 324px);
+                min-height: 344px;
                 transform: translateX(7px);
             }
 
@@ -1168,6 +1207,53 @@
             letter-spacing: 0;
         }
 
+        .visual-pixel,
+        .visual-pixel button,
+        .visual-pixel input,
+        .visual-pixel select,
+        .visual-pixel textarea,
+        .visual-pixel label,
+        .visual-pixel summary,
+        .visual-pixel .compact-title,
+        .visual-pixel .compact-subtitle,
+        .visual-pixel .compact-search-input,
+        .visual-pixel .compact-nav-button,
+        .visual-pixel .mode-chip,
+        .visual-pixel .slot-name,
+        .visual-pixel .slot-brand,
+        .visual-pixel .slot-machine-titlebar,
+        .visual-pixel .slot-marquee,
+        .visual-pixel .compact-spin-button,
+        .visual-pixel .intent-chip,
+        .visual-pixel .modal-panel,
+        .visual-pixel .modal-title,
+        .visual-pixel .modal-primary,
+        .visual-pixel .modal-secondary,
+        .visual-pixel .modal-field,
+        .visual-pixel .result-title,
+        .visual-pixel .result-description,
+        .visual-pixel .result-panel button,
+        .visual-pixel .poster-preview {
+            font-family: "Ark Pixel", "Courier New", monospace;
+            letter-spacing: 0;
+        }
+
+        .visual-pixel .compact-title {
+            line-height: 1.05;
+        }
+
+        .visual-pixel .compact-search-input {
+            font-size: 11px !important;
+        }
+
+        .visual-pixel .compact-nav-button,
+        .visual-pixel .mode-chip,
+        .visual-pixel .compact-spin-button,
+        .visual-pixel .modal-primary,
+        .visual-pixel .modal-secondary {
+            line-height: 1.45;
+        }
+
         .dark .visual-pixel,
         .dark .visual-pixel.app-shell,
         .dark .visual-pixel .compact-title,
@@ -1193,15 +1279,6 @@
         .dark .visual-pixel .modal-field::placeholder,
         .dark .visual-pixel .compact-search-input::placeholder {
             color: #445978 !important;
-        }
-
-        .visual-pixel .mode-chip,
-        .visual-pixel .slot-name,
-        .visual-pixel .slot-brand,
-        .visual-pixel .compact-spin-button,
-        .visual-pixel .intent-chip {
-            font-family: "Press Start 2P", "Courier New", monospace;
-            letter-spacing: 0;
         }
 
         .visual-pixel .intent-chip {
@@ -1269,7 +1346,7 @@
             background: linear-gradient(90deg, #2d5f9a, #8fb4dd);
             border: 1px solid #1d3556;
             color: #ffffff;
-            font-family: "Press Start 2P", "Courier New", monospace;
+            font-family: "Ark Pixel", "Courier New", monospace;
             font-size: 8px;
             line-height: 1;
             text-shadow: 1px 1px 0 #1d3556;

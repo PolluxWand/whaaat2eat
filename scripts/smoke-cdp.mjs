@@ -166,6 +166,8 @@ async function runSmoke() {
         const footer = box('.compact-footer');
         const nav = box('.compact-nav');
         const search = document.querySelector('.compact-search-input');
+        const title = box('.compact-title');
+        const searchBox = box('.compact-search-input');
         const modeRow = box('.mode-row');
         const stage = box('.stage-anchor');
         const spin = box('.compact-spin-button');
@@ -177,6 +179,12 @@ async function runSmoke() {
         const targetCenterDelta = target ? Math.round((target.left + target.width / 2) - window.innerWidth / 2) : null;
         const visualCenterDelta = target && ${JSON.stringify(spec.mode)} === 'slot' ? Math.round((target.left + target.width / 2 - 6) - window.innerWidth / 2) : targetCenterDelta;
         const placeholderFits = !search || search.scrollWidth <= search.clientWidth + 1;
+        const titleSearchOverlap = !!title && !!searchBox
+          && !(title.right <= searchBox.left || searchBox.right <= title.left || title.bottom <= searchBox.top || searchBox.bottom <= title.top);
+        const pixelFontOk = ${JSON.stringify(spec.style)} !== 'pixel' || ['.compact-title', '.compact-search-input', '.compact-nav-button', '.mode-chip'].every((selector) => {
+          const el = document.querySelector(selector);
+          return el && getComputedStyle(el).fontFamily.includes('Ark Pixel');
+        });
         const spinSideGap = spin && railButtons.length >= 2
           ? Math.min(Math.round(spin.left - railButtons[0].right), Math.round(railButtons[1].left - spin.right))
           : null;
@@ -189,6 +197,8 @@ async function runSmoke() {
           target,
           footer,
           nav,
+          title,
+          searchBox,
           modeRow,
           stage,
           spin,
@@ -202,6 +212,8 @@ async function runSmoke() {
           targetCenterDelta,
           visualCenterDelta,
           placeholderFits,
+          titleSearchOverlap,
+          pixelFontOk,
           placeholderScrollWidth: search?.scrollWidth || null,
           placeholderClientWidth: search?.clientWidth || null,
           mainStyleButtonsVisible: [...document.querySelectorAll('button')].some((button) => ['\\u73bb\\u7483', '\\u50cf\\u7d20'].includes(button.innerText.trim())),
@@ -217,6 +229,8 @@ async function runSmoke() {
         && data.navGap >= 12
         && Math.abs(data.visualCenterDelta ?? 999) <= 14
         && data.placeholderFits
+        && !data.titleSearchOverlap
+        && data.pixelFontOk
         && !data.mainStyleButtonsVisible
         && (spec.mode !== 'wheel' || data.spinSideGap === null || data.spinSideGap >= 8)
         && data.mode === spec.mode
@@ -440,10 +454,17 @@ async function runSmoke() {
         const pixelText = {
           searchColor: getComputedStyle(document.querySelector('.compact-search-input')).color,
           spinColor: getComputedStyle(byText(S.spin)).color,
+          titleFont: getComputedStyle(document.querySelector('.compact-title')).fontFamily,
+          searchFont: getComputedStyle(document.querySelector('.compact-search-input')).fontFamily,
+          navFont: getComputedStyle(document.querySelector('.compact-nav-button')).fontFamily,
+          modeFont: getComputedStyle(byText(S.wheel)).fontFamily,
           rotorSvgMarginTop: getComputedStyle(document.querySelector('.wheel-rotor svg')).marginTop,
           rotorTransformOrigin: getComputedStyle(document.querySelector('.wheel-rotor')).transformOrigin,
         };
-        pixelText.searchColor !== 'rgb(255, 255, 255)' && pixelText.spinColor !== 'rgb(255, 255, 255)' && pixelText.rotorSvgMarginTop === '0px'
+        pixelText.searchColor !== 'rgb(255, 255, 255)'
+          && pixelText.spinColor !== 'rgb(255, 255, 255)'
+          && [pixelText.titleFont, pixelText.searchFont, pixelText.navFont, pixelText.modeFont].every((font) => font.includes('Ark Pixel'))
+          && pixelText.rotorSvgMarginTop === '0px'
           ? pass('pixel dark text and wheel center prep', pixelText)
           : fail('pixel dark text and wheel center prep', pixelText);
 
