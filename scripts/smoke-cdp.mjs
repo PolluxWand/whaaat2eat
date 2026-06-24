@@ -173,7 +173,15 @@ async function runSmoke() {
         const spin = box('.compact-spin-button');
         const railButtons = [...document.querySelectorAll('.wheel-action-rail button')].map((button) => {
           const rect = button.getBoundingClientRect();
-          return { left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
+          return {
+            top: Math.round(rect.top),
+            bottom: Math.round(rect.bottom),
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+            centerY: Math.round(rect.top + rect.height / 2),
+          };
         });
         const root = document.documentElement;
         const targetCenterDelta = target ? Math.round((target.left + target.width / 2) - window.innerWidth / 2) : null;
@@ -185,9 +193,14 @@ async function runSmoke() {
           const el = document.querySelector(selector);
           return el && !getComputedStyle(el).fontFamily.includes('Ark Pixel');
         });
-        const spinSideGap = spin && railButtons.length >= 2
-          ? Math.min(Math.round(spin.left - railButtons[0].right), Math.round(railButtons[1].left - spin.right))
+        const spinSideGap = spin && railButtons.length >= 3
+          ? Math.min(Math.round(spin.left - railButtons[0].right), Math.round(railButtons[2].left - spin.right))
           : null;
+        const spinReadableWidth = !spin || spin.width >= (window.innerWidth <= 370 ? 190 : 206);
+        const railCenterDelta = railButtons.length >= 3
+          ? Math.max(...railButtons.map((button) => Math.abs(button.centerY - railButtons[1].centerY)))
+          : null;
+        const minNavGap = window.innerHeight <= 680 ? 16 : 42;
         return {
           viewport: { width: window.innerWidth, height: window.innerHeight },
           scrollWidth: root.scrollWidth,
@@ -218,6 +231,9 @@ async function runSmoke() {
           placeholderClientWidth: search?.clientWidth || null,
           mainStyleButtonsVisible: [...document.querySelectorAll('button')].some((button) => ['\\u73bb\\u7483', '\\u50cf\\u7d20'].includes(button.innerText.trim())),
           spinSideGap,
+          spinReadableWidth,
+          railCenterDelta,
+          minNavGap,
           mode: document.querySelector('.slot-machine-frame') ? 'slot' : 'wheel',
           style: document.querySelector('.app-shell')?.className || '',
         };
@@ -226,13 +242,14 @@ async function runSmoke() {
         && !data.hasSevereVerticalOverflow
         && data.targetInViewport
         && data.footerVisible
-        && data.navGap >= 12
+        && data.navGap >= data.minNavGap
         && Math.abs(data.visualCenterDelta ?? 999) <= 14
         && data.placeholderFits
         && !data.titleSearchOverlap
         && data.pixelFontOk
         && !data.mainStyleButtonsVisible
-        && (spec.mode !== 'wheel' || data.spinSideGap === null || data.spinSideGap >= 8)
+        && (spec.mode !== 'wheel' || data.spinReadableWidth)
+        && (spec.mode !== 'wheel' || data.railCenterDelta === null || data.railCenterDelta <= 1)
         && data.mode === spec.mode
         && data.style.includes(`visual-${spec.style}`);
       viewportChecks.push({
@@ -873,6 +890,7 @@ async function runSmoke() {
         await click(byLabel(S.catButton), 'category manager');
         h2(S.catTitle) ? pass('category modal') : fail('category modal');
         await closeModal();
+        await click(byText(S.wheel), 'wheel mode before history');
         await click(byLabel(S.history), 'history');
         h2(S.history) ? pass('history modal') : fail('history modal');
       } catch (error) {

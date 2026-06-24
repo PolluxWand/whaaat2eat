@@ -264,19 +264,28 @@
         }
 
         .wheel-action-rail {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 14px;
+            position: static;
+            width: 100%;
             z-index: 25;
-            display: flex;
-            justify-content: space-between;
-            padding-inline: 30px;
-            pointer-events: none;
+            display: grid;
+            grid-template-columns: 48px 226px 48px;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding-inline: 0;
+            pointer-events: auto;
         }
 
         .wheel-action-rail > button {
             pointer-events: auto;
+        }
+
+        .wheel-action-rail .ios-icon-button {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .wheel-pointer {
@@ -566,8 +575,8 @@
 
             .compact-wheel-zone {
                 justify-content: center !important;
-                padding-top: 18px !important;
-                padding-bottom: 78px;
+                padding-top: 26px !important;
+                padding-bottom: 76px;
             }
 
             .compact-footer {
@@ -587,8 +596,8 @@
             }
 
             .wheel-action-rail {
-                bottom: 8px;
-                padding-inline: 30px;
+                grid-template-columns: 44px 210px 44px;
+                gap: 12px;
             }
         }
 
@@ -622,8 +631,8 @@
             }
 
             .compact-wheel-zone {
-                padding-top: 12px !important;
-                padding-bottom: 79px !important;
+                padding-top: 18px !important;
+                padding-bottom: 72px !important;
             }
 
             .compact-footer {
@@ -639,9 +648,14 @@
 
             .wheel-action-rail .ios-icon-button,
             .visual-pixel .wheel-action-rail .ios-icon-button {
-                width: 38px;
-                height: 38px;
+                width: 42px;
+                height: 42px;
                 padding: 9px !important;
+            }
+
+            .wheel-action-rail {
+                grid-template-columns: 42px 196px 42px;
+                gap: 10px;
             }
         }
 
@@ -1153,12 +1167,12 @@
 
         .visual-pixel {
             background:
-                repeating-linear-gradient(0deg, rgba(9,19,35,0.10) 0 1px, transparent 1px 4px),
-                linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px),
-                linear-gradient(rgba(255,255,255,0.10) 1px, transparent 1px),
-                linear-gradient(180deg, #dfe8f5 0%, #b8c9df 46%, #8ea8c6 100%) !important;
+                repeating-linear-gradient(0deg, rgba(5,12,24,0.055) 0 1px, transparent 1px 4px),
+                linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+                linear-gradient(180deg, #f4f8fe 0%, #dce7f4 48%, #bacbe0 100%) !important;
             background-size: auto, 8px 8px, 8px 8px, auto;
-            color: #152238 !important;
+            color: #071426 !important;
             image-rendering: pixelated;
             isolation: isolate;
         }
@@ -1170,9 +1184,9 @@
             pointer-events: none;
             z-index: 0;
             background:
-                linear-gradient(90deg, rgba(255,255,255,0.18), transparent 42%, rgba(21,34,56,0.16)),
-                repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 10px);
-            opacity: 0.72;
+                linear-gradient(90deg, rgba(255,255,255,0.32), transparent 42%, rgba(76,96,124,0.10)),
+                repeating-linear-gradient(135deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 10px);
+            opacity: 0.66;
             mix-blend-mode: soft-light;
         }
 
@@ -1184,7 +1198,7 @@
             z-index: 0;
             box-shadow:
                 inset 0 0 0 2px rgba(255,255,255,0.16),
-                inset 0 0 0 4px rgba(21,34,56,0.18);
+                inset 0 0 0 4px rgba(31,45,68,0.14);
         }
 
         .visual-pixel .app-header-grid,
@@ -1214,13 +1228,13 @@
         .visual-pixel .ios-glass-input,
         .visual-pixel .slot-machine-frame {
             background:
-                linear-gradient(180deg, rgba(249,252,255,0.98) 0%, rgba(220,231,244,0.98) 46%, rgba(183,199,219,0.98) 100%);
-            border: 2px solid #2d3f5f;
+                linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(232,240,250,0.99) 50%, rgba(202,216,232,0.99) 100%);
+            border: 2px solid #243652;
             box-shadow:
                 inset 2px 2px 0 #ffffff,
-                inset -2px -2px 0 #7b8fa9,
-                inset 0 -5px 0 rgba(83,106,138,0.10),
-                4px 4px 0 rgba(31,45,68,0.42);
+                inset -2px -2px 0 #8fa1b8,
+                inset 0 -5px 0 rgba(83,106,138,0.08),
+                4px 4px 0 rgba(31,45,68,0.30);
             -webkit-backdrop-filter: none;
             backdrop-filter: none;
         }
@@ -1234,17 +1248,17 @@
             width: min(100%, 300px);
             border-radius: 0 !important;
             background:
-                linear-gradient(180deg, #f8fbff 0%, #dfe8f5 52%, #aebfda 100%);
-            border: 2px solid #2d3f5f;
+                linear-gradient(180deg, #ffffff 0%, #e7f0fa 52%, #c0d0e4 100%);
+            border: 2px solid #243652;
             box-shadow:
                 inset 2px 2px 0 #ffffff,
-                inset -2px -2px 0 #7b8fa9,
-                3px 3px 0 rgba(31,45,68,0.34);
+                inset -2px -2px 0 #8fa1b8,
+                3px 3px 0 rgba(31,45,68,0.26);
         }
 
         .visual-pixel .compact-title {
-            color: #152238;
-            text-shadow: 1px 1px 0 rgba(255,255,255,0.28);
+            color: #071426;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.62);
             letter-spacing: 0;
         }
 
@@ -1357,7 +1371,7 @@
         .dark .visual-pixel .modal-title,
         .dark .visual-pixel .modal-field,
         .dark .visual-pixel .ios-icon-button {
-            color: #102033 !important;
+            color: #071426 !important;
         }
 
         .dark .visual-pixel .compact-subtitle,
@@ -1366,7 +1380,7 @@
         .dark .visual-pixel .modal-secondary,
         .dark .visual-pixel .modal-field::placeholder,
         .dark .visual-pixel .compact-search-input::placeholder {
-            color: #445978 !important;
+            color: #3c4f6b !important;
         }
 
         .visual-pixel .intent-chip {
@@ -1421,9 +1435,10 @@
 
         .dark .visual-pixel.app-shell {
             background:
-                linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
-                linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
-                linear-gradient(180deg, #20304a 0%, #18243a 48%, #11192a 100%) !important;
+                repeating-linear-gradient(0deg, rgba(5,12,24,0.055) 0 1px, transparent 1px 4px),
+                linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+                linear-gradient(180deg, #f4f8fe 0%, #dce7f4 48%, #bacbe0 100%) !important;
             background-size: 8px 8px, 8px 8px, auto;
         }
 
@@ -1648,10 +1663,10 @@
 
         .visual-pixel .mode-chip {
             border-radius: 0;
-            background: linear-gradient(180deg, #f8fbff, #b9cce5);
-            color: #152238 !important;
-            border: 1px solid #536a8a;
-            box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #7b8fa9;
+            background: linear-gradient(180deg, #ffffff, #cbd9ea);
+            color: #071426 !important;
+            border: 1px solid #344765;
+            box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #8fa1b8;
         }
 
         .visual-pixel .decision-switch .mode-chip {
@@ -1659,37 +1674,37 @@
         }
 
         .visual-pixel .mode-chip[aria-pressed="true"] {
-            background: linear-gradient(180deg, #b7cbe4, #e8f0fa);
-            color: #0f1b2f !important;
-            border-color: #2d3f5f;
-            box-shadow: inset 1px 1px 0 #6f86a5, inset -1px -1px 0 #ffffff;
+            background: linear-gradient(180deg, #d1deee, #ffffff);
+            color: #06101d !important;
+            border-color: #1f2d42;
+            box-shadow: inset 1px 1px 0 #7c90aa, inset -1px -1px 0 #ffffff;
         }
 
         .visual-pixel .ios-glass-input {
-            background: #f8fbff;
-            color: #152238 !important;
-            border: 2px solid #536a8a;
-            box-shadow: inset 2px 2px 0 #7b8fa9, inset -2px -2px 0 #ffffff;
+            background: #ffffff;
+            color: #071426 !important;
+            border: 2px solid #344765;
+            box-shadow: inset 2px 2px 0 #9aabc0, inset -2px -2px 0 #ffffff;
         }
 
         .visual-pixel .ios-glass-input::placeholder {
-            color: #6f7f98 !important;
+            color: #4c5d76 !important;
         }
 
         .visual-pixel .compact-nav-button,
         .visual-pixel .ios-icon-button {
             border-radius: 0 !important;
-            background: linear-gradient(180deg, #f8fbff, #b9cce5);
-            color: #152238 !important;
-            border: 1px solid #536a8a !important;
-            box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #7b8fa9;
+            background: linear-gradient(180deg, #ffffff, #cbd9ea);
+            color: #071426 !important;
+            border: 1px solid #344765 !important;
+            box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #8fa1b8;
         }
 
         .visual-pixel .compact-nav-button.ios-nav-active,
         .visual-pixel .ios-icon-button:active {
-            background: linear-gradient(180deg, #b7cbe4, #e8f0fa) !important;
-            color: #0f1b2f !important;
-            box-shadow: inset 1px 1px 0 #6f86a5, inset -1px -1px 0 #ffffff;
+            background: linear-gradient(180deg, #d1deee, #ffffff) !important;
+            color: #06101d !important;
+            box-shadow: inset 1px 1px 0 #7c90aa, inset -1px -1px 0 #ffffff;
         }
 
         .visual-pixel .top-menu-popover {
@@ -1700,13 +1715,13 @@
         }
 
         .visual-pixel .wheel-action-rail .ios-icon-button {
-            width: 42px;
-            height: 42px;
+            width: 48px;
+            height: 48px;
         }
 
         .visual-pixel .wheel-action-rail {
-            bottom: -2px;
-            padding-inline: 12px;
+            grid-template-columns: 48px 226px 48px;
+            gap: 14px;
         }
 
         .visual-pixel .wheel-frame {
@@ -1799,7 +1814,7 @@
             .visual-pixel .wheel-frame {
                 width: min(calc(100% - 42px), 234px);
                 max-width: min(calc(100% - 42px), 234px);
-                margin-top: 40px;
+                margin-top: 42px !important;
             }
         }
 
@@ -1811,11 +1826,12 @@
             .visual-pixel .wheel-frame {
                 width: min(calc(100dvw - 34px), 356px);
                 max-width: min(calc(100% - 20px), 356px);
+                margin-top: 34px;
             }
 
             .visual-pixel .wheel-action-rail {
-                bottom: 4px;
-                padding-inline: 24px;
+                grid-template-columns: 44px 210px 44px;
+                gap: 12px;
             }
         }
 
@@ -2020,16 +2036,16 @@
         .visual-pixel .compact-spin-button {
             border-radius: 0 !important;
             background:
-                linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px),
-                linear-gradient(180deg, #ffffff 0%, #dce7f5 48%, #a9bad3 100%) !important;
+                linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px),
+                linear-gradient(180deg, #ffffff 0%, #e4eef9 50%, #bfd0e4 100%) !important;
             background-size: 8px 8px, auto !important;
-            color: #152238 !important;
-            border: 2px solid #2d3f5f !important;
+            color: #071426 !important;
+            border: 2px solid #243652 !important;
             box-shadow:
                 inset 2px 2px 0 #ffffff,
-                inset -2px -2px 0 #7b8fa9,
+                inset -2px -2px 0 #8fa1b8,
                 inset 0 -4px 0 rgba(45,63,95,0.12),
-                4px 4px 0 rgba(31,45,68,0.42) !important;
+                4px 4px 0 rgba(31,45,68,0.30) !important;
         }
 
         .visual-pixel .compact-spin-button:active {
@@ -6335,7 +6351,9 @@ const App = () => {
     onSpinComplete: handleSpinComplete,
     isMuted: isMuted,
     onSpin: handleSpin
-  })), React.createElement("div", {
+  }))), decisionMode === 'wheel' && React.createElement("div", {
+    className: "compact-footer w-full px-5 pb-6 z-20 flex flex-col items-center gap-3 mt-3"
+  }, React.createElement("div", {
     className: "wheel-action-rail"
   }, React.createElement("button", {
     onClick: () => setItems(generatePool()),
@@ -6346,6 +6364,10 @@ const App = () => {
   }, React.createElement(Icons.Shuffle, {
     className: "w-4 h-4"
   })), React.createElement("button", {
+    onClick: handleSpin,
+    disabled: isSpinning || items.length === 0,
+    className: `compact-spin-button w-full rounded-2xl px-5 py-4 text-[15px] font-black tracking-[0.24em] transition-all duration-300 border ${isSpinning || items.length === 0 ? 'bg-zinc-200 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-600 border-transparent' : 'bg-zinc-950 dark:bg-white text-white dark:text-black border-zinc-950 dark:border-white shadow-[0_16px_45px_rgba(0,0,0,0.28)] dark:shadow-[0_0_35px_rgba(255,255,255,0.16)] hover:scale-[1.02] active:scale-[0.98]'}`
+  }, "\u5F00\u59CB\u65CB\u8F6C"), React.createElement("button", {
     onClick: () => setModals({
       ...modals,
       history: true
@@ -6355,13 +6377,7 @@ const App = () => {
     className: "ios-glass-soft ios-icon-button p-3 rounded-full hover:text-black dark:hover:text-white transition-colors"
   }, React.createElement(Icons.History, {
     className: "w-4 h-4"
-  })))), decisionMode === 'wheel' && React.createElement("div", {
-    className: "compact-footer w-full px-6 pb-6 z-20 flex flex-col items-center gap-3 mt-3"
-  }, React.createElement("button", {
-    onClick: handleSpin,
-    disabled: isSpinning || items.length === 0,
-    className: `compact-spin-button w-full max-w-[280px] rounded-2xl px-5 py-4 text-[15px] font-black tracking-[0.24em] transition-all duration-300 border ${isSpinning || items.length === 0 ? 'bg-zinc-200 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-600 border-transparent' : 'bg-zinc-950 dark:bg-white text-white dark:text-black border-zinc-950 dark:border-white shadow-[0_16px_45px_rgba(0,0,0,0.28)] dark:shadow-[0_0_35px_rgba(255,255,255,0.16)] hover:scale-[1.02] active:scale-[0.98]'}`
-  }, "\u5F00\u59CB\u65CB\u8F6C")), !isSpinning && winner && React.createElement(ResultCard, {
+  })))), !isSpinning && winner && React.createElement(ResultCard, {
     winner: winner,
     onClose: () => setWinner(null),
     onRetry: () => {
