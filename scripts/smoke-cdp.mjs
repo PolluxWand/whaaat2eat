@@ -138,6 +138,7 @@ async function runSmoke() {
         deviceScaleFactor: 2,
         mobile: true,
       });
+      await evalValue(`localStorage.setItem('eat_visual_style', ${JSON.stringify(spec.style)})`);
       const separator = targetUrl.includes('?') ? '&' : '?';
       await send('Page.navigate', {
         url: `${targetUrl}${separator}mobile_audit=${spec.width}x${spec.height}_${spec.mode}_${spec.style}_${Date.now()}`,
@@ -146,7 +147,6 @@ async function runSmoke() {
       const data = await evalValue(`(async () => {
         const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         const byText = (text) => [...document.querySelectorAll('button')].find((button) => button.innerText.trim() === text);
-        if (${JSON.stringify(spec.style)} === 'pixel') byText('\\u50cf\\u7d20')?.click();
         if (${JSON.stringify(spec.mode)} === 'slot') byText('\\u6447\\u6447\\u673a')?.click();
         await wait(160);
         const box = (selector) => {
@@ -165,7 +165,21 @@ async function runSmoke() {
         const target = ${JSON.stringify(spec.mode)} === 'slot' ? box('.slot-machine-frame') : box('.wheel-frame');
         const footer = box('.compact-footer');
         const nav = box('.compact-nav');
+        const search = document.querySelector('.compact-search-input');
+        const modeRow = box('.mode-row');
+        const stage = box('.stage-anchor');
+        const spin = box('.compact-spin-button');
+        const railButtons = [...document.querySelectorAll('.wheel-action-rail button')].map((button) => {
+          const rect = button.getBoundingClientRect();
+          return { left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) };
+        });
         const root = document.documentElement;
+        const targetCenterDelta = target ? Math.round((target.left + target.width / 2) - window.innerWidth / 2) : null;
+        const visualCenterDelta = target && ${JSON.stringify(spec.mode)} === 'slot' ? Math.round((target.left + target.width / 2 - 6) - window.innerWidth / 2) : targetCenterDelta;
+        const placeholderFits = !search || search.scrollWidth <= search.clientWidth + 1;
+        const spinSideGap = spin && railButtons.length >= 2
+          ? Math.min(Math.round(spin.left - railButtons[0].right), Math.round(railButtons[1].left - spin.right))
+          : null;
         return {
           viewport: { width: window.innerWidth, height: window.innerHeight },
           scrollWidth: root.scrollWidth,
@@ -175,12 +189,23 @@ async function runSmoke() {
           target,
           footer,
           nav,
+          modeRow,
+          stage,
+          spin,
+          railButtons,
           hasHorizontalOverflow: root.scrollWidth > root.clientWidth + 1,
           hasSevereVerticalOverflow: root.scrollHeight > root.clientHeight + 28,
           targetInViewport: !!target && target.top >= -1 && target.bottom <= window.innerHeight + 1,
           footerVisible: !footer || footer.bottom <= window.innerHeight + 1,
           navGap: target && nav ? Math.round(target.top - nav.bottom) : null,
           footerGap: target && footer ? Math.round(footer.top - target.bottom) : null,
+          targetCenterDelta,
+          visualCenterDelta,
+          placeholderFits,
+          placeholderScrollWidth: search?.scrollWidth || null,
+          placeholderClientWidth: search?.clientWidth || null,
+          mainStyleButtonsVisible: [...document.querySelectorAll('button')].some((button) => ['\\u73bb\\u7483', '\\u50cf\\u7d20'].includes(button.innerText.trim())),
+          spinSideGap,
           mode: document.querySelector('.slot-machine-frame') ? 'slot' : 'wheel',
           style: document.querySelector('.app-shell')?.className || '',
         };
@@ -189,6 +214,11 @@ async function runSmoke() {
         && !data.hasSevereVerticalOverflow
         && data.targetInViewport
         && data.footerVisible
+        && data.navGap >= 12
+        && Math.abs(data.visualCenterDelta ?? 999) <= 14
+        && data.placeholderFits
+        && !data.mainStyleButtonsVisible
+        && (spec.mode !== 'wheel' || data.spinSideGap === null || data.spinSideGap >= 8)
         && data.mode === spec.mode
         && data.style.includes(`visual-${spec.style}`);
       viewportChecks.push({
@@ -288,9 +318,12 @@ async function runSmoke() {
         const labels = [...document.querySelectorAll('button')]
           .map((button) => button.innerText.trim() || button.getAttribute('aria-label'))
           .filter(Boolean);
-        const required = [S.more, S.wheel, S.slot, S.glass, S.pixel, S.all, S.meal, S.dessert, S.drink, S.night, S.catButton, S.shuffle, S.history, S.spin];
+        const required = [S.more, S.wheel, S.slot, S.all, S.meal, S.dessert, S.drink, S.night, S.catButton, S.shuffle, S.history, S.spin];
         const missing = required.filter((label) => !labels.includes(label));
         missing.length ? fail('initial controls present', { missing }) : pass('initial controls present');
+        labels.includes(S.glass) || labels.includes(S.pixel)
+          ? fail('visual style hidden from main controls', { labels })
+          : pass('visual style hidden from main controls');
 
         await click(byText(S.drink), 'drink tab');
         const drinkClass = byText(S.drink)?.className || '';
@@ -396,8 +429,14 @@ async function runSmoke() {
         const secondLabels = [...document.querySelectorAll('.wheel-rotor text')].slice(0, 6).map((node) => node.textContent).join('|');
         firstLabels !== secondLabels ? pass('shuffle refreshes candidates', { before: firstLabels, after: secondLabels }) : pass('shuffle button clickable', { note: 'random batch may repeat' });
 
-        await click(byText(S.pixel), 'pixel');
-        document.querySelector('.app-shell')?.className.includes('visual-pixel') ? pass('pixel theme switch') : fail('pixel theme switch');
+        await click(byLabel(S.more), 'more menu for style');
+        await click(byLabel(S.settings), 'settings for style');
+        await click(byText(S.pixel), 'pixel in settings');
+        const stylePersisted = localStorage.getItem('eat_visual_style');
+        await closeModal();
+        document.querySelector('.app-shell')?.className.includes('visual-pixel') && stylePersisted === 'pixel'
+          ? pass('pixel theme switch in settings', { stylePersisted })
+          : fail('pixel theme switch in settings', { stylePersisted, appClass: document.querySelector('.app-shell')?.className || '' });
         const pixelText = {
           searchColor: getComputedStyle(document.querySelector('.compact-search-input')).color,
           spinColor: getComputedStyle(byText(S.spin)).color,

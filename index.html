@@ -237,6 +237,13 @@
             aspect-ratio: 1 / 1;
         }
 
+        .stage-anchor {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .wheel-zone {
             width: 100%;
             min-height: 0;
@@ -246,11 +253,11 @@
             position: absolute;
             left: 0;
             right: 0;
-            bottom: 10px;
+            bottom: 14px;
             z-index: 25;
             display: flex;
             justify-content: space-between;
-            padding-inline: 24px;
+            padding-inline: 30px;
             pointer-events: none;
         }
 
@@ -288,9 +295,23 @@
 
         .app-header-grid {
             display: grid;
-            grid-template-columns: 84px minmax(0, 1fr) 36px;
+            grid-template-columns: 82px minmax(0, 1fr) 38px;
             align-items: center;
-            column-gap: 7px;
+            column-gap: 6px;
+        }
+
+        .compact-title {
+            white-space: nowrap;
+            font-size: clamp(23px, 6.5vw, 27px);
+        }
+
+        .compact-search-input {
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .compact-search-icon {
+            left: 0.72rem !important;
         }
 
         .result-panel {
@@ -497,7 +518,7 @@
             }
 
             .compact-title {
-                font-size: 24px;
+                font-size: clamp(22px, 6.1vw, 24px);
             }
 
             .compact-subtitle {
@@ -514,8 +535,8 @@
             .compact-search-input {
                 padding-top: 5px;
                 padding-bottom: 5px;
-                padding-left: 2rem !important;
-                padding-right: 2rem !important;
+                padding-left: 1.85rem !important;
+                padding-right: 1.35rem !important;
                 font-size: 12px;
                 border-radius: 999px;
             }
@@ -530,9 +551,9 @@
             }
 
             .compact-wheel-zone {
-                justify-content: flex-start !important;
-                padding-top: 0;
-                padding-bottom: 56px;
+                justify-content: center !important;
+                padding-top: 18px !important;
+                padding-bottom: 78px;
             }
 
             .compact-footer {
@@ -546,13 +567,14 @@
             }
 
             .compact-spin-button {
+                max-width: 252px !important;
                 padding-top: 10px !important;
                 padding-bottom: 10px !important;
             }
 
             .wheel-action-rail {
                 bottom: 8px;
-                padding-inline: 18px;
+                padding-inline: 30px;
             }
         }
 
@@ -581,12 +603,13 @@
             }
 
             .visual-pixel .wheel-frame {
-                width: min(calc(100% - 42px), 252px);
-                max-width: min(calc(100% - 42px), 252px);
+                width: min(calc(100% - 42px), 234px);
+                max-width: min(calc(100% - 42px), 234px);
             }
 
             .compact-wheel-zone {
-                padding-bottom: 44px;
+                padding-top: 12px !important;
+                padding-bottom: 79px !important;
             }
 
             .compact-footer {
@@ -614,10 +637,26 @@
             gap: 4px;
         }
 
+        .mode-row {
+            display: flex;
+            justify-content: center;
+            padding-inline: 16px;
+        }
+
+        .mode-row .decision-switch {
+            width: min(100%, 360px);
+        }
+
         .style-switch {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 4px;
+        }
+
+        .settings-style-switch {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
         }
 
         .mode-chip {
@@ -662,6 +701,117 @@
                 linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.42)),
                 radial-gradient(circle at 50% 0%, rgba(255,255,255,0.58), transparent 58%);
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.58), inset 0 -18px 34px rgba(0,0,0,0.10), 0 22px 48px rgba(0,0,0,0.22);
+        }
+
+        @media (max-width: 430px) {
+            .app-shell {
+                min-height: 100svh;
+            }
+
+            .app-header-grid {
+                grid-template-columns: 76px minmax(0, 1fr) 36px;
+                column-gap: 5px;
+            }
+
+            .compact-header {
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                padding-top: 12px !important;
+            }
+
+            .compact-title {
+                font-size: clamp(21px, 6vw, 25px);
+            }
+
+            .compact-search-input {
+                padding-left: 1.95rem !important;
+                padding-right: 1.2rem !important;
+                font-size: 12px !important;
+            }
+
+            .compact-search-icon {
+                left: 0.66rem !important;
+                width: 0.82rem !important;
+                height: 0.82rem !important;
+            }
+
+            .mode-row {
+                margin-top: 8px !important;
+                padding-inline: 18px;
+            }
+
+            .mode-row .decision-switch {
+                width: min(100%, 318px);
+                padding: 3px !important;
+            }
+
+            .mode-chip {
+                padding-top: 5px;
+                padding-bottom: 5px;
+                font-size: 12px;
+            }
+
+            .compact-nav {
+                margin-top: 8px !important;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+            }
+
+            .compact-nav .ios-glass {
+                padding: 4px !important;
+            }
+
+            .compact-nav-button {
+                min-width: 62px !important;
+                padding-top: 4px !important;
+                padding-bottom: 4px !important;
+                font-size: 10px !important;
+            }
+
+            .compact-wheel-zone {
+                justify-content: center !important;
+                padding-top: 20px !important;
+                padding-bottom: 84px !important;
+            }
+
+            .stage-anchor {
+                transform: translateY(6px);
+            }
+
+            .wheel-frame {
+                width: min(calc(100dvw - 30px), 380px);
+                max-width: min(calc(100% - 18px), 380px);
+            }
+
+            .slot-machine-frame {
+                width: min(calc(100dvw - 54px), 350px);
+                max-width: min(calc(100% - 42px), 350px);
+                min-height: min(calc(100dvw - 54px), 350px);
+                transform: translateX(6px);
+            }
+
+            .visual-pixel .slot-machine-frame {
+                width: min(calc(100dvw - 58px), 330px);
+                max-width: min(calc(100% - 44px), 330px);
+                min-height: 350px;
+                transform: translateX(7px);
+            }
+
+            .compact-footer {
+                padding-left: 82px !important;
+                padding-right: 82px !important;
+            }
+
+            .compact-spin-button {
+                max-width: 226px !important;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                letter-spacing: 0.18em !important;
+            }
+
+            .wheel-action-rail {
+                padding-inline: 24px;
+            }
         }
 
         .slot-machine-frame::before {
@@ -980,7 +1130,6 @@
         .visual-pixel .app-header-grid,
         .visual-pixel .compact-nav,
         .visual-pixel .compact-footer,
-        .visual-pixel .mode-chip,
         .visual-pixel .slot-machine-frame,
         .visual-pixel .slot-reel,
         .visual-pixel .slot-item {
@@ -997,6 +1146,19 @@
             box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9, 4px 4px 0 rgba(31,45,68,0.42);
             -webkit-backdrop-filter: none;
             backdrop-filter: none;
+        }
+
+        .visual-pixel .decision-switch.ios-glass {
+            border-radius: 0 !important;
+            padding: 4px !important;
+        }
+
+        .visual-pixel .mode-row .decision-switch.ios-glass {
+            width: min(100%, 300px);
+            border-radius: 0 !important;
+            background: #dfe8f5;
+            border: 2px solid #2d3f5f;
+            box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9, 3px 3px 0 rgba(31,45,68,0.34);
         }
 
         .visual-pixel .compact-title {
@@ -1309,10 +1471,15 @@
         }
 
         .visual-pixel .mode-chip {
+            border-radius: 0;
             background: linear-gradient(180deg, #f8fbff, #b9cce5);
             color: #152238 !important;
             border: 1px solid #536a8a;
             box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #7b8fa9;
+        }
+
+        .visual-pixel .decision-switch .mode-chip {
+            border-radius: 0 !important;
         }
 
         .visual-pixel .mode-chip[aria-pressed="true"] {
@@ -1438,8 +1605,24 @@
 
         @media (max-height: 520px) {
             .visual-pixel .wheel-frame {
-                width: min(calc(100% - 42px), 252px);
-                max-width: min(calc(100% - 42px), 252px);
+                width: min(calc(100% - 42px), 234px);
+                max-width: min(calc(100% - 42px), 234px);
+            }
+        }
+
+        @media (max-width: 430px) {
+            .visual-pixel .mode-row .decision-switch.ios-glass {
+                width: min(100%, 286px);
+            }
+
+            .visual-pixel .wheel-frame {
+                width: min(calc(100dvw - 34px), 356px);
+                max-width: min(calc(100% - 20px), 356px);
+            }
+
+            .visual-pixel .wheel-action-rail {
+                bottom: 4px;
+                padding-inline: 24px;
             }
         }
 
@@ -4872,7 +5055,9 @@ const Settings = ({
   theme,
   toggleTheme,
   isMuted,
-  toggleMute
+  toggleMute,
+  visualStyle,
+  setVisualStyle
 }) => {
   const fileInputRef = useRef(null);
   if (!isOpen) return null;
@@ -4957,7 +5142,19 @@ const Settings = ({
   }), " \u97F3\u6548"), React.createElement("button", {
     onClick: toggleMute,
     className: `px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isMuted ? 'ios-glass-soft text-zinc-500' : 'bg-white text-zinc-950 shadow-sm'}`
-  }, isMuted ? '关' : '开'))), React.createElement("section", null, React.createElement("div", {
+  }, isMuted ? '关' : '开'))), React.createElement("section", null, React.createElement("h3", {
+    className: "text-xs font-bold text-zinc-500 mb-2 uppercase"
+  }, "\u754C\u9762\u98CE\u683C"), React.createElement("div", {
+    className: "settings-style-switch"
+  }, React.createElement("button", {
+    onClick: () => setVisualStyle('glass'),
+    "aria-pressed": visualStyle === 'glass',
+    className: "mode-chip ios-glass-soft py-3"
+  }, "\u73BB\u7483"), React.createElement("button", {
+    onClick: () => setVisualStyle('pixel'),
+    "aria-pressed": visualStyle === 'pixel',
+    className: "mode-chip ios-glass-soft py-3"
+  }, "\u50CF\u7D20"))), React.createElement("section", null, React.createElement("div", {
     className: "flex items-center justify-between mb-3"
   }, React.createElement("h3", {
     className: "text-xs font-bold text-zinc-500 uppercase"
@@ -5254,6 +5451,11 @@ const App = () => {
   const [showTopMenu, setShowTopMenu] = useState(false);
   const [decisionMode, setDecisionMode] = useState('wheel');
   const [visualStyle, setVisualStyle] = useState('glass');
+  const updateVisualStyle = nextStyle => {
+    if (!['glass', 'pixel'].includes(nextStyle)) return;
+    setVisualStyle(nextStyle);
+    localStorage.setItem('eat_visual_style', nextStyle);
+  };
   const [modals, setModals] = useState({
     settings: false,
     history: false,
@@ -5270,6 +5472,10 @@ const App = () => {
     const savedTheme = localStorage.getItem('eat_theme') || 'dark';
     setTheme(savedTheme);
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    const savedVisualStyle = localStorage.getItem('eat_visual_style');
+    if (['glass', 'pixel'].includes(savedVisualStyle)) {
+      setVisualStyle(savedVisualStyle);
+    }
   }, []);
   useEffect(() => {
     const hour = new Date().getHours();
@@ -5517,7 +5723,7 @@ const App = () => {
   }, React.createElement("div", {
     className: "relative"
   }, React.createElement(Icons.Search, {
-    className: "absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 pointer-events-none"
+    className: "compact-search-icon absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 pointer-events-none"
   }), React.createElement("input", {
     type: "text",
     value: fuzzySearchInput,
@@ -5605,7 +5811,7 @@ const App = () => {
   }, "\u7B5B\u6389 ", keyword)), visibleExcludeKeywords.length > 8 && React.createElement("span", {
     className: "intent-chip intent-chip-muted"
   }, "\u8FD8\u6709 ", visibleExcludeKeywords.length - 8, " \u4E2A\u6392\u9664\u8BCD")))), React.createElement("div", {
-    className: "px-4 mt-2.5 z-10 grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-2"
+    className: "mode-row mt-2.5 z-10"
   }, React.createElement("div", {
     className: "decision-switch ios-glass p-1 rounded-2xl"
   }, React.createElement("button", {
@@ -5616,17 +5822,7 @@ const App = () => {
     onClick: () => !isSpinning && setDecisionMode('slot'),
     "aria-pressed": decisionMode === 'slot',
     className: "mode-chip"
-  }, "\u6447\u6447\u673A")), React.createElement("div", {
-    className: "style-switch ios-glass p-1 rounded-2xl"
-  }, React.createElement("button", {
-    onClick: () => !isSpinning && setVisualStyle('glass'),
-    "aria-pressed": visualStyle === 'glass',
-    className: "mode-chip"
-  }, "\u73BB\u7483"), React.createElement("button", {
-    onClick: () => !isSpinning && setVisualStyle('pixel'),
-    "aria-pressed": visualStyle === 'pixel',
-    className: "mode-chip"
-  }, "\u50CF\u7D20"))), React.createElement("div", {
+  }, "\u6447\u6447\u673A"))), React.createElement("div", {
     className: "compact-nav z-10 px-4 mt-2.5 w-full"
   }, React.createElement("div", {
     className: "ios-glass flex items-center justify-between rounded-2xl p-1"
@@ -5658,7 +5854,7 @@ const App = () => {
   })))), React.createElement("main", {
     className: "compact-wheel-zone wheel-zone flex-1 flex flex-col items-center justify-center pt-1 pb-1 relative z-0"
   }, React.createElement("div", {
-    className: "relative transition-transform duration-700"
+    className: "stage-anchor relative transition-transform duration-700"
   }, React.createElement("div", {
     className: "absolute inset-[9%] rounded-full bg-white/10 dark:bg-white/5 blur-3xl pointer-events-none"
   }), decisionMode === 'wheel' ? React.createElement(Wheel, {
@@ -5731,7 +5927,9 @@ const App = () => {
     theme: theme,
     toggleTheme: toggleTheme,
     isMuted: isMuted,
-    toggleMute: toggleMute
+    toggleMute: toggleMute,
+    visualStyle: visualStyle,
+    setVisualStyle: updateVisualStyle
   }), React.createElement(History, {
     isOpen: modals.history,
     onClose: () => setModals({

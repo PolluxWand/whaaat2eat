@@ -238,6 +238,13 @@
             aspect-ratio: 1 / 1;
         }
 
+        .stage-anchor {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .wheel-zone {
             width: 100%;
             min-height: 0;
@@ -247,11 +254,11 @@
             position: absolute;
             left: 0;
             right: 0;
-            bottom: 10px;
+            bottom: 14px;
             z-index: 25;
             display: flex;
             justify-content: space-between;
-            padding-inline: 24px;
+            padding-inline: 30px;
             pointer-events: none;
         }
 
@@ -289,9 +296,23 @@
 
         .app-header-grid {
             display: grid;
-            grid-template-columns: 84px minmax(0, 1fr) 36px;
+            grid-template-columns: 82px minmax(0, 1fr) 38px;
             align-items: center;
-            column-gap: 7px;
+            column-gap: 6px;
+        }
+
+        .compact-title {
+            white-space: nowrap;
+            font-size: clamp(23px, 6.5vw, 27px);
+        }
+
+        .compact-search-input {
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .compact-search-icon {
+            left: 0.72rem !important;
         }
 
         .result-panel {
@@ -498,7 +519,7 @@
             }
 
             .compact-title {
-                font-size: 24px;
+                font-size: clamp(22px, 6.1vw, 24px);
             }
 
             .compact-subtitle {
@@ -515,8 +536,8 @@
             .compact-search-input {
                 padding-top: 5px;
                 padding-bottom: 5px;
-                padding-left: 2rem !important;
-                padding-right: 2rem !important;
+                padding-left: 1.85rem !important;
+                padding-right: 1.35rem !important;
                 font-size: 12px;
                 border-radius: 999px;
             }
@@ -531,9 +552,9 @@
             }
 
             .compact-wheel-zone {
-                justify-content: flex-start !important;
-                padding-top: 0;
-                padding-bottom: 56px;
+                justify-content: center !important;
+                padding-top: 18px !important;
+                padding-bottom: 78px;
             }
 
             .compact-footer {
@@ -547,13 +568,14 @@
             }
 
             .compact-spin-button {
+                max-width: 252px !important;
                 padding-top: 10px !important;
                 padding-bottom: 10px !important;
             }
 
             .wheel-action-rail {
                 bottom: 8px;
-                padding-inline: 18px;
+                padding-inline: 30px;
             }
         }
 
@@ -582,12 +604,13 @@
             }
 
             .visual-pixel .wheel-frame {
-                width: min(calc(100% - 42px), 252px);
-                max-width: min(calc(100% - 42px), 252px);
+                width: min(calc(100% - 42px), 234px);
+                max-width: min(calc(100% - 42px), 234px);
             }
 
             .compact-wheel-zone {
-                padding-bottom: 44px;
+                padding-top: 12px !important;
+                padding-bottom: 79px !important;
             }
 
             .compact-footer {
@@ -615,10 +638,26 @@
             gap: 4px;
         }
 
+        .mode-row {
+            display: flex;
+            justify-content: center;
+            padding-inline: 16px;
+        }
+
+        .mode-row .decision-switch {
+            width: min(100%, 360px);
+        }
+
         .style-switch {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 4px;
+        }
+
+        .settings-style-switch {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
         }
 
         .mode-chip {
@@ -663,6 +702,117 @@
                 linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.42)),
                 radial-gradient(circle at 50% 0%, rgba(255,255,255,0.58), transparent 58%);
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.58), inset 0 -18px 34px rgba(0,0,0,0.10), 0 22px 48px rgba(0,0,0,0.22);
+        }
+
+        @media (max-width: 430px) {
+            .app-shell {
+                min-height: 100svh;
+            }
+
+            .app-header-grid {
+                grid-template-columns: 76px minmax(0, 1fr) 36px;
+                column-gap: 5px;
+            }
+
+            .compact-header {
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                padding-top: 12px !important;
+            }
+
+            .compact-title {
+                font-size: clamp(21px, 6vw, 25px);
+            }
+
+            .compact-search-input {
+                padding-left: 1.95rem !important;
+                padding-right: 1.2rem !important;
+                font-size: 12px !important;
+            }
+
+            .compact-search-icon {
+                left: 0.66rem !important;
+                width: 0.82rem !important;
+                height: 0.82rem !important;
+            }
+
+            .mode-row {
+                margin-top: 8px !important;
+                padding-inline: 18px;
+            }
+
+            .mode-row .decision-switch {
+                width: min(100%, 318px);
+                padding: 3px !important;
+            }
+
+            .mode-chip {
+                padding-top: 5px;
+                padding-bottom: 5px;
+                font-size: 12px;
+            }
+
+            .compact-nav {
+                margin-top: 8px !important;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+            }
+
+            .compact-nav .ios-glass {
+                padding: 4px !important;
+            }
+
+            .compact-nav-button {
+                min-width: 62px !important;
+                padding-top: 4px !important;
+                padding-bottom: 4px !important;
+                font-size: 10px !important;
+            }
+
+            .compact-wheel-zone {
+                justify-content: center !important;
+                padding-top: 20px !important;
+                padding-bottom: 84px !important;
+            }
+
+            .stage-anchor {
+                transform: translateY(6px);
+            }
+
+            .wheel-frame {
+                width: min(calc(100dvw - 30px), 380px);
+                max-width: min(calc(100% - 18px), 380px);
+            }
+
+            .slot-machine-frame {
+                width: min(calc(100dvw - 54px), 350px);
+                max-width: min(calc(100% - 42px), 350px);
+                min-height: min(calc(100dvw - 54px), 350px);
+                transform: translateX(6px);
+            }
+
+            .visual-pixel .slot-machine-frame {
+                width: min(calc(100dvw - 58px), 330px);
+                max-width: min(calc(100% - 44px), 330px);
+                min-height: 350px;
+                transform: translateX(7px);
+            }
+
+            .compact-footer {
+                padding-left: 82px !important;
+                padding-right: 82px !important;
+            }
+
+            .compact-spin-button {
+                max-width: 226px !important;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                letter-spacing: 0.18em !important;
+            }
+
+            .wheel-action-rail {
+                padding-inline: 24px;
+            }
         }
 
         .slot-machine-frame::before {
@@ -981,7 +1131,6 @@
         .visual-pixel .app-header-grid,
         .visual-pixel .compact-nav,
         .visual-pixel .compact-footer,
-        .visual-pixel .mode-chip,
         .visual-pixel .slot-machine-frame,
         .visual-pixel .slot-reel,
         .visual-pixel .slot-item {
@@ -998,6 +1147,19 @@
             box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9, 4px 4px 0 rgba(31,45,68,0.42);
             -webkit-backdrop-filter: none;
             backdrop-filter: none;
+        }
+
+        .visual-pixel .decision-switch.ios-glass {
+            border-radius: 0 !important;
+            padding: 4px !important;
+        }
+
+        .visual-pixel .mode-row .decision-switch.ios-glass {
+            width: min(100%, 300px);
+            border-radius: 0 !important;
+            background: #dfe8f5;
+            border: 2px solid #2d3f5f;
+            box-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #7b8fa9, 3px 3px 0 rgba(31,45,68,0.34);
         }
 
         .visual-pixel .compact-title {
@@ -1310,10 +1472,15 @@
         }
 
         .visual-pixel .mode-chip {
+            border-radius: 0;
             background: linear-gradient(180deg, #f8fbff, #b9cce5);
             color: #152238 !important;
             border: 1px solid #536a8a;
             box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #7b8fa9;
+        }
+
+        .visual-pixel .decision-switch .mode-chip {
+            border-radius: 0 !important;
         }
 
         .visual-pixel .mode-chip[aria-pressed="true"] {
@@ -1439,8 +1606,24 @@
 
         @media (max-height: 520px) {
             .visual-pixel .wheel-frame {
-                width: min(calc(100% - 42px), 252px);
-                max-width: min(calc(100% - 42px), 252px);
+                width: min(calc(100% - 42px), 234px);
+                max-width: min(calc(100% - 42px), 234px);
+            }
+        }
+
+        @media (max-width: 430px) {
+            .visual-pixel .mode-row .decision-switch.ios-glass {
+                width: min(100%, 286px);
+            }
+
+            .visual-pixel .wheel-frame {
+                width: min(calc(100dvw - 34px), 356px);
+                max-width: min(calc(100% - 20px), 356px);
+            }
+
+            .visual-pixel .wheel-action-rail {
+                bottom: 4px;
+                padding-inline: 24px;
             }
         }
 
@@ -2967,7 +3150,7 @@
         };
 
         // 3.5 Settings
-        const Settings = ({ isOpen, onClose, prefs, updatePrefs, allFoodItems, theme, toggleTheme, isMuted, toggleMute }) => {
+        const Settings = ({ isOpen, onClose, prefs, updatePrefs, allFoodItems, theme, toggleTheme, isMuted, toggleMute, visualStyle, setVisualStyle }) => {
             const fileInputRef = useRef(null);
             if (!isOpen) return null;
             
@@ -3012,6 +3195,14 @@
                                         {isMuted ? <Icons.VolumeX className="w-4 h-4"/> : <Icons.Volume2 className="w-4 h-4"/>} 音效
                                     </div>
                                     <button onClick={toggleMute} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isMuted ? 'ios-glass-soft text-zinc-500' : 'bg-white text-zinc-950 shadow-sm'}`}>{isMuted ? '关' : '开'}</button>
+                                </div>
+                             </section>
+
+                             <section>
+                                <h3 className="text-xs font-bold text-zinc-500 mb-2 uppercase">界面风格</h3>
+                                <div className="settings-style-switch">
+                                    <button onClick={()=>setVisualStyle('glass')} aria-pressed={visualStyle === 'glass'} className="mode-chip ios-glass-soft py-3">玻璃</button>
+                                    <button onClick={()=>setVisualStyle('pixel')} aria-pressed={visualStyle === 'pixel'} className="mode-chip ios-glass-soft py-3">像素</button>
                                 </div>
                              </section>
 
@@ -3214,6 +3405,12 @@
             const [decisionMode, setDecisionMode] = useState('wheel');
             const [visualStyle, setVisualStyle] = useState('glass');
 
+            const updateVisualStyle = (nextStyle) => {
+                if (!['glass', 'pixel'].includes(nextStyle)) return;
+                setVisualStyle(nextStyle);
+                localStorage.setItem('eat_visual_style', nextStyle);
+            };
+
             // Modals
             const [modals, setModals] = useState({ settings: false, history: false, add: false, library: false, catManager: false });
             const [editingItem, setEditingItem] = useState(null);
@@ -3229,6 +3426,10 @@
                 const savedTheme = localStorage.getItem('eat_theme') || 'dark';
                 setTheme(savedTheme);
                 document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+                const savedVisualStyle = localStorage.getItem('eat_visual_style');
+                if (['glass', 'pixel'].includes(savedVisualStyle)) {
+                    setVisualStyle(savedVisualStyle);
+                }
             }, []);
 
             // Time Awareness - 只在初始化时执行一次
@@ -3451,7 +3652,7 @@
                         </div>
                         <div className="compact-search z-10">
                             <div className="relative">
-                                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 pointer-events-none"/>
+                                <Icons.Search className="compact-search-icon absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 pointer-events-none"/>
                                 <input
                                     type="text"
                                     value={fuzzySearchInput}
@@ -3523,14 +3724,10 @@
                         )}
                       </div>
 
-                      <div className="px-4 mt-2.5 z-10 grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-2">
+                      <div className="mode-row mt-2.5 z-10">
                         <div className="decision-switch ios-glass p-1 rounded-2xl">
                             <button onClick={()=>!isSpinning&&setDecisionMode('wheel')} aria-pressed={decisionMode === 'wheel'} className="mode-chip">转盘</button>
                             <button onClick={()=>!isSpinning&&setDecisionMode('slot')} aria-pressed={decisionMode === 'slot'} className="mode-chip">摇摇机</button>
-                        </div>
-                        <div className="style-switch ios-glass p-1 rounded-2xl">
-                            <button onClick={()=>!isSpinning&&setVisualStyle('glass')} aria-pressed={visualStyle === 'glass'} className="mode-chip">玻璃</button>
-                            <button onClick={()=>!isSpinning&&setVisualStyle('pixel')} aria-pressed={visualStyle === 'pixel'} className="mode-chip">像素</button>
                         </div>
                       </div>
 
@@ -3559,7 +3756,7 @@
 
                      {/* Main Decision Surface */}
                      <main className="compact-wheel-zone wheel-zone flex-1 flex flex-col items-center justify-center pt-1 pb-1 relative z-0">
-                        <div className="relative transition-transform duration-700">
+                        <div className="stage-anchor relative transition-transform duration-700">
                              <div className="absolute inset-[9%] rounded-full bg-white/10 dark:bg-white/5 blur-3xl pointer-events-none"></div>
                              {decisionMode === 'wheel' ? (
                                 <Wheel items={items} isSpinning={isSpinning} onSpinComplete={handleSpinComplete} winner={winner} theme={theme} isMuted={isMuted}/>
@@ -3583,7 +3780,7 @@
                      {/* Modals */}
                      {!isSpinning && winner && <ResultCard winner={winner} onClose={()=>setWinner(null)} onRetry={()=>{setWinner(null); handleSpin();}} isFavorite={(prefs.favoriteItemIds||[]).includes(winner?.id)} onToggleFavorite={()=>setPrefs(p=>{const favs = p.favoriteItemIds || []; return {...p, favoriteItemIds: favs.includes(winner.id)?favs.filter(x=>x!==winner.id):[...favs,winner.id]};})} theme={theme} onBanSession={banSession} />}
                      
-                     <Settings isOpen={modals.settings} onClose={()=>setModals({...modals, settings:false})} prefs={prefs} updatePrefs={setPrefs} allFoodItems={allItems} theme={theme} toggleTheme={toggleTheme} isMuted={isMuted} toggleMute={toggleMute} />
+                     <Settings isOpen={modals.settings} onClose={()=>setModals({...modals, settings:false})} prefs={prefs} updatePrefs={setPrefs} allFoodItems={allItems} theme={theme} toggleTheme={toggleTheme} isMuted={isMuted} toggleMute={toggleMute} visualStyle={visualStyle} setVisualStyle={updateVisualStyle} />
                      <History isOpen={modals.history} onClose={()=>setModals({...modals, history:false})} history={history} onClear={()=>setHistory([])} />
                      <FoodLibrary isOpen={modals.library} onClose={()=>setModals({...modals, library:false})} items={allItems} onEdit={i=>{setEditingItem(i); setModals({...modals, add:true})}} favs={prefs.favoriteItemIds || []} onToggleFav={id=>setPrefs(p=>{const favs = p.favoriteItemIds || []; return {...p, favoriteItemIds:favs.includes(id)?favs.filter(x=>x!==id):[...favs,id]};})} navTabs={navTabs}/>
                      <CategoryManager isOpen={modals.catManager} onClose={()=>setModals({...modals, catManager:false})} tabs={navTabs} onUpdateTabs={setNavTabs} />
