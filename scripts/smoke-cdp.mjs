@@ -98,9 +98,7 @@ async function runSmoke() {
     return result.result?.value;
   }
 
-  try {
-    await send('Runtime.enable');
-    await send('Page.enable');
+  async function waitForPageReady() {
     await evalValue(`
       new Promise((resolve) => {
         if (document.readyState === 'complete') resolve(true);
@@ -118,6 +116,96 @@ async function runSmoke() {
         tick();
       })
     `);
+  }
+
+  async function runMobileLayoutAudit() {
+    const viewportChecks = [];
+    const auditSpecs = [
+      { width: 390, height: 844, mode: 'wheel', style: 'glass' },
+      { width: 390, height: 844, mode: 'slot', style: 'glass' },
+      { width: 390, height: 844, mode: 'wheel', style: 'pixel' },
+      { width: 390, height: 844, mode: 'slot', style: 'pixel' },
+      { width: 375, height: 667, mode: 'wheel', style: 'glass' },
+      { width: 375, height: 667, mode: 'slot', style: 'pixel' },
+      { width: 360, height: 640, mode: 'wheel', style: 'pixel' },
+      { width: 360, height: 640, mode: 'slot', style: 'glass' },
+    ];
+
+    for (const spec of auditSpecs) {
+      await send('Emulation.setDeviceMetricsOverride', {
+        width: spec.width,
+        height: spec.height,
+        deviceScaleFactor: 2,
+        mobile: true,
+      });
+      const separator = targetUrl.includes('?') ? '&' : '?';
+      await send('Page.navigate', {
+        url: `${targetUrl}${separator}mobile_audit=${spec.width}x${spec.height}_${spec.mode}_${spec.style}_${Date.now()}`,
+      });
+      await waitForPageReady();
+      const data = await evalValue(`(async () => {
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const byText = (text) => [...document.querySelectorAll('button')].find((button) => button.innerText.trim() === text);
+        if (${JSON.stringify(spec.style)} === 'pixel') byText('\\u50cf\\u7d20')?.click();
+        if (${JSON.stringify(spec.mode)} === 'slot') byText('\\u6447\\u6447\\u673a')?.click();
+        await wait(160);
+        const box = (selector) => {
+          const el = document.querySelector(selector);
+          if (!el) return null;
+          const rect = el.getBoundingClientRect();
+          return {
+            top: Math.round(rect.top),
+            bottom: Math.round(rect.bottom),
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+          };
+        };
+        const target = ${JSON.stringify(spec.mode)} === 'slot' ? box('.slot-machine-frame') : box('.wheel-frame');
+        const footer = box('.compact-footer');
+        const nav = box('.compact-nav');
+        const root = document.documentElement;
+        return {
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+          scrollWidth: root.scrollWidth,
+          clientWidth: root.clientWidth,
+          scrollHeight: root.scrollHeight,
+          clientHeight: root.clientHeight,
+          target,
+          footer,
+          nav,
+          hasHorizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+          hasSevereVerticalOverflow: root.scrollHeight > root.clientHeight + 28,
+          targetInViewport: !!target && target.top >= -1 && target.bottom <= window.innerHeight + 1,
+          footerVisible: !footer || footer.bottom <= window.innerHeight + 1,
+          navGap: target && nav ? Math.round(target.top - nav.bottom) : null,
+          footerGap: target && footer ? Math.round(footer.top - target.bottom) : null,
+          mode: document.querySelector('.slot-machine-frame') ? 'slot' : 'wheel',
+          style: document.querySelector('.app-shell')?.className || '',
+        };
+      })()`);
+      const ok = !data.hasHorizontalOverflow
+        && !data.hasSevereVerticalOverflow
+        && data.targetInViewport
+        && data.footerVisible
+        && data.mode === spec.mode
+        && data.style.includes(`visual-${spec.style}`);
+      viewportChecks.push({
+        name: `mobile layout ${spec.width}x${spec.height} ${spec.style} ${spec.mode}`,
+        ok,
+        ...data,
+      });
+    }
+
+    await send('Emulation.clearDeviceMetricsOverride');
+    return viewportChecks;
+  }
+
+  try {
+    await send('Runtime.enable');
+    await send('Page.enable');
+    await waitForPageReady();
 
     const smoke = await evalValue(`(async () => {
       const out = { checks: [] };
@@ -307,7 +395,7 @@ async function runSmoke() {
           const sliceAngle = 360 / count;
           const normalized = ((finalAngle % 360) + 360) % 360;
           const pointerAngle = ((360 - normalized) % 360 + 360) % 360;
-          const landedIndex = Math.floor(((pointerAngle + sliceAngle / 2) % 360) / sliceAngle);
+          const landedIndex = Math.floor((pointerAngle % 360) / sliceAngle);
           const landedName = slices[landedIndex]?.name || '';
           const resultName = document.querySelector('.result-title')?.textContent?.trim() || '';
           return { finalAngle, normalized, pointerAngle, landedIndex, landedName, resultName };
@@ -413,6 +501,10 @@ async function runSmoke() {
       out.failed = out.checks.filter((check) => !check.ok);
       return out;
     })()`, 70000);
+
+    const mobileLayoutChecks = await runMobileLayoutAudit();
+    smoke.checks.push(...mobileLayoutChecks);
+    smoke.failed = smoke.checks.filter((check) => !check.ok);
 
     return { smoke, runtimeErrors };
   } finally {
