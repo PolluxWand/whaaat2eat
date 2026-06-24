@@ -249,11 +249,11 @@ async function runSmoke() {
           };
         };
         const motionSamples = [readWheelMotion()];
-        await wait(300);
+        await wait(160);
         motionSamples.push(readWheelMotion());
-        await wait(900);
+        await wait(640);
         motionSamples.push(readWheelMotion());
-        await wait(1700);
+        await wait(700);
         motionSamples.push(readWheelMotion());
         const frameInline = document.querySelector('.wheel-frame')?.style.transform || '';
         const frameComputed = getComputedStyle(document.querySelector('.wheel-frame')).transform;
@@ -275,23 +275,22 @@ async function runSmoke() {
           motionSamples[3].angle - motionSamples[2].angle,
         ];
         const motionRates = [
-          motionDeltas[0] / 300,
-          motionDeltas[1] / 900,
-          motionDeltas[2] / 1700,
+          motionDeltas[0] / 160,
+          motionDeltas[1] / 640,
+          motionDeltas[2] / 700,
         ];
         !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline) && centerDelta.x < 0.5 && centerDelta.y < 0.5 && frameCenterDelta.x < 0.5 && frameCenterDelta.y < 0.5
           ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta })
           : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta });
-        motionDeltas[0] > 20
-          && motionDeltas[1] > 20
+        motionDeltas[0] > 100
+          && motionDeltas[1] > 650
           && motionDeltas[2] > 10
-          && motionDeltas[0] < 520
-          && motionDeltas[1] < 980
+          && motionRates[1] > 1
           && motionRates[2] < motionRates[1]
           && motionSamples.every((sample) => !sample.resultVisible)
           ? pass('wheel keeps rotating before result', { motionSamples, motionDeltas, motionRates })
           : fail('wheel keeps rotating before result', { motionSamples, motionDeltas, motionRates });
-        await waitFor(() => document.querySelector('.result-panel'), 6500);
+        await waitFor(() => document.querySelector('.result-panel'), 2600);
         document.querySelector('.result-panel') ? pass('wheel result modal') : fail('wheel result modal');
         const resultColors = {
           title: getComputedStyle(document.querySelector('.result-title')).color,

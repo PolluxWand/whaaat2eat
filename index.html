@@ -3902,8 +3902,8 @@ const Wheel = ({
       setHoveredItem(null);
       const winnerIndex = safeItems.findIndex(i => i.id === winner.id);
       const targetIndex = winnerIndex >= 0 ? winnerIndex : 0;
-      const totalDuration = 3200;
-      const extraSpins = 360 * 2.75;
+      const totalDuration = 1900;
+      const extraSpins = 360 * 4.4;
       const anglePerSlice = 360 / itemCount;
       const randomOffset = (Math.random() - 0.5) * (anglePerSlice * 0.8);
       const baseTargetRotation = 360 - targetIndex * anglePerSlice - anglePerSlice / 2 + randomOffset;
@@ -3916,11 +3916,18 @@ const Wheel = ({
       if (delta < 0) delta += 360;
       const targetRotation = startRotation + delta + extraSpins;
       const startTime = performance.now();
-      const steadyUntil = 0.68;
-      const steadyDistance = 0.78;
+      const launchUntil = 0.10;
+      const launchDistance = 0.16;
+      const steadyUntil = 0.58;
+      const steadyDistance = 0.84;
       const easeSpin = t => {
+        if (t <= launchUntil) {
+          const launchProgress = t / launchUntil;
+          return launchDistance * (launchProgress * launchProgress);
+        }
         if (t <= steadyUntil) {
-          return t / steadyUntil * steadyDistance;
+          const fastProgress = (t - launchUntil) / (steadyUntil - launchUntil);
+          return launchDistance + (steadyDistance - launchDistance) * fastProgress;
         }
         const brakingProgress = (t - steadyUntil) / (1 - steadyUntil);
         return steadyDistance + (1 - steadyDistance) * (1 - Math.pow(1 - brakingProgress, 3));
