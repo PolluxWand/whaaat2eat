@@ -282,16 +282,39 @@ async function runSmoke() {
         !frameInline && frameComputed === 'none' && /rotate\\(/.test(rotorInline) && centerDelta.x < 0.5 && centerDelta.y < 0.5 && frameCenterDelta.x < 0.5 && frameCenterDelta.y < 0.5
           ? pass('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta })
           : fail('pixel wheel rotor only', { frameInline, frameComputed, rotorInline, centerDelta, frameCenterDelta });
-        motionDeltas[0] > 100
-          && motionDeltas[1] > 650
+        motionDeltas[0] > 220
+          && motionDeltas[1] > 1100
           && motionDeltas[2] > 10
-          && motionRates[1] > 1
+          && motionRates[1] > 2
           && motionRates[2] < motionRates[1]
           && motionSamples.every((sample) => !sample.resultVisible)
           ? pass('wheel keeps rotating before result', { motionSamples, motionDeltas, motionRates })
           : fail('wheel keeps rotating before result', { motionSamples, motionDeltas, motionRates });
         await waitFor(() => document.querySelector('.result-panel'), 2600);
         document.querySelector('.result-panel') ? pass('wheel result modal') : fail('wheel result modal');
+        const wheelLanding = (() => {
+          const rotor = document.querySelector('.wheel-rotor');
+          const inline = rotor?.style.transform || '';
+          const inlineMatch = inline.match(/rotate\\(([-0-9.]+)deg\\)/);
+          const finalAngle = inlineMatch ? Number(inlineMatch[1]) : 0;
+          const slices = [...document.querySelectorAll('[data-wheel-index]')]
+            .map((node) => ({
+              index: Number(node.getAttribute('data-wheel-index')),
+              name: node.getAttribute('data-food-name'),
+            }))
+            .sort((a, b) => a.index - b.index);
+          const count = slices.length || 1;
+          const sliceAngle = 360 / count;
+          const normalized = ((finalAngle % 360) + 360) % 360;
+          const pointerAngle = ((360 - normalized) % 360 + 360) % 360;
+          const landedIndex = Math.floor(((pointerAngle + sliceAngle / 2) % 360) / sliceAngle);
+          const landedName = slices[landedIndex]?.name || '';
+          const resultName = document.querySelector('.result-title')?.textContent?.trim() || '';
+          return { finalAngle, normalized, pointerAngle, landedIndex, landedName, resultName };
+        })();
+        wheelLanding.landedName && wheelLanding.resultName && wheelLanding.landedName === wheelLanding.resultName
+          ? pass('wheel pointer matches result', wheelLanding)
+          : fail('wheel pointer matches result', wheelLanding);
         const resultColors = {
           title: getComputedStyle(document.querySelector('.result-title')).color,
           description: getComputedStyle(document.querySelector('.result-description')).color,

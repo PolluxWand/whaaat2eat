@@ -3903,9 +3903,9 @@ const Wheel = ({
       const winnerIndex = safeItems.findIndex(i => i.id === winner.id);
       const targetIndex = winnerIndex >= 0 ? winnerIndex : 0;
       const totalDuration = 1900;
-      const extraSpins = 360 * 4.4;
+      const extraSpins = 360 * 8;
       const anglePerSlice = 360 / itemCount;
-      const randomOffset = (Math.random() - 0.5) * (anglePerSlice * 0.8);
+      const randomOffset = (Math.random() - 0.5) * (anglePerSlice * 0.42);
       const baseTargetRotation = 360 - targetIndex * anglePerSlice - anglePerSlice / 2 + randomOffset;
       let doneTimer;
       let tickTimer;
@@ -3916,10 +3916,10 @@ const Wheel = ({
       if (delta < 0) delta += 360;
       const targetRotation = startRotation + delta + extraSpins;
       const startTime = performance.now();
-      const launchUntil = 0.10;
-      const launchDistance = 0.16;
-      const steadyUntil = 0.58;
-      const steadyDistance = 0.84;
+      const launchUntil = 0.08;
+      const launchDistance = 0.18;
+      const steadyUntil = 0.62;
+      const steadyDistance = 0.90;
       const easeSpin = t => {
         if (t <= launchUntil) {
           const launchProgress = t / launchUntil;
@@ -4076,6 +4076,8 @@ const Wheel = ({
     const labelRadius = RADIUS * 0.50;
     return React.createElement("g", {
       key: index,
+      "data-wheel-index": index,
+      "data-food-name": item.name,
       onMouseEnter: () => !isSpinning && setHoveredItem(item),
       onMouseLeave: () => !isSpinning && setHoveredItem(null),
       onTouchStart: () => !isSpinning && setHoveredItem(item)
