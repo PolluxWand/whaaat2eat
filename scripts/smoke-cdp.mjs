@@ -291,7 +291,7 @@ async function runSmoke() {
         history: '\\u5386\\u53f2\\u8bb0\\u5f55',
         spin: '\\u5f00\\u59cb\\u65cb\\u8f6c',
         white: '\\u6781\\u7b80\\u767d',
-        black: '\\u94a2\\u84dd\\u7070',
+        black: '\\u51b7\\u7070',
         red: '\\u8393\\u679c\\u7ea2',
         close: '\\u5173\\u95ed',
         add: '\\u6dfb\\u52a0\\u7f8e\\u98df',

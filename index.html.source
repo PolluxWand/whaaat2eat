@@ -1955,19 +1955,19 @@
         .visual-pixel .result-panel .poster-preview-black,
         .dark .visual-pixel .result-panel .poster-preview-black {
             --poster-preview-background:
-                linear-gradient(90deg, rgba(58,75,98,0.075) 1px, transparent 1px),
-                linear-gradient(rgba(58,75,98,0.06) 1px, transparent 1px),
-                linear-gradient(180deg, #eef3f8 0%, #d8e1ec 58%, #c3cfde 100%);
-            --poster-preview-text: #132033;
-            --poster-preview-border: #53677f;
+                linear-gradient(90deg, rgba(82,82,76,0.07) 1px, transparent 1px),
+                linear-gradient(rgba(82,82,76,0.055) 1px, transparent 1px),
+                linear-gradient(180deg, #f1f0ec 0%, #e6e5df 58%, #d8d7d0 100%);
+            --poster-preview-text: #1c1f24;
+            --poster-preview-border: #8f8d86;
             background: var(--poster-preview-background) !important;
             background-size: 7px 7px, 7px 7px, auto !important;
             color: var(--poster-preview-text) !important;
             border-color: var(--poster-preview-border) !important;
             box-shadow:
                 inset 2px 2px 0 rgba(255,255,255,0.82),
-                inset -2px -2px 0 rgba(70,93,122,0.32),
-                3px 3px 0 rgba(31,45,68,0.16) !important;
+                inset -2px -2px 0 rgba(95,93,86,0.26),
+                3px 3px 0 rgba(42,41,37,0.12) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-red,
@@ -1991,7 +1991,7 @@
 
         .visual-pixel .result-panel .poster-preview-black *,
         .dark .visual-pixel .result-panel .poster-preview-black * {
-            color: var(--poster-preview-text, #132238) !important;
+            color: var(--poster-preview-text, #1c1f24) !important;
         }
 
         .visual-pixel .result-panel .poster-preview-red *,
@@ -3277,7 +3277,7 @@
 
             const posterThemeLabels = {
                 white: '极简白',
-                black: '钢蓝灰',
+                black: '冷灰',
                 red: '莓果红'
             };
             const posterPreviewStyles = {
@@ -3299,19 +3299,19 @@
                     forcedColorAdjust: 'none'
                 },
                 black: {
-                    '--poster-preview-background': 'linear-gradient(90deg, rgba(58,75,98,0.075) 1px, transparent 1px), linear-gradient(rgba(58,75,98,0.06) 1px, transparent 1px), linear-gradient(180deg, #eef3f8 0%, #d8e1ec 58%, #c3cfde 100%)',
-                    '--poster-preview-text': '#132033',
-                    '--poster-preview-border': '#53677f',
-                    '--poster-dot-background': 'linear-gradient(180deg, #eef3f8 0%, #c3cfde 100%)',
-                    background: 'linear-gradient(90deg, rgba(58,75,98,0.075) 1px, transparent 1px), linear-gradient(rgba(58,75,98,0.06) 1px, transparent 1px), linear-gradient(180deg, #eef3f8 0%, #d8e1ec 58%, #c3cfde 100%)',
-                    texture: 'linear-gradient(90deg, rgba(58,75,98,0.075) 1px, transparent 1px), linear-gradient(rgba(58,75,98,0.06) 1px, transparent 1px)',
-                    solidBackground: '#eef3f8',
-                    color: '#132033',
-                    borderColor: '#53677f',
-                    titlebarBackground: 'linear-gradient(90deg,#4b6079 0%,#8ea1b7 55%,#dbe5ee 100%)',
-                    titlebarBorder: '#53677f',
-                    titlebarShadow: '#243247',
-                    canvasBackground: '#eef3f8',
+                    '--poster-preview-background': 'linear-gradient(90deg, rgba(82,82,76,0.07) 1px, transparent 1px), linear-gradient(rgba(82,82,76,0.055) 1px, transparent 1px), linear-gradient(180deg, #f1f0ec 0%, #e6e5df 58%, #d8d7d0 100%)',
+                    '--poster-preview-text': '#1c1f24',
+                    '--poster-preview-border': '#8f8d86',
+                    '--poster-dot-background': 'linear-gradient(180deg, #f1f0ec 0%, #d8d7d0 100%)',
+                    background: 'linear-gradient(90deg, rgba(82,82,76,0.07) 1px, transparent 1px), linear-gradient(rgba(82,82,76,0.055) 1px, transparent 1px), linear-gradient(180deg, #f1f0ec 0%, #e6e5df 58%, #d8d7d0 100%)',
+                    texture: 'linear-gradient(90deg, rgba(82,82,76,0.07) 1px, transparent 1px), linear-gradient(rgba(82,82,76,0.055) 1px, transparent 1px)',
+                    solidBackground: '#f1f0ec',
+                    color: '#1c1f24',
+                    borderColor: '#8f8d86',
+                    titlebarBackground: 'linear-gradient(90deg,#77766e 0%,#b8b6ad 56%,#eeede8 100%)',
+                    titlebarBorder: '#8f8d86',
+                    titlebarShadow: '#424039',
+                    canvasBackground: '#f1f0ec',
                     colorScheme: 'only light',
                     forcedColorAdjust: 'none'
                 },
@@ -3341,8 +3341,8 @@
                     forcedColorAdjust: 'none'
                 },
                 black: {
-                    '--poster-dot-background': 'linear-gradient(180deg, #eef3f8 0%, #c3cfde 100%)',
-                    background: 'linear-gradient(180deg, #eef3f8 0%, #c3cfde 100%)',
+                    '--poster-dot-background': 'linear-gradient(180deg, #f1f0ec 0%, #d8d7d0 100%)',
+                    background: 'linear-gradient(180deg, #f1f0ec 0%, #d8d7d0 100%)',
                     colorScheme: 'only light',
                     forcedColorAdjust: 'none'
                 },
@@ -3500,7 +3500,7 @@
                             <span className="text-[10px] font-bold tracking-[0.18em] text-zinc-500 dark:text-zinc-400">样式</span>
                             <div className="flex justify-center gap-3" aria-label="海报主题">
                                 <button type="button" onPointerUp={(event) => choosePosterTheme('white', event)} onClick={(event) => choosePosterTheme('white', event)} aria-pressed={posterTheme === 'white'} className="result-theme-dot bg-white" style={posterDotStyles.white} title="极简白" aria-label="极简白"></button>
-                                <button type="button" onPointerUp={(event) => choosePosterTheme('black', event)} onClick={(event) => choosePosterTheme('black', event)} aria-pressed={posterTheme === 'black'} className="result-theme-dot bg-zinc-950" style={posterDotStyles.black} title="钢蓝灰" aria-label="钢蓝灰"></button>
+                                <button type="button" onPointerUp={(event) => choosePosterTheme('black', event)} onClick={(event) => choosePosterTheme('black', event)} aria-pressed={posterTheme === 'black'} className="result-theme-dot bg-zinc-200" style={posterDotStyles.black} title="冷灰" aria-label="冷灰"></button>
                                 <button type="button" onPointerUp={(event) => choosePosterTheme('red', event)} onClick={(event) => choosePosterTheme('red', event)} aria-pressed={posterTheme === 'red'} className="result-theme-dot bg-gradient-to-br from-red-500 to-red-700" style={posterDotStyles.red} title="莓果红" aria-label="莓果红"></button>
                             </div>
                         </div>
